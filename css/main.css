@@ -1193,7 +1193,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #a609ff;
+  background: #ffffed;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -2167,14 +2167,27 @@ ul.breadcrumb li + li:last-child {
   font-weight: bold;
 }
 .tag-cloud {
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
 }
 .tag-cloud a {
   display: inline-block;
-  margin: 10px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  background: #f5f5f5;
+  color: #333;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
 .tag-cloud a:hover {
-  color: var(--link-hover-color) !important;
+  background: #333;
+  color: #fff;
+  transform: translateY(-2px) scale(1.05);
 }
 hr {
   height: 2px;
