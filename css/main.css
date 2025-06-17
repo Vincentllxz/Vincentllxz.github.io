@@ -1193,7 +1193,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #8203df;
+  background: #a609ff;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -1515,24 +1515,17 @@ pre .javascript .function {
   cursor: pointer;
   left: 30px;
   opacity: 1;
+  padding: 0 6px;
   position: fixed;
-  transition: all 0.3s ease-in-out;
+  transition-property: bottom;
   z-index: 1300;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 48px;
-  font-size: 18px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  width: 24px;
 }
 .back-to-top span {
   display: none;
 }
 .back-to-top:hover {
-  background: #87daff;
-  color: #fff;
-  transform: scale(1.1);
+  color: #87daff;
 }
 .back-to-top.back-to-top-on {
   bottom: 19px;
@@ -2315,9 +2308,6 @@ hr {
   border-radius: 2px;
   padding: 0 10px;
   transition-property: background;
-  font-size: 1.15rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
 }
 @media (max-width: 767px) {
   .menu .menu-item a,
@@ -2331,54 +2321,6 @@ hr {
   color: #555;
   padding: 1px 4px;
   text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
-}
-.sidebar-toggle {
-  background: #f0f0f0;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-  color: #555;
-  font-size: 18px;
-  transition: all 0.3s ease;
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  z-index: 1000;
-}
-.sidebar-toggle:hover {
-  background: #87daff;
-  color: #fff;
-  transform: scale(1.1);
-}
-.back-to-top {
-  background: #f0f0f0;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  margin: 20px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-  color: #555;
-}
-.back-to-top span {
-  display: none;
-}
-.back-to-top.back-to-top-on {
-  cursor: pointer;
-  opacity: 1;
-}
-.back-to-top.back-to-top-on:hover {
-  background: #87daff;
-  color: #fff;
-  transform: scale(1.1);
 }
 .posts-expand.index .post-title,
 .posts-expand.index .post-meta {
