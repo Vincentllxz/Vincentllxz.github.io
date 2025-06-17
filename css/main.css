@@ -1121,9 +1121,7 @@ pre .javascript .function {
     margin-left: 0;
   }
 }
-.menu-item-active a,
-.menu .menu-item a:hover,
-.menu .menu-item span.exturl:hover {
+.menu-item-active a {
   background: var(--menu-item-bg-color);
 }
 .use-motion .menu-item {
@@ -1193,7 +1191,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #ffffed;
+  background: #f1f5b4;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -2299,6 +2297,8 @@ hr {
 }
 .site-nav {
   flex-grow: 1;
+  display: flex;
+  justify-content: center;
 }
 @media (max-width: 767px) {
   .site-nav {
@@ -2307,20 +2307,30 @@ hr {
 }
 .menu {
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .menu .menu-item {
-  margin: 0;
+  margin: 0 8px;
+  position: relative;
 }
 @media (max-width: 767px) {
   .menu .menu-item {
-    margin-top: 5px;
+    margin: 6px 0;
+    width: 100%;
+    text-align: left;
   }
 }
 .menu .menu-item a,
 .menu .menu-item span.exturl {
-  border-radius: 2px;
-  padding: 0 10px;
-  transition-property: background;
+  display: inline-block;
+  padding: 6px 14px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $menu-item-color;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 @media (max-width: 767px) {
   .menu .menu-item a,
@@ -2328,12 +2338,27 @@ hr {
     text-align: left;
   }
 }
+.menu .menu-item a:hover,
+.menu .menu-item span.exturl:hover {
+  background: rgba(0,0,0,0.05);
+  color: $menu-item-hover-color;
+  text-decoration: none;
+}
+.menu .menu-item a.menu-item-active,
+.menu .menu-item span.exturl.menu-item-active {
+  background: $menu-item-active-bg;
+  color: $menu-item-active-color;
+}
 .menu .menu-item .badge {
-  background: #fff;
+  position: absolute;
+  top: -4px;
+  right: -10px;
+  background: $accent-color;
+  color: #fff;
+  font-size: 0.75rem;
   border-radius: 10px;
-  color: #555;
-  padding: 1px 4px;
-  text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+  padding: 2px 6px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
 }
 .posts-expand.index .post-title,
 .posts-expand.index .post-meta {
