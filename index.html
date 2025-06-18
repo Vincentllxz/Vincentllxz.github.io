@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"vincentllxz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":20,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":false,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"vincentllxz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":20,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":false,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
   <meta property="og:type" content="website">
@@ -192,7 +192,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-18 03:16:57" itemprop="dateModified" datetime="2025-06-18T03:16:57+08:00">2025-06-18</time>
+                <time title="Modified: 2025-06-19 02:41:12" itemprop="dateModified" datetime="2025-06-19T02:41:12+08:00">2025-06-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -215,7 +215,103 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>這學期有點想測試自己的極限，所以亂選了一堆課：系上的選修、院內的選修，通通塞進課表裡，總共修了 26 學分，真的有點爆炸多。</p>
+          <style>
+    /* 黃色 info-box */
+    details.info-box {
+        background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));
+        border-radius: 10px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1em;
+        transition: all 0.3s ease;
+        border-left: 4px solid rgb(248, 187, 56);
+    }
+
+    details.info-box[open] {
+        border-left-color: rgb(217, 119, 6);
+    }
+
+    details.info-box summary {
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+        position: relative;
+        padding-left: 1.2em;
+    }
+
+    details.info-box summary::before {
+        content: "▶";
+        position: absolute;
+        left: 0;
+        transition: transform 0.3s ease;
+        color: rgb(217, 119, 6);
+    }
+
+    details.info-box[open] summary::before {
+        transform: rotate(90deg);
+    }
+
+    details.info-box:hover {
+        box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+    }
+
+    /* 藍色 warning-box */
+    details.warning-box {
+        background: linear-gradient(to right,rgb(255, 255, 255),rgb(229, 244, 253));
+        border-radius: 10px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1em;
+        transition: all 0.3s ease;
+        border-left: 4px solid #38bdf8;
+    }
+
+    details.warning-box[open] {
+        border-left-color: #0ea5e9;
+    }
+
+    details.warning-box summary {
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+        position: relative;
+        padding-left: 1.2em;
+    }
+
+    details.warning-box summary::before {
+        content: "▶";
+        position: absolute;
+        left: 0;
+        transition: transform 0.3s ease;
+        color: #0ea5e9;
+    }
+
+    details.warning-box[open] summary::before {
+        transform: rotate(90deg);
+    }
+
+    details.warning-box:hover {
+        box-shadow: 0 4px 12px rgba(0, 145, 255, 0.3);
+    }
+
+    .course-info-card {
+        background: rgba(255, 255, 255, 0.15);               /* 淡白透明背景 */
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);           /* 更深陰影 */
+        backdrop-filter: blur(16px) saturate(180%);          /* 關鍵：模糊 + 增彩 */
+        -webkit-backdrop-filter: blur(16px) saturate(180%);  /* Safari 支援 */
+        border: 1px solid rgba(255, 255, 255, 0.3);           /* 微白邊框像玻璃邊緣 */
+        transition: box-shadow 0.3s ease;
+        margin: 1.5em auto;
+    }
+    .course-info-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);    
+    }
+</style>
+
+
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>這學期有點想測試自己的極限，所以亂選了一堆課：系上的選修、院內的選修，通通塞進課表裡，總共修了 26 學分，真的有點爆炸多。</p>
 <p>其實一開始只是因為身邊認識的同學都搶到很多好通識，而我一個人什麼也沒選到，才會一口氣塞了一堆奇怪的選修，結果這學期就這樣開始了。也因此，這學期我真正體驗到什麼叫「通宵寫作業」的生活──雖然很多時候只是我自己忘記 Deadline。總之，打這篇文章的時候我正在準備資訊營當隊輔，還有氣球社的各種文件，狀態有點混亂，如果文字哪裡怪怪的請見諒。</p>
 <p>雖然課很多、生活爆炸，但這學期我其實沒有那麼在意 GPA 了。也許是因為修了《東坡詞》，讓我開始對大學生活有些不同的想法——學會相信「順其自然」總會有好結果。<br>就像東坡在詞中寫的：</p>
 <blockquote>
@@ -279,7 +375,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-18 01:14:41" itemprop="dateModified" datetime="2025-06-18T01:14:41+08:00">2025-06-18</time>
+                <time title="Modified: 2025-06-19 02:42:14" itemprop="dateModified" datetime="2025-06-19T02:42:14+08:00">2025-06-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -302,7 +398,103 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>因為是分科生，大一上入學前我超級緊張，到處找資料，結果發現怎麼都是真強者們在寫資料，好不容易找到一個比較親民的學長就只能參考他寫的<a target="_blank" rel="noopener" href="https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8B%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/">資料</a>，看完一輪就覺得自己獲益良多，所以想說來讓一個「普通人」寫修課心得應該也很有價值（我應該比上面那篇的學長更弱XD）</p>
+          <style>
+    /* 黃色 info-box */
+    details.info-box {
+        background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));
+        border-radius: 10px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1em;
+        transition: all 0.3s ease;
+        border-left: 4px solid rgb(248, 187, 56);
+    }
+
+    details.info-box[open] {
+        border-left-color: rgb(217, 119, 6);
+    }
+
+    details.info-box summary {
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+        position: relative;
+        padding-left: 1.2em;
+    }
+
+    details.info-box summary::before {
+        content: "▶";
+        position: absolute;
+        left: 0;
+        transition: transform 0.3s ease;
+        color: rgb(217, 119, 6);
+    }
+
+    details.info-box[open] summary::before {
+        transform: rotate(90deg);
+    }
+
+    details.info-box:hover {
+        box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+    }
+
+    /* 藍色 warning-box */
+    details.warning-box {
+        background: linear-gradient(to right,rgb(255, 255, 255),rgb(229, 244, 253));
+        border-radius: 10px;
+        padding: 12px 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1em;
+        transition: all 0.3s ease;
+        border-left: 4px solid #38bdf8;
+    }
+
+    details.warning-box[open] {
+        border-left-color: #0ea5e9;
+    }
+
+    details.warning-box summary {
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+        position: relative;
+        padding-left: 1.2em;
+    }
+
+    details.warning-box summary::before {
+        content: "▶";
+        position: absolute;
+        left: 0;
+        transition: transform 0.3s ease;
+        color: #0ea5e9;
+    }
+
+    details.warning-box[open] summary::before {
+        transform: rotate(90deg);
+    }
+
+    details.warning-box:hover {
+        box-shadow: 0 4px 12px rgba(0, 145, 255, 0.3);
+    }
+
+    .course-info-card {
+        background: rgba(255, 255, 255, 0.15);               /* 淡白透明背景 */
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);           /* 更深陰影 */
+        backdrop-filter: blur(16px) saturate(180%);          /* 關鍵：模糊 + 增彩 */
+        -webkit-backdrop-filter: blur(16px) saturate(180%);  /* Safari 支援 */
+        border: 1px solid rgba(255, 255, 255, 0.3);           /* 微白邊框像玻璃邊緣 */
+        transition: box-shadow 0.3s ease;
+        margin: 1.5em auto;
+    }
+    .course-info-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);    
+    }
+</style>
+
+
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>因為是分科生，大一上入學前我超級緊張，到處找資料，結果發現怎麼都是真強者們在寫資料，好不容易找到一個比較親民的學長就只能參考他寫的<a target="_blank" rel="noopener" href="https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8B%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/">資料</a>，看完一輪就覺得自己獲益良多，所以想說來讓一個「普通人」寫修課心得應該也很有價值（我應該比上面那篇的學長更弱XD）</p>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2025/06/16/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8A-%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/#more" rel="contents">

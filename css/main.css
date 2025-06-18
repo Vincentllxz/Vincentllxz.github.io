@@ -1186,7 +1186,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #99d5ff;
+  background: #33ff5d;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -1431,6 +1431,7 @@ pre .javascript .function {
   color: #ff0000;
   display: inline-block;
   margin: 0 5px;
+  animation: iconAnimate 1.33s ease-in-out infinite;
 }
 .powered-by,
 .theme-info {
@@ -2242,7 +2243,13 @@ hr {
   }
 }
 .header {
-  background: var(--content-bg-color);
+  background: #e6f9f9;
+  padding: 1.2em 2em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* 柔和陰影 */
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .header-inner {
   align-items: center;
@@ -2458,4 +2465,9 @@ hr {
 }
 .sub-menu .menu-item {
   display: inline-block;
+}
+html,
+body {
+  background: linear-gradient(to bottom, #d4fafa, #f0fafa, #fefefe);
+  background-attachment: fixed;
 }
