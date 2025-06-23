@@ -412,4 +412,24 @@ NexT.utils = {
     intersectionObserver.observe(element);
     return intersectionObserver;
   }
+
 };
+
+(function registerAutoHideHeader() {
+  const header = document.querySelector('.header');
+  if (!header) return;
+
+  let lastScrollTop = 0;
+
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+    if (currentScroll > lastScrollTop && currentScroll > 100) {
+      header.classList.add('header-hidden');
+    } else {
+      header.classList.remove('header-hidden');
+    }
+
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+  });
+})();
