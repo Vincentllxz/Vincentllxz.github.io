@@ -20,17 +20,17 @@
     var CONFIG = {"hostname":"vincentllxz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":20,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":false,"style":"default"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="&#x2F;* 黃色 info-box *&#x2F;     details.info-box {         background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));         border-radius: 10px;         padding: 12px 16px;         box-">
+  <meta name="description" content="&#x2F;* 黃色 info-box *&#x2F;     &#x2F;* 通用樣式：透明+玻璃效果 *&#x2F;     &#x2F;* 通用：玻璃感 + 柔光背景 *&#x2F;     details.info-box,     details.warning-box {         border-radius: 12px;         padding: 16px 20px;         margin-bottom: 1e">
 <meta property="og:type" content="article">
 <meta property="og:title" content="台大資工大一下 修課心得">
 <meta property="og:url" content="https://vincentllxz.github.io/2025/06/17/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8B-%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/index.html">
 <meta property="og:site_name" content="VinSong&#39;s Blog">
-<meta property="og:description" content="&#x2F;* 黃色 info-box *&#x2F;     details.info-box {         background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));         border-radius: 10px;         padding: 12px 16px;         box-">
+<meta property="og:description" content="&#x2F;* 黃色 info-box *&#x2F;     &#x2F;* 通用樣式：透明+玻璃效果 *&#x2F;     &#x2F;* 通用：玻璃感 + 柔光背景 *&#x2F;     details.info-box,     details.warning-box {         border-radius: 12px;         padding: 16px 20px;         margin-bottom: 1e">
 <meta property="og:locale">
 <meta property="og:image" content="https://vincentllxz.github.io/images/penalty.png">
 <meta property="og:image" content="https://vincentllxz.github.io/images/%E6%9D%B1%E5%9D%A1.jpg">
 <meta property="article:published_time" content="2025-06-17T15:33:14.000Z">
-<meta property="article:modified_time" content="2025-07-10T17:04:55.661Z">
+<meta property="article:modified_time" content="2025-07-19T16:29:16.751Z">
 <meta property="article:author" content="VinSong">
 <meta property="article:tag" content="NTU">
 <meta property="article:tag" content="資工">
@@ -201,7 +201,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-07-11 01:04:55" itemprop="dateModified" datetime="2025-07-11T01:04:55+08:00">2025-07-11</time>
+                <time title="Modified: 2025-07-20 00:29:16" itemprop="dateModified" datetime="2025-07-20T00:29:16+08:00">2025-07-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -226,82 +226,70 @@
       
         <style>
     /* 黃色 info-box */
-    details.info-box {
-        background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));
-        border-radius: 10px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1em;
-        transition: all 0.3s ease;
-        border-left: 4px solid rgb(248, 187, 56);
-    }
-
-    details.info-box[open] {
-        border-left-color: rgb(217, 119, 6);
-    }
-
-    details.info-box summary {
-        font-weight: 600;
-        cursor: pointer;
-        list-style: none;
-        position: relative;
-        padding-left: 1.2em;
-    }
-
-    details.info-box summary::before {
-        content: "▶";
-        position: absolute;
-        left: 0;
-        transition: transform 0.3s ease;
-        color: rgb(217, 119, 6);
-    }
-
-    details.info-box[open] summary::before {
-        transform: rotate(90deg);
-    }
-
-    details.info-box:hover {
-        box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
-    }
-
-    /* 藍色 warning-box */
+    /* 通用樣式：透明+玻璃效果 */
+    /* 通用：玻璃感 + 柔光背景 */
+    details.info-box,
     details.warning-box {
-        background: linear-gradient(to right,rgb(255, 255, 255),rgb(229, 244, 253));
-        border-radius: 10px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        padding: 16px 20px;
         margin-bottom: 1em;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
-        border-left: 4px solid #38bdf8;
+        color: #2d2d2d;
     }
 
+    /* info-box：夕陽金橘色 */
+    details.info-box {
+        border-left: 5px solid rgba(255, 186, 90, 0.8); /* 橙金 */
+        background: linear-gradient(to right, rgba(255, 240, 200, 0.2), rgba(255, 180, 120, 0.2));
+    }
+    details.info-box[open] {
+        border-left-color: rgba(230, 116, 34, 0.9); /* 深橘光影 */
+    }
+    details.info-box summary::before {
+        color: rgba(230, 116, 34, 0.9);
+    }
+    details.info-box:hover {
+        box-shadow: 0 10px 30px rgba(255, 160, 60, 0.4);
+    }
+
+    /* warning-box：夕陽紫霞色 */
+    details.warning-box {
+        border-left: 5px solid rgba(200, 140, 255, 0.8); /* 紫玫瑰 */
+        background: linear-gradient(to right, rgba(240, 220, 255, 0.2), rgba(200, 140, 255, 0.2));
+    }
     details.warning-box[open] {
-        border-left-color: #0ea5e9;
+        border-left-color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box summary::before {
+        color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box:hover {
+        box-shadow: 0 10px 30px rgba(160, 90, 255, 0.4);
     }
 
-    details.warning-box summary {
+    /* summary 通用樣式 */
+    details summary {
         font-weight: 600;
         cursor: pointer;
         list-style: none;
         position: relative;
-        padding-left: 1.2em;
+        padding-left: 1.4em;
+        color: #333;
     }
-
-    details.warning-box summary::before {
+    details summary::before {
         content: "▶";
         position: absolute;
         left: 0;
         transition: transform 0.3s ease;
-        color: #0ea5e9;
     }
-
-    details.warning-box[open] summary::before {
+    details[open] summary::before {
         transform: rotate(90deg);
     }
 
-    details.warning-box:hover {
-        box-shadow: 0 4px 12px rgba(0, 145, 255, 0.3);
-    }
 
     .course-info-card {
         background: rgba(255, 255, 255, 0.15);               /* 淡白透明背景 */

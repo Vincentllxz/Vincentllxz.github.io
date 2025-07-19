@@ -192,7 +192,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-07-11 01:04:55" itemprop="dateModified" datetime="2025-07-11T01:04:55+08:00">2025-07-11</time>
+                <time title="Modified: 2025-07-20 00:29:16" itemprop="dateModified" datetime="2025-07-20T00:29:16+08:00">2025-07-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -217,82 +217,70 @@
       
           <style>
     /* 黃色 info-box */
-    details.info-box {
-        background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));
-        border-radius: 10px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1em;
-        transition: all 0.3s ease;
-        border-left: 4px solid rgb(248, 187, 56);
-    }
-
-    details.info-box[open] {
-        border-left-color: rgb(217, 119, 6);
-    }
-
-    details.info-box summary {
-        font-weight: 600;
-        cursor: pointer;
-        list-style: none;
-        position: relative;
-        padding-left: 1.2em;
-    }
-
-    details.info-box summary::before {
-        content: "▶";
-        position: absolute;
-        left: 0;
-        transition: transform 0.3s ease;
-        color: rgb(217, 119, 6);
-    }
-
-    details.info-box[open] summary::before {
-        transform: rotate(90deg);
-    }
-
-    details.info-box:hover {
-        box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
-    }
-
-    /* 藍色 warning-box */
+    /* 通用樣式：透明+玻璃效果 */
+    /* 通用：玻璃感 + 柔光背景 */
+    details.info-box,
     details.warning-box {
-        background: linear-gradient(to right,rgb(255, 255, 255),rgb(229, 244, 253));
-        border-radius: 10px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        padding: 16px 20px;
         margin-bottom: 1em;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
-        border-left: 4px solid #38bdf8;
+        color: #2d2d2d;
     }
 
+    /* info-box：夕陽金橘色 */
+    details.info-box {
+        border-left: 5px solid rgba(255, 186, 90, 0.8); /* 橙金 */
+        background: linear-gradient(to right, rgba(255, 240, 200, 0.2), rgba(255, 180, 120, 0.2));
+    }
+    details.info-box[open] {
+        border-left-color: rgba(230, 116, 34, 0.9); /* 深橘光影 */
+    }
+    details.info-box summary::before {
+        color: rgba(230, 116, 34, 0.9);
+    }
+    details.info-box:hover {
+        box-shadow: 0 10px 30px rgba(255, 160, 60, 0.4);
+    }
+
+    /* warning-box：夕陽紫霞色 */
+    details.warning-box {
+        border-left: 5px solid rgba(200, 140, 255, 0.8); /* 紫玫瑰 */
+        background: linear-gradient(to right, rgba(240, 220, 255, 0.2), rgba(200, 140, 255, 0.2));
+    }
     details.warning-box[open] {
-        border-left-color: #0ea5e9;
+        border-left-color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box summary::before {
+        color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box:hover {
+        box-shadow: 0 10px 30px rgba(160, 90, 255, 0.4);
     }
 
-    details.warning-box summary {
+    /* summary 通用樣式 */
+    details summary {
         font-weight: 600;
         cursor: pointer;
         list-style: none;
         position: relative;
-        padding-left: 1.2em;
+        padding-left: 1.4em;
+        color: #333;
     }
-
-    details.warning-box summary::before {
+    details summary::before {
         content: "▶";
         position: absolute;
         left: 0;
         transition: transform 0.3s ease;
-        color: #0ea5e9;
     }
-
-    details.warning-box[open] summary::before {
+    details[open] summary::before {
         transform: rotate(90deg);
     }
 
-    details.warning-box:hover {
-        box-shadow: 0 4px 12px rgba(0, 145, 255, 0.3);
-    }
 
     .course-info-card {
         background: rgba(255, 255, 255, 0.15);               /* 淡白透明背景 */
@@ -375,7 +363,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2025-06-25 01:44:44" itemprop="dateModified" datetime="2025-06-25T01:44:44+08:00">2025-06-25</time>
+                <time title="Modified: 2025-07-20 00:42:49" itemprop="dateModified" datetime="2025-07-20T00:42:49+08:00">2025-07-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -399,82 +387,68 @@
 
       
           <style>
-    /* 黃色 info-box */
-    details.info-box {
-        background: linear-gradient(to right,rgb(255, 254, 249),rgb(252, 247, 220));
-        border-radius: 10px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1em;
-        transition: all 0.3s ease;
-        border-left: 4px solid rgb(248, 187, 56);
-    }
-
-    details.info-box[open] {
-        border-left-color: rgb(217, 119, 6);
-    }
-
-    details.info-box summary {
-        font-weight: 600;
-        cursor: pointer;
-        list-style: none;
-        position: relative;
-        padding-left: 1.2em;
-    }
-
-    details.info-box summary::before {
-        content: "▶";
-        position: absolute;
-        left: 0;
-        transition: transform 0.3s ease;
-        color: rgb(217, 119, 6);
-    }
-
-    details.info-box[open] summary::before {
-        transform: rotate(90deg);
-    }
-
-    details.info-box:hover {
-        box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
-    }
-
-    /* 藍色 warning-box */
+    /* 通用樣式：透明+玻璃效果 */
+    /* 通用：玻璃感 + 柔光背景 */
+    details.info-box,
     details.warning-box {
-        background: linear-gradient(to right,rgb(255, 255, 255),rgb(229, 244, 253));
-        border-radius: 10px;
-        padding: 12px 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+        padding: 16px 20px;
         margin-bottom: 1em;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
-        border-left: 4px solid #38bdf8;
+        color: #2d2d2d;
     }
 
+    /* info-box：夕陽金橘色 */
+    details.info-box {
+        border-left: 5px solid rgba(255, 186, 90, 0.8); /* 橙金 */
+        background: linear-gradient(to right, rgba(255, 240, 200, 0.2), rgba(255, 180, 120, 0.2));
+    }
+    details.info-box[open] {
+        border-left-color: rgba(230, 116, 34, 0.9); /* 深橘光影 */
+    }
+    details.info-box summary::before {
+        color: rgba(230, 116, 34, 0.9);
+    }
+    details.info-box:hover {
+        box-shadow: 0 10px 30px rgba(255, 160, 60, 0.4);
+    }
+
+    /* warning-box：夕陽紫霞色 */
+    details.warning-box {
+        border-left: 5px solid rgba(200, 140, 255, 0.8); /* 紫玫瑰 */
+        background: linear-gradient(to right, rgba(240, 220, 255, 0.2), rgba(200, 140, 255, 0.2));
+    }
     details.warning-box[open] {
-        border-left-color: #0ea5e9;
+        border-left-color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box summary::before {
+        color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box:hover {
+        box-shadow: 0 10px 30px rgba(160, 90, 255, 0.4);
     }
 
-    details.warning-box summary {
+    /* summary 通用樣式 */
+    details summary {
         font-weight: 600;
         cursor: pointer;
         list-style: none;
         position: relative;
-        padding-left: 1.2em;
+        padding-left: 1.4em;
+        color: #333;
     }
-
-    details.warning-box summary::before {
+    details summary::before {
         content: "▶";
         position: absolute;
         left: 0;
         transition: transform 0.3s ease;
-        color: #0ea5e9;
     }
-
-    details.warning-box[open] summary::before {
+    details[open] summary::before {
         transform: rotate(90deg);
-    }
-
-    details.warning-box:hover {
-        box-shadow: 0 4px 12px rgba(0, 145, 255, 0.3);
     }
 
     .course-info-card {
