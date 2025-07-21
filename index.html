@@ -193,7 +193,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-TW">
-    <link itemprop="mainEntityOfPage" href="https://vincentllxz.github.io/Test/">
+    <link itemprop="mainEntityOfPage" href="https://vincentllxz.github.io/2025-CSIECAMP/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/vinsong.png">
@@ -207,7 +207,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/Test/" class="post-title-link" itemprop="url">測試</a>
+            <a href="/2025-CSIECAMP/" class="post-title-link" itemprop="url">台大資訊營-隊輔心得</a>
         </h2>
 
         <div class="post-meta">
@@ -216,9 +216,24 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">發表於</span>
-              
 
-              <time title="創建時間：2025-07-20 00:44:07 / 修改時間：00:45:39" itemprop="dateCreated datePublished" datetime="2025-07-20T00:44:07+08:00">2025-07-20</time>
+              <time title="創建時間：2025-07-20 21:23:05" itemprop="dateCreated datePublished" datetime="2025-07-20T21:23:05+08:00">2025-07-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新於</span>
+                <time title="修改時間：2025-07-21 12:06:09" itemprop="dateModified" datetime="2025-07-21T12:06:09+08:00">2025-07-21</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分類於</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%97%A5%E5%B8%B8/" itemprop="url" rel="index"><span itemprop="name">日常</span></a>
+                </span>
             </span>
 
           <br>
@@ -227,14 +242,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">文章字數：</span>
-              <span>0</span>
+              <span>724</span>
             </span>
             <span class="post-meta-item" title="所需閱讀時間">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">所需閱讀時間 &asymp;</span>
-              <span>1 分鐘</span>
+              <span>3 分鐘</span>
             </span>
 
         </div>
@@ -246,7 +261,103 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;bits/stdc++.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    cout &lt;&lt; a &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <style>
+    /* 黃色 info-box */
+    /* 通用樣式：透明+玻璃效果 */
+    /* 通用：玻璃感 + 柔光背景 */
+    details.info-box,
+    details.warning-box {
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 1em;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        color: #2d2d2d;
+    }
+
+    /* info-box：夕陽金橘色 */
+    details.info-box {
+        border-left: 5px solid rgba(255, 186, 90, 0.8); /* 橙金 */
+        background: linear-gradient(to right, rgba(255, 240, 200, 0.2), rgba(255, 180, 120, 0.2));
+    }
+    details.info-box[open] {
+        border-left-color: rgba(230, 116, 34, 0.9); /* 深橘光影 */
+    }
+    details.info-box summary::before {
+        color: rgba(230, 116, 34, 0.9);
+    }
+    details.info-box:hover {
+        box-shadow: 0 10px 30px rgba(255, 160, 60, 0.4);
+    }
+
+    /* warning-box：夕陽紫霞色 */
+    details.warning-box {
+        border-left: 5px solid rgba(200, 140, 255, 0.8); /* 紫玫瑰 */
+        background: linear-gradient(to right, rgba(240, 220, 255, 0.2), rgba(200, 140, 255, 0.2));
+    }
+    details.warning-box[open] {
+        border-left-color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box summary::before {
+        color: rgba(160, 90, 255, 0.9);
+    }
+    details.warning-box:hover {
+        box-shadow: 0 10px 30px rgba(160, 90, 255, 0.4);
+    }
+
+    /* summary 通用樣式 */
+    details summary {
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+        position: relative;
+        padding-left: 1.4em;
+        color: #333;
+    }
+    details summary::before {
+        content: "▶";
+        position: absolute;
+        left: 0;
+        transition: transform 0.3s ease;
+    }
+    details[open] summary::before {
+        transform: rotate(90deg);
+    }
+
+
+    .course-info-card {
+        background: rgba(255, 255, 255, 0.15);               /* 淡白透明背景 */
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);           /* 更深陰影 */
+        backdrop-filter: blur(16px) saturate(180%);          /* 關鍵：模糊 + 增彩 */
+        -webkit-backdrop-filter: blur(16px) saturate(180%);  /* Safari 支援 */
+        border: 1px solid rgba(255, 255, 255, 0.3);           /* 微白邊框像玻璃邊緣 */
+        transition: box-shadow 0.3s ease;
+        margin: 1.5em auto;
+    }
+    .course-info-card:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);    
+    }
+</style>
+
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>三年前，因為我對台大資工充滿憧憬，參加了台大資訊營。當時我被分到了第十小隊，認識了許多志同道合的朋友，也更堅定了我對資訊系的熱忱。<br>兩年後，我如願以償，成功進入這個夢寐以求的地方。</p>
+<p>當我看到資訊營開始招工時，我毫不猶豫地報了名，<del>雖然其實是拖到最後一天才填（因為我差點忘記了）</del>。或許是命運使然，我這次又回到了第十小隊，只是這一次，我不再是被照亮的人，而是拿著微光的人。</p>
+<p>我希望自己能像三年前的隊輔一樣，把對這個地方的熱情與感動傳遞下去，帶給我的小隊員一份對未來的嚮往與期待。</p>
+<blockquote>
+<p>希望每一位對台大資工懷有夢想的人，都能堅定目標，如願以償。</p>
+</blockquote>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2025-CSIECAMP/#more" rel="contents">
+                閱讀全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -296,7 +407,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新於</span>
-                <time title="修改時間：2025-07-20 00:29:16" itemprop="dateModified" datetime="2025-07-20T00:29:16+08:00">2025-07-20</time>
+                <time title="修改時間：2025-07-20 21:24:02" itemprop="dateModified" datetime="2025-07-20T21:24:02+08:00">2025-07-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -481,7 +592,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新於</span>
-                <time title="修改時間：2025-07-20 00:42:49" itemprop="dateModified" datetime="2025-07-20T00:42:49+08:00">2025-07-20</time>
+                <time title="修改時間：2025-07-20 21:23:51" itemprop="dateModified" datetime="2025-07-20T21:23:51+08:00">2025-07-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -698,13 +809,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">分類</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">標籤</span></a>
       </div>
   </nav>
@@ -759,7 +870,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="所需總閱讀時間">53 分鐘</span>
+    <span title="所需總閱讀時間">55 分鐘</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener external nofollow noreferrer" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener external nofollow noreferrer" target="_blank">NexT.Mist</a> 強力驅動
   </div>
