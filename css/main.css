@@ -1213,7 +1213,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #e9edd5;
+  background: #79c344;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -2644,4 +2644,6 @@ body::after {
   border: 1px solid rgba(255,255,255,0.3);
   position: relative;
   z-index: 1;
+/* ↓ 新增這行，將容器往下移 */
+  margin-top: 2em; /* 可依需求調整為 3em、4em 等 */
 }
