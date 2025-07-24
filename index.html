@@ -224,7 +224,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新於</span>
-                <time title="修改時間：2025-07-24 23:49:19" itemprop="dateModified" datetime="2025-07-24T23:49:19+08:00">2025-07-24</time>
+                <time title="修改時間：2025-07-25 01:43:59" itemprop="dateModified" datetime="2025-07-25T01:43:59+08:00">2025-07-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -242,14 +242,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">文章字數：</span>
-              <span>702</span>
+              <span>2.6k</span>
             </span>
             <span class="post-meta-item" title="所需閱讀時間">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">所需閱讀時間 &asymp;</span>
-              <span>3 分鐘</span>
+              <span>9 分鐘</span>
             </span>
 
         </div>
@@ -344,24 +344,56 @@
     }
 
     .quote-box {
-        background: rgba(255, 255, 255, 0.12);                    /* 柔和玻璃感背景 */
-        border-left: 4px solid rgba(255, 255, 255, 0.5);          /* 引言風格邊框 */
-        border-radius: 12px;
-        padding: 18px 24px;
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(14px) saturate(160%);
-        -webkit-backdrop-filter: blur(14px) saturate(160%);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #111;                  /* 黑色字體 */
-        font-weight: bold;           /* 粗體 */
-        font-style: normal;          /* 移除斜體 */
-        margin: 1.5em auto;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;                                /* Flex 容器 */
+        align-items: center;                          /* 垂直置中 */
+        justify-content: flex-start;                  /* 水平靠左 */
+        background: rgba(255, 255, 255, 0.10);       /* 更淡的玻璃感背景 */
+        border-top: 4px solid rgba(255, 255, 255, 0.6); /* 改為上邊框 */
+        border-radius: 20px;
+        padding: 18px 28px 1px 28px;                 /* 上下微調，避免底部空間多 */
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.18);  /* 陰影 */
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #222;                                  /* 字色 */
+        font-weight: 600;
+        font-size: 1.05rem;
+        line-height: 1.4;                             /* 行高調整 */
+        max-width: 800px;
+        margin: 2em auto;
+        transition: all 0.3s ease-in-out;
+        min-height: 100px;                            /* 給個高度方便垂直置中 */
     }
 
     .quote-box:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.16);
+        transform: scale(1.05);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    .custom-figure {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: fit-content;
+        max-width: 100%;
+        margin: 2em auto;  /* 保證居中 */
+    }
+
+    .custom-figure img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin-bottom: 0.75em;
+    }
+
+    .custom-figure figcaption {
+        font-size: 0.95em;
+        color: rgba(0, 0, 0, 0.75);
+        text-align: center;
+        font-style: italic;
     }
 
 
@@ -369,7 +401,7 @@
 <h2 id="前言">前言</h2>
 <p>三年前，因為我對台大資工充滿憧憬，參加了台大資訊營。當時我被分到了第十小隊，認識了許多志同道合的朋友，也更堅定了我對資訊系的熱忱。
 兩年後，我如願以償，成功進入這個夢寐以求的地方。</p>
-<p>當我看到資訊營開始招工時，我毫不猶豫地報了名，<sub>雖然其實是拖到最後一天才填（因為我差點忘記了）</sub>。或許是命運使然，我這次又回到了第十小隊，只是這一次，我不再是被照亮的人，而是拿著微光的人。</p>
+<p>當我看到資訊營開始招工時，我毫不猶豫地報了名，<del>雖然其實是拖到最後一天才填（因為我差點忘記了）</del>。或許是命運使然，我這次又回到了第十小隊，只是這一次，我不再是被照亮的人，而是拿著微光的人。</p>
 <p>我希望自己能像三年前的隊輔一樣，把對這個地方的熱情與感動傳遞下去，帶給我的小隊員一份對未來的嚮往與期待。</p>
 <div class="quote-box">
 <p>希望每一位對台大資工懷有夢想的人，都能堅定目標，如願以償。</p>
@@ -431,7 +463,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新於</span>
-                <time title="修改時間：2025-07-21 12:17:17" itemprop="dateModified" datetime="2025-07-21T12:17:17+08:00">2025-07-21</time>
+                <time title="修改時間：2025-07-25 01:39:20" itemprop="dateModified" datetime="2025-07-25T01:39:20+08:00">2025-07-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -449,7 +481,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">文章字數：</span>
-              <span>8.8k</span>
+              <span>8.9k</span>
             </span>
             <span class="post-meta-item" title="所需閱讀時間">
               <span class="post-meta-item-icon">
@@ -549,6 +581,31 @@
     .course-info-card:hover {
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);    
     }
+
+        .custom-figure {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: fit-content;
+        max-width: 100%;
+        margin: 2em auto;  /* 保證居中 */
+    }
+
+    .custom-figure img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin-bottom: 0.75em;
+    }
+
+    .custom-figure figcaption {
+        font-size: 0.95em;
+        color: rgba(0, 0, 0, 0.75);
+        text-align: center;
+        font-style: italic;
+    }
 </style>
 <h2 id="前言">前言</h2>
 <p>這學期有點想測試自己的極限，所以亂選了一堆課：系上的選修、院內的選修，通通塞進課表裡，總共修了
@@ -619,7 +676,7 @@ Deadline。總之，打這篇文章的時候我正在準備資訊營當隊輔，
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新於</span>
-                <time title="修改時間：2025-07-21 12:18:04" itemprop="dateModified" datetime="2025-07-21T12:18:04+08:00">2025-07-21</time>
+                <time title="修改時間：2025-07-25 01:41:06" itemprop="dateModified" datetime="2025-07-25T01:41:06+08:00">2025-07-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -637,7 +694,7 @@ Deadline。總之，打這篇文章的時候我正在準備資訊營當隊輔，
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">文章字數：</span>
-              <span>5.7k</span>
+              <span>5.8k</span>
             </span>
             <span class="post-meta-item" title="所需閱讀時間">
               <span class="post-meta-item-icon">
@@ -734,6 +791,31 @@ Deadline。總之，打這篇文章的時候我正在準備資訊營當隊輔，
     }
     .course-info-card:hover {
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);    
+    }
+
+        .custom-figure {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: fit-content;
+        max-width: 100%;
+        margin: 2em auto;  /* 保證居中 */
+    }
+
+    .custom-figure img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin-bottom: 0.75em;
+    }
+
+    .custom-figure figcaption {
+        font-size: 0.95em;
+        color: rgba(0, 0, 0, 0.75);
+        text-align: center;
+        font-style: italic;
     }
 </style>
 <h2 id="前言">前言</h2>
@@ -892,12 +974,12 @@ target="_blank" rel="noopener" href="https://yunxiurz.github.io/posts/%E5%8F%B0%
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="總字數">15k</span>
+    <span title="總字數">17k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="所需總閱讀時間">55 分鐘</span>
+    <span title="所需總閱讀時間">1:03</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener external nofollow noreferrer" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener external nofollow noreferrer" target="_blank">NexT.Mist</a> 強力驅動
   </div>
