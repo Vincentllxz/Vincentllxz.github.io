@@ -2,43 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://vincentllxz.github.io/about/index.html</loc>
+    <loc>https://vinsong.csie.org/2025-CSIECAMP/</loc>
     
-    <lastmod>2025-07-24</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://vincentllxz.github.io/2025-CSIECAMP/</loc>
-    
-    <lastmod>2025-07-24</lastmod>
+    <lastmod>2025-07-30</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://vincentllxz.github.io/NTUCSIE-Freshmen-1/</loc>
+    <loc>https://vinsong.csie.org/NTUCSIE-Freshmen-2/</loc>
     
-    <lastmod>2025-07-24</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://vincentllxz.github.io/NTUCSIE-Freshmen-2/</loc>
-    
-    <lastmod>2025-07-24</lastmod>
+    <lastmod>2025-07-26</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://vincentllxz.github.io/categories/index.html</loc>
+    <loc>https://vinsong.csie.org/NTUCSIE-Freshmen-1/</loc>
+    
+    <lastmod>2025-07-26</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://vinsong.csie.org/about/index.html</loc>
+    
+    <lastmod>2025-07-25</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://vinsong.csie.org/categories/index.html</loc>
     
     <lastmod>2025-06-17</lastmod>
     
@@ -47,7 +47,7 @@
   </url>
   
   <url>
-    <loc>https://vincentllxz.github.io/tags/index.html</loc>
+    <loc>https://vinsong.csie.org/tags/index.html</loc>
     
     <lastmod>2025-06-17</lastmod>
     
@@ -57,30 +57,30 @@
   
 
   <url>
-    <loc>https://vincentllxz.github.io/</loc>
-    <lastmod>2025-07-25</lastmod>
+    <loc>https://vinsong.csie.org/</loc>
+    <lastmod>2025-07-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   
   <url>
-    <loc>https://vincentllxz.github.io/tags/NTU/</loc>
-    <lastmod>2025-07-25</lastmod>
+    <loc>https://vinsong.csie.org/tags/NTU/</loc>
+    <lastmod>2025-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://vincentllxz.github.io/tags/CSIE/</loc>
-    <lastmod>2025-07-25</lastmod>
+    <loc>https://vinsong.csie.org/tags/CSIE/</loc>
+    <lastmod>2025-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://vincentllxz.github.io/tags/Summer-Vacation/</loc>
-    <lastmod>2025-07-25</lastmod>
+    <loc>https://vinsong.csie.org/tags/Summer-Vacation/</loc>
+    <lastmod>2025-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -88,15 +88,15 @@
 
   
   <url>
-    <loc>https://vincentllxz.github.io/categories/%E6%97%A5%E5%B8%B8/</loc>
-    <lastmod>2025-07-25</lastmod>
+    <loc>https://vinsong.csie.org/categories/%E6%97%A5%E5%B8%B8/</loc>
+    <lastmod>2025-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://vincentllxz.github.io/categories/%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/</loc>
-    <lastmod>2025-07-25</lastmod>
+    <loc>https://vinsong.csie.org/categories/%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/</loc>
+    <lastmod>2025-07-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
