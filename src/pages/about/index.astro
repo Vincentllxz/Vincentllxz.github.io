@@ -1,8 +1,86 @@
+<!-- ---
+
+import PageLayout from '@/layouts/CommonPage.astro'
+
+
+const headings = [
+  { depth: 2, slug: 'story', text: '我的故事' },
+  { depth: 2, slug: 'contact', text: 'Contact' }
+]
+
+const contactLinks = [
+  { label: 'GitHub', icon: '/images/github.png', href: 'https://github.com/Vincentllxz' },
+  { label: 'Email', icon: '/images/mail.png', href: 'mailto:vincent.950313@gmail.com' },
+  { label: 'Facebook', icon: '/images/FB.png', href: 'https://www.facebook.com/vincent.hu.3532/' },
+  { label: 'Instagram', icon: '/images/instagram.svg', href: 'https://www.instagram.com/vincent_hu313_/' },
+  {
+    label: 'LinkedIn',
+    icon: '/images/linkedin.png',
+    href: 'https://www.linkedin.com/in/%E5%85%81%E5%8D%87-%E8%83%A1-275aa6376/'
+  }
+]
+---
+<PageLayout title='About' {headings} comment>
+  <section class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'>
+    <div class='mx-auto shrink-0 rounded-full border-4 border-background/60 p-2 shadow-md md:mx-0'>
+      <Image src={avatar} alt='VinSong portrait' class='h-40 w-40 rounded-full object-cover' loading='eager' />
+    </div>
+    <div class='space-y-4'>
+      <div>
+        <p class='text-sm uppercase tracking-[0.3em] text-muted-foreground'>Hello, I am</p>
+        <h1 class='text-3xl font-semibold'>VinSong</h1>
+        <p class='text-muted-foreground'>NTU CSIE · Curious builder · Story collector</p>
+      </div>
+      <p>
+        我喜歡嘗試各種新奇的點子，從新技術、新趨勢到看似無厘頭的小計畫，只要能讓生活多一點火花我都願意跳下去玩。也喜歡認識新朋友、聊聊不同領域的故事，學會從日常的小事裡觀察自己。這就是我想記錄的「普通大學生」版本的日常。
+      </p>
+      <div class='flex flex-wrap items-center gap-3 text-sm text-muted-foreground'>
+        <span class='rounded-full border px-4 py-1'>Taiwan</span>
+        <span class='rounded-full border px-4 py-1'>Computer Science</span>
+        <span class='rounded-full border px-4 py-1'>Creativity & curiosity</span>
+      </div>
+    </div>
+  </section>
+
+  <section id='story' class='prose prose-zinc max-w-4xl dark:prose-invert'>
+    <p>
+      以前我都用 Vincent 這個名字，但這名字太常見，每次帳號都被人先註冊走，只好自己取了一個 VinSong。現在的我就讀於台大資工，最開心的事情就是把腦袋裡那些一閃而過的靈感紀錄下來。不管是用文字、照片還是影片，只要能留下什麼，我就想試試看。
+    </p>
+    <p>
+      其實我原本超喜歡化學，還夢想當化學家；沒想到在某個時間點突然轉彎，從此投入電腦科學的世界，還越走越開心。這個網站也是在那個時期誕生的——一個興之所至、想把生活點滴堆疊起來的念頭。現在回頭看，這些紀錄就像充滿細節的便利貼，提醒著曾經的熱忱和那些平凡但珍貴的小冒險。
+    </p>
+    <p>
+      如果你剛好看到這裡，很開心在這裡遇見你，希望這些文字、照片或影像能讓你稍微停下腳步，跟我一起看看這些故事。
+    </p>
+  </section>
+
+  <section id='contact' class='mt-12'>
+    <h2 class='text-2xl font-semibold'>Contact</h2>
+    <p class='text-muted-foreground'>歡迎來打聲招呼，或是直接寫信給我聊聊。</p>
+    <div class='mt-6 flex flex-wrap items-center justify-center gap-6'>
+      {contactLinks.map(({ href, icon, label }) => (
+        <a
+          href={href}
+          target='_blank'
+          rel='noreferrer'
+          class='flex flex-col items-center gap-2 rounded-xl border bg-card/70 px-5 py-4 text-sm transition hover:-translate-y-1 hover:shadow-lg'
+        >
+          <img src={icon} alt={label} class='h-10 w-10 rounded-lg object-contain shadow-sm' />
+          <span>{label}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</PageLayout> -->
+
+
 ---
 import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
+import avatar from '@/assets/avatar.png'
+import { Image } from 'astro:assets'
 
 const headings = [
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
@@ -14,30 +92,39 @@ const headings = [
 ---
 
 <PageLayout title='About' {headings} comment>
-  <p>Developer / Designer</p>
-  <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
-    possit voluptatum.
-  </p>
-  <p>
-    My motto: Stay hungry, Stay foolish. <Spoiler>这里可以夹私货，比如为什么要演奏春日影！</Spoiler>
-  </p>
-  <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' variant='ahead' />
+  <section class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'>
+    <div class='mx-auto shrink-0 rounded-full border-4 border-background/60 p-2 shadow-md md:mx-0'>
+      <Image src={avatar} alt='VinSong portrait' class='h-40 w-40 rounded-full object-cover' loading='eager' />
+    </div>
+    <div class='space-y-4'>
+      <div>
+        <p class='text-sm uppercase tracking-[0.3em] text-muted-foreground'>Hello, I am</p>
+        <h1 class='text-3xl font-semibold'>VinSong</h1>
+        <p class='text-muted-foreground'>NTU CSIE · Curious builder · Story collector</p>
+      </div>
+      <p>
+        我是一個普通的台大資工學生，這裡記錄著我的日常以及修課心得，還有一些廢話和工具分享。如果你也對這些東西有興趣，歡迎一起交流！
+      </p>
+      <div class='flex flex-wrap items-center gap-3 text-sm text-muted-foreground'>
+        <span class='rounded-full border px-4 py-1'>Taiwan</span>
+        <span class='rounded-full border px-4 py-1'>Computer Science</span>
+        <span class='rounded-full border px-4 py-1'>Balloon</span>
+      </div>
+    </div>
+  </section>
 
   {/* general-talk */}
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
-    <li>Lorem ipsum dolor sit amet, vidit suscipit at mei.</li>
+    <li><Spoiler>滑抖音（對不起）</Spoiler></li>
     <li>
-      Quem denique mea id. Usu ei regione indoctum dissentiunt, cu meliore fuisset mei, vel quod
-      voluptua ne.
+      Play the clarinet.
     </li>
-    <li>Ex dicat impedit mel, at eum oratio possit voluptatum.</li>
-    <li>Impetus fuisset ullamcorper pri cu, his posse iisque ad, aliquam honestatis usu id.</li>
+    <li>Design balloon</li>
+    <li>Play video games</li>
   </ul>
 
-  {/* tools */}
+  <!-- {/* tools */}
   <h2 id='tools'>Tools</h2>
   <p>Current support tools as follow:</p>
   <ToolSection
@@ -153,7 +240,7 @@ const headings = [
         icon: import('@/assets/tools/windows11.svg?raw')
       }
     ]}
-  />
+  /> -->
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
@@ -166,67 +253,58 @@ const headings = [
       {
         platform: 'GitHub',
         icon: 'github',
-        link: 'https://github.com/cworld1',
-        text: 'followers',
-        api: 'github/cworld1'
+        link: 'https://github.com/Vincentllxz',
+        text: 'followers'
       },
       {
-        platform: 'Telegram',
-        icon: 'telegram',
-        color: '#2ca5e0',
-        link: 'https://t.me/cworld0_cn',
+        platform: 'Instagram',
+        icon: 'instagram',
+        link: 'https://www.instagram.com/vincent_hu313_/',
         text: 'subscribers',
-        api: 'telegram/cworld0_cn'
       },
       {
-        platform: 'Weibo',
-        icon: 'weibo',
-        color: '#e71f19',
-        link: 'https://weibo.com/cworld0',
-        text: 'followers',
-        api: 'weibo/5501674056'
-      },
-      {
-        platform: 'Steam',
-        icon: 'steam',
-        color: '#50769d',
-        link: 'https://steamcommunity.com/id/cworld',
-        text: 'games',
-        api: 'steamgames/76561199021278120'
+        platform: 'Email',
+        icon: 'email',
+        link: 'mailto:vincent@gmail.com',
+        text: 'contact'
       }
     ]}
   />
 
   {/* gossips */}
   <h2 id='gossips'>Gossips</h2>
-  <Collapse title='Lorem ipsum'>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
-    possit voluptatum.
+  <Collapse title='我真的活著'>
+    在這裡讀書真的累～
   </Collapse>
 
   {/* about-blog */}
-  <h2 id='about-blog'>About Blog</h2>
-  <p>Website history:</p>
+  <h2 id='education'>Education</h2>
   <Timeline
     events={[
       {
-        date: '2024-04-29',
+        date: '2021-09-01',
         content:
-          'Website refactored using <a href="https://astro.build/" target="_blank">Astro</a> and <a href="https://github.com/srleom/astro-theme-resume" target="_blank">Astro Theme Resume</a>'
+          '台北市立成功高級中學'
       },
       {
-        date: '2024-07-26',
+        date: '2024-09-21',
         content:
-          'Website abstracted as a theme and published on <a href="https://github.com/cworld1/astro-theme-pure"target="_blank">Github</a>'
-      },
-      {
-        date: '2024-07-27',
-        content: 'Began writing website docs'
+          '<a href="https://www.ntu.edu.tw/"target="_blank">國立台灣大學</a>'
       }
     ]}
   />
-  <p>
+
+  <h2 id='experience'>Experience</h2>
+  <Timeline
+    events={[
+      {
+        date: '2025-09-01',
+        content:
+          'TA of MATH 4006~4009 Calculus I~IV'
+      }
+    ]}
+  />
+  <!-- <p>
     The smooth operation and personalized customization of website also rely on the resources and
     technical support provided by the following excellent projects/service providers:
   </p>
@@ -244,8 +322,8 @@ const headings = [
     <li>
       CI/CD: <a href='https://vercel.com/workflow' target='_blank'>Vercel Workflow</a>
     </li>
-    <!-- <li>Resources speedup: <a href='https://cdn.cbd.int/' target='_blank'>CBD CDN</a></li> -->
-    <li>Comment system: <a href='https://waline.js.org' target='_blank'>Waline</a></li>
+    <li>Resources speedup: <a href='https://cdn.cbd.int/' target='_blank'>CBD CDN</a></li>
+    <li>Comment system: <a href='https://wa line.js.org' target='_blank'>Waline</a></li>
     <li>
       Visits: <a href='https://supabase.com/' target='_blank'>Supabase</a> +
       <a href='https://waline.js.org/' target='_blank'>Waline</a>
@@ -255,5 +333,5 @@ const headings = [
         >Substats</a
       >
     </li>
-  </ul>
+  </ul> -->
 </PageLayout>

@@ -3,19 +3,19 @@ import type { CardListData, Config, IntegrationUserConfig, ThemeUserConfig } fro
 export const theme: ThemeUserConfig = {
   // === Basic configuration ===
   /** Title for your website. Will be used in metadata and as browser tab title. */
-  title: 'Astro Theme Pure',
+  title: "VinSong's Blog",
   /** Will be used in index page & copyright declaration */
-  author: 'Pure Lab',
+  author: 'VinSong',
   /** Description metadata for your website. Can be used in page metadata. */
-  description: 'Stay hungry, stay foolish',
+  description: "VinSong's Blog, a place to share my thoughts.",
   /** The default favicon for your site which should be a path to an image in the `public/` directory. */
   favicon: '/favicon/favicon.ico',
   /** Specify the default language for this site. */
   locale: {
-    lang: 'en-US',
-    attrs: 'en_US',
+    lang: 'zh-TW',
+    attrs: 'zh_TW',
     // Date locale
-    dateLocale: 'en-US',
+    dateLocale: 'zh-TW',
     dateOptions: {
       day: 'numeric',
       month: 'short',
@@ -47,10 +47,10 @@ export const theme: ThemeUserConfig = {
   /** Configure the header of your site. */
   header: {
     menu: [
+      { title: 'Home', link: '/' },
       { title: 'Blog', link: '/blog' },
-      { title: 'Docs', link: '/docs' },
-      { title: 'Projects', link: '/projects' },
-      { title: 'Links', link: '/links' },
+      { title: 'Tags', link: '/tags' },
+      { title: 'Archives', link: '/archives' },
       { title: 'About', link: '/about' }
     ]
   },
@@ -63,14 +63,9 @@ export const theme: ThemeUserConfig = {
     links: [
       // Registration link
       {
-        title: 'Moe ICP 114514',
-        link: 'https://icp.gov.moe/?keyword=114514',
+        title: 'Vinsong',
+        link: 'https://vinsong.csie.org/',
         style: 'text-sm' // Uno/TW CSS class
-      },
-      {
-        title: 'Travelling',
-        link: 'https://www.travellings.cn/go.html',
-        style: 'text-sm'
       },
       // Privacy Policy link
       {
@@ -82,7 +77,11 @@ export const theme: ThemeUserConfig = {
     /** Enable displaying a “Astro & Pure theme powered” link in your site’s footer. */
     credits: true,
     /** Optional details about the social media accounts for this site. */
-    social: { github: 'https://github.com/cworld1/astro-theme-pure' }
+    social: {
+      github: 'https://github.com/Vincentllxz',
+      email: 'mailto:vincent.950313@gmail.com',
+      instagram: 'https://www.instagram.com/vincent_hu313_/'
+    }
   },
 
   content: {
@@ -117,7 +116,7 @@ export const integ: IntegrationUserConfig = {
     applyTip: [
       { name: 'Name', val: theme.title },
       { name: 'Desc', val: theme.description || 'Null' },
-      { name: 'Link', val: 'https://astro-pure.js.org/' },
+      { name: 'Link', val: 'https://vinsong.csie.org/' },
       { name: 'Avatar', val: 'https://astro-pure.js.org/favicon/favicon.ico' }
     ],
     // Cache avatars in `public/avatars/` to improve user experience.
@@ -160,7 +159,7 @@ export const integ: IntegrationUserConfig = {
   },
   // Comment system
   waline: {
-    enable: true,
+    enable: false,
     // Server service link
     server: 'https://astro-theme-pure-waline.arthals.ink/',
     // Refer https://waline.js.org/en/guide/features/emoji.html

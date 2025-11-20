@@ -37,6 +37,8 @@ html {
   --input: 240 5.9% 90%;
   --ring: 240 5.9% 10%;
   --radius: 0.5rem;
+  --info: 35 90% 60%;
+  --warning: 270 70% 65%;
 }
 .dark {
   --background: 240 20.54% 5.2%;
@@ -58,6 +60,8 @@ html {
   --border: 240 3.7% 19.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+  --info: 38 85% 65%;
+  --warning: 275 70% 75%;
 }
 :root {
   --un-default-border-color: hsl(var(--border) / 1);
@@ -72,4 +76,140 @@ a {
   &:hover {
     color: hsl(var(--primary) / var(--un-text-opacity, 1));
   }
+}
+
+/* Legacy content helper blocks */
+details.info-box,
+details.warning-box {
+  color: hsl(var(--foreground) / 0.92) !important;
+  background: hsl(var(--muted) / 0.6) !important;
+  border-radius: 12px !important;
+  border-left: 5px solid hsl(var(--border) / 1) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  padding: 16px 20px !important;
+  margin: 1.25em 0 !important;
+}
+details.info-box {
+  background: linear-gradient(
+      120deg,
+      hsl(var(--info) / 0.28),
+      hsl(var(--info) / 0.08)
+    ) !important;
+  border-left-color: hsl(var(--info) / 0.85) !important;
+}
+details.warning-box {
+  background: linear-gradient(
+      120deg,
+      hsl(var(--warning) / 0.3),
+      hsl(var(--warning) / 0.1)
+    ) !important;
+  border-left-color: hsl(var(--warning) / 0.85) !important;
+}
+details.info-box summary,
+details.warning-box summary {
+  color: hsl(var(--foreground) / 0.95) !important;
+}
+details.info-box summary::before {
+  color: hsl(var(--info) / 0.95) !important;
+}
+details.warning-box summary::before {
+  color: hsl(var(--warning) / 0.95) !important;
+}
+
+.course-info-card {
+  color: hsl(var(--foreground) / 0.95) !important;
+  background: hsl(var(--muted) / 0.75) !important;
+  border: 1px solid hsl(var(--border) / 1) !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+}
+
+figure figcaption,
+figcaption {
+  color: hsl(var(--muted-foreground) / 0.95) !important;
+}
+
+.prose details summary {
+  list-style: none;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  padding-inline-start: 1.4em;
+  color: hsl(var(--foreground) / 0.95);
+  margin-bottom: 0.5em;
+}
+.prose details summary::before {
+  content: '▶';
+  position: absolute;
+  inset-inline-start: 0;
+  transition: transform 0.3s ease;
+  color: hsl(var(--muted-foreground) / 0.9);
+}
+.prose details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.quote-box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: hsl(var(--muted) / 0.35);
+  border-top: 4px solid hsl(var(--border) / 0.8);
+  border-radius: 20px;
+  padding: 18px 28px 20px;
+  color: hsl(var(--foreground) / 0.95);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.custom-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 2em auto;
+}
+.custom-figure img {
+  border-radius: 12px;
+  margin-bottom: 0.75em;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 10px 25px hsl(var(--border) / 0.3);
+}
+.custom-figure figcaption {
+  font-style: italic;
+  text-align: center;
+}
+
+.prose table {
+  width: min(100%, 900px);
+  margin: 1.75em auto;
+  border-collapse: collapse;
+  table-layout: auto;
+  background: hsl(var(--card) / 0.65);
+}
+.prose th,
+.prose td {
+  padding: 0.95em 1.2em;
+  border: 1px solid hsl(var(--border) / 1);
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+}
+.prose thead {
+  background: linear-gradient(
+    120deg,
+    hsl(var(--primary) / 0.12),
+    hsl(var(--warning) / 0.12)
+  );
+}
+.prose tbody tr:hover {
+  background: hsl(var(--primary) / 0.08);
+}
+.prose td:first-child {
+  font-weight: 600;
+  color: hsl(var(--foreground) / 0.85);
 }
