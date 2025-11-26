@@ -192,7 +192,7 @@ comment: true
 <details class="info-box">
 <summary> <b>&nbsp;微34筆記</b></summary>
 
-待補（如果我記得），如果發現我忘記可以到 [About](https://vincentllxz.github.io/about/) 找聯絡方式私訊我
+待補（如果我記得），如果發現我忘記可以到 [About](https://vinsong.csie.org/about) 找聯絡方式私訊我
 
 </details>
 
