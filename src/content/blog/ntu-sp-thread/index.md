@@ -8,6 +8,7 @@ tags:
   - "SP"
 language: "zh-TW"
 comment: true
+draft: true
 ---
 # Thread Model
 
