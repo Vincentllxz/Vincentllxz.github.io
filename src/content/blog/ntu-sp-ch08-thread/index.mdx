@@ -1,0 +1,548 @@
+---
+title: "NTU-SP 系統程式設計 Ch8 Thread model"
+description: "NTU PJ System Programming: Ch8 Thread model"
+publishDate: "2025-11-30 15:51:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "SP"
+  - "note"
+language: "zh-TW"
+comment: true
+heroImage: { src: './back.png', color: '#dd9994ff' }
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Thread Model
+
+## Thread Concept
+
+- **Resource Grouping (資源分組)**：Process 是作業系統分配資源（記憶體、檔案等）的基本單位。
+- **Single Thread of Execution**：傳統的 Process 中只有一個執行緒（Thread），指令是單一序列執行的。
+
+<Aside type="note" title="Virtual Memory Layout (虛擬記憶體配置)">
+![Virtual Memory Layout](/images/virmem.png)
+
+每個 Process 擁有獨立的虛擬記憶體空間，內容包含：
+- **Text / Instruction**：存放程式碼（如 `main()`）、函式庫連結等唯讀資料。
+- **Global / Static Data**：
+    - 依據「是否已初始化」區分存放區域（例如 `.data` vs `.bss`）。
+    - 未初始化的變數通常不佔用實際執行檔空間，載入時會自動設為 0。
+- **Stack**：存放函式呼叫（Function Call）時的區域變數、Return address 等。
+ - **Heap**：動態分配的記憶體區域（如使用 `malloc()` 或 `new` 配置的空間）。
+- **Kernel Space (Open file desc. table / Kernel stack)**：
+    - 這些資料雖然屬於該 Process（紀錄該 Process 的狀態），但存放在 **Kernel Space**。
+- **權限限制**：User Space 的程式無法直接存取，必須透過 System Call 請求 Kernel 操作。
+</Aside>
+
+
+### Thread Model
+
+![Thread Model Diagram](/images/sp-thread/pro2thread.png)
+
+- **概念**：在同一個 Process 的生命週期內，可以同時執行多個 Thread。
+- **資源共享 (Resource Sharing)**：
+    因為屬於同一個 Process，Thread 之間共享大部分的資源：
+    - Global Data / Heap Memory
+    - Open Files (檔案描述符)
+    - Code (Text Segment)
+    - Child Processes
+    - Pending Alarms / Signals
+- **獨立擁有 (Per-Thread Resources)**：
+    為了能夠獨立執行並進行 Context Switch，每個 Thread 必須擁有自己獨立的：
+    - **Stack** (維護 Function call chain)
+    - **Registers** (包含 Context Switch 時需要保存的狀態)
+    - **Program Counter (PC)** (紀錄目前執行到哪一行指令)
+    - Scheduling Policy (排程優先級)
+    - Signal Mask (對訊號的遮罩設定)
+
+---
+
+### Process v.s. Thread
+
+#### Process
+- **競爭關係**：Process 之間通常處於資源競爭狀態。
+- **資源隔離**：預設情況下無法共享資源（基於安全性 Security 考量），若要溝通需透過 IPC (Inter-Process Communication)。
+- **建立成本高**：使用 `fork()` 建立新 Process 是 System Call，需複製記憶體空間與 Page Table，開銷較大。
+
+#### Thread
+- **合作關係**：通常由單一使用者（Owner）啟動，Thread 之間是為了完成同一任務而合作。
+- **無保護機制 (No Protection)**：Thread 之間直接共享 Memory，先天沒有隔離保護（假設同一 Process 內的 Thread 彼此信任）。
+- **地位平等**：雖然由 Main thread 建立其他 Thread，但在 OS 排程眼中，它們地位通常是平等的（Peer），無階層從屬關係。
+- **Context Switch 成本低**：切換 Thread 時只需保存暫存器與 Stack 指標，不需要切換 Page Table（Memory Space 不變）。
+- **非同步與併發 (Asynchronous & Concurrency)**：
+    - Thread 可以獨立運作。當 Process 收到 Signal 或需處理 I/O 時，可以只讓負責該工作的 Thread 暫停（Suspend）或處理，其他 Thread 繼續執行，不需整個 Process 停擺。
+    - 這種特性增加了程式的 **Throughput**。
+- **回應時間 (Response Time)**：
+    - 透過多執行緒，可以讓負責 UI 或回應的 Thread 保持運作，將耗時的運算或 I/O 交給背景 Thread，大幅提升使用者的操作體驗。
+- **除錯困難 (Debugging)**：
+    - 由於資源共享且執行順序不確定（Race Condition），除錯遠比單一 Process 複雜。
+- **單核處理器 (Single Processor) 的效益**：
+    - 在 Single processor(core) machine 上，Thread model 無法達到真正的「平行運算 (Parallelism)」，只能做到「併發 (Concurrency)」。
+    - **但並非沒用**：它依然能透過重疊 I/O 等待時間與 CPU 運算時間，有效減少 Response time 並提升系統整體效率。
+
+![Thread Stack Diagram](/images/sp-thread/aaa.png)
+
+<Aside type="tip" title="Thread Stack Layout">
+在 virtual memeory 中，不同 Thread 的 Stack 會被配置在同一塊位址空間的不同區段。若 Stack 用量過大，可能會發生重疊（Overflow），通常 OS 或 Thread Library 會有 Guard Page 機制來偵測並處理。
+</Aside>
+
+
+---
+
+## Implementing of Thread
+
+### Implementing of Thread (User Space)
+
+![截圖 2025-11-27 晚上11.02.19](/images/sp-thread/usr.png)
+
+- **Runtime System**: 一個 Library 去控制所有 thread 出生死亡，用 function call
+- **Thread Table**: Runtime System 內部 maintain TCB
+    - Process 要有 PCB (Process Control Block)，同理 Thread 也有 TCB
+    - Kernel 並不知道 Process 裡面到底長什麼樣子，只是 schedule process 們
+    - Thread 是用 **Runtime System** 去控制，TCB 也是存在裡面的
+
+<Aside type="danger" title="Problem">
+- 必須解決 blocking I/O 的問題，因為 kernel 只知道 process 被 block
+    - 自己提供一個 I/O library: I/O Multiplexing, Nonblocking
+- Runtime system 就像是 OS，是一種 non-preemptive 非強制性 OS 必須要 thread 自願放出 resource
+    - 可以用一個 signal 讓他主動放棄
+</Aside>
+
+### Implementing of Thread (Kernel Space)
+![截圖 2025-11-28 凌晨12.25.08](/images/sp-thread/ker.png)
+- Thread table 會在 kernel 內，可以做不同 process 間的交互處理
+- kernel 知道是 thread 被 block 而不是 process 所以可以 schedule 其他 thread
+
+<Aside type="danger" title="Problem">
+- Cost 會比較高，因為在 kernel 內是 system call
+    - 不會真的 free 掉 TCB，會 mark invalid 去做 recycle
+</Aside>
+
+### Hybrid Implementation
+![截圖 2025-11-28 凌晨12.39.23](/images/sp-thread/hyb.png)
+- 讓 kernel thread 各自做 user thread 的 context switch
+
+---
+
+## Thread Control
+- 以前的 modle 都可以當作是 single thread 的 process
+- 我們都講 POSIX 標準
+
+### Thread creation
+
+**`int pthread_create( pthread_t *tidp, pthread_attr_t *attr, void *(*start_rtn)(void *), void *arg )`**
+- `tidp`: thread id
+- `attr`: attribute
+- `void *(*start_rtn)(void *)`: 指向通用型態的 function
+- `arg`: 送進 `start_rtn`
+
+任何被 create 跟 create 別人的 thread 會根據 priority 來決定跑的順序，跟 `fork()` 很像
+- 只分成 main thread 跟 spawned thread，而且並非主從關係
+- **Normal function call**
+  ![截圖 2025-11-28 凌晨1.14.10](/images/sp-thread/procall.png)
+- **Threaded function call**
+  ![截圖 2025-11-28 凌晨1.14.24](/images/sp-thread/thrcall.png)
+
+
+**`pthread_t pthread_self(void)`**
+- thread id 早期是 integer 但有些系統用 pointer，`pthread_t` 可以 portable
+- 可以獲取自己的 id
+
+**`int pthread_equal ( pthread_t tid1, pthread_t tid2 )`**
+- 比較用 function
+
+**`int pthread_attr_init(pthread_attr_t *attr)`**
+**`int pthread_attr_destroy(pthread_attr_t *attr)`**
+- 先把 variable 傳入，然後去 initalize 他
+    - `detachstate`: 如果是的話，termenation state 不需要回收，直接清掉，在 TCB 內 
+    - `guardsize`: 防止壓到別人，要有多少緩衝區
+    - `stackaddr`
+    - `stacksize`: stack 大小限制
+- 必須要去 destroy 他，因為會佔用 heap
+    - 會把 `pthread_attr_t` 設定為 invalid
+
+**`int pthread_attr_getdetachstate (pthread_attr_t *attr, int *detachstate)`**
+**`int pthread_attr_setdetachstate (pthread_attr_t *attr, int detachstate)`**
+- 可以設定或拿到他的 `attr`
+- `PTHREAD_CREATE_DETACHED`, `PTHREAD_CREATE_JOINABLE`(default)，可以設定
+
+**`int pthread_detach(pthread_t tid)`**
+- 進行 detach 設定，只要你有 `tid` 就可以
+- `pthread_detach(pthread_self())`
+- 並不是殺掉，只是不回收而已
+- 有三種情況會被 detached
+    - `pthread_detach()`
+    - `PTHREAD_CREATE_DETACHED`
+    - `pthread_join()`，被拿走了
+
+<Aside type="tip" title="Thread Creation">
+```c title="thread.c"
+pthread_t ntid;
+
+void
+printids(const char *s)
+{
+    pid_t       pid;
+    pthread_t   tid;
+
+    pid = getpid();
+    tid = pthread_self();
+    printf("%s pid %u tid %u (0x%x)\n", s, (unsigned int)pid,
+      (unsigned int)tid, (unsigned int)tid);
+}
+
+void *
+thr_fn(void *arg)
+{
+    printids("new thread: ");
+    return((void *)0);
+}
+
+int
+main(void)
+{
+    int err;
+
+    err = pthread_create(&ntid, NULL, thr_fn, NULL); // [!code highlight]
+    if (err != 0)
+        err_quit("can't create thread: %s\n", strerror(err));
+    printids("main thread:");
+    sleep(1);
+    exit(0);
+}
+```
+- 會產生 race condition，不知道是被 create 的 thread 先開始跑，還是 init 先進行，`&ntid` 有可能還沒有改動到
+- 兩個 thread 有可能會有不同的 `pid` 因為有些系統用 process simulate thread
+- In Solaris
+  ```bash
+  $ ./a.out
+  main thread: pid 7225 tid 1 (0x1)
+  new thread:  pid 7225 tid 4 (0x4)
+  ```
+- In Free BSD
+  ```bash
+  $ ./a.out
+  main thread: pid 14954 tid 134529024 (0x804c000)
+  new thread:  pid 14954 tid 134530048 (0x804c400)
+  ```
+- 每個 system 的 thread 都可能用不同東西指向，這裡有 pointer 或 integer
+- 第二個 race condition 會出現在 `sleep(1)` 結束時間跟 CPU schedule 結束並不一定
+</Aside>
+
+### Passing Argument
+一定要確定對面的 thread 不可以自己結束，不然會出問題
+- `int`
+    - Pass
+        ```c
+        int i = 42;
+        pthread_create(..., my_func, (void *)&i);
+        ```
+    - Retrieving
+        ```c
+        void *myfunc(void *vptr) {
+            int value = *((int *)vptr);
+        }
+        ```
+- Passing `string`
+    - Pass
+        ```c
+        char *str = ”NTU”;
+        pthread_create(..., my_func, (void *)str);
+        ```
+    - Retrieving
+        ```c
+        void *myfunc(void *vptr) {
+            char *str = (char *)vptr;
+        }
+        ```
+- Passing `array`
+    - Pass 
+        ```c
+        int arr[100];
+        pthread_create(..., my_func, (void *)arr);
+        ```
+    - Retrieving
+        ```c
+        void *myfunc(void *vptr) {
+            int *arr = (int *)vptr;
+        }
+        ```
+
+<Aside type="caution" title="Problem">
+```c
+void *PrintNo(void *vptr)
+{
+    printf(”My number is %d\n", *((int *) vptr));
+    pthread_exit(NULL);
+}
+           
+int main(int argc, char *argv[]) {
+    pthread_t tid[10];
+    int no;
+    for( no=0; no<10; no++)
+        pthread_create(&tid[no], NULL, PrintNo, (void *) &no);
+    pthread_exit(NULL);
+}
+```
+- 每個 thread 的 address 全都是同一個，因為全部都是用 `int no` 這個參數，指向同一個位置，而 passing argument 用的正好是 pointer 會產生 collision
+- `no` 已經變成 3 但是 thread 0 可能恰好此時要進行 init 就會變成錯誤的 `no`
+</Aside>
+
+<Aside type="caution" title="Problem">
+```c
+void *PrintNo(void *vptr)
+{
+    printf(”My number is %d\n", (int) vptr));
+    pthread_exit(NULL);
+}
+int main() {
+    pthread_t tid;
+    int arg = 42;
+    pthread_create(&tid, NULL, PrintNo, (void *) arg);
+    pthread_exit(NULL);
+}
+```
+- 這個 code 不需要考慮原始的那個變數會不會更動，因為這次把 arg 直接當成 address value 傳過去，再強制轉型回來，但我們必須確保
+$$
+\texttt{sizeof(int)} \leq \texttt{sizeof(void *)}
+$$
+不然會產生問題
+</Aside>
+
+### Thread Termination
+- 有些情況會把所有 thread 一次關掉
+    - `_exit()`
+    - signal default 是 terminate
+    - `return` 了 `main()` (main thread)
+
+**`void pthread_exit (void *rval_ptr)`**
+- 呼叫後不會有任何的其他動作，只是關掉 thread
+- 其他資源是 process 共享的，所以不會被關掉
+- 在 main thread 裡面呼叫 `pthread_exit()` 就是要 block 住 main thread 直到所有他 create 出來的 thread return
+
+**`int pthread_join(pthread_t tid, void **rval_ptr)`**
+- 也可以呼叫這個 function，意思是等到所有他自己 spawn 出來的 non-detach thread 結束，拿到結束碼
+- thread 異常死亡叫做被他人 **cancel**，拿結束碼會拿到 `PTHREAD_CANCELED`
+- thread 被拿走結束碼後就會 detechable
+- **任何出錯都要看 return value 不是一般 fucntion 的 `errno`**
+- non-detechable thread 沒被 join 就是 zombie thread
+- threadID 發完了就不能繼續 create 了
+- 呼叫 join 的 thread 被打斷了就可以用 `pthread_timedjoin_np()` return `ETIMEDOUT`
+
+<Aside type="tip" title="Example">
+```c
+void *
+thr_fn1(void *arg)
+{
+    printf("thread 1 returning\n");
+    return((void *)1);
+}
+
+void *
+thr_fn2(void *arg)
+{
+    printf("thread 2 exiting\n");
+    pthread_exit((void *)2);
+}
+
+int
+main(void)
+{
+    int         err;
+    pthread_t   tid1, tid2;
+    void        *tret;
+
+    err = pthread_create(&tid1, NULL, thr_fn1, NULL);
+    if (err != 0)
+        err_quit("can't create thread 1: %s\n", strerror(err));
+    
+    err = pthread_create(&tid2, NULL, thr_fn2, NULL);
+    if (err != 0)
+        err_quit("can't create thread 2: %s\n", strerror(err));
+    
+    err = pthread_join(tid1, &tret);
+    if (err != 0)
+        err_quit("can't join with thread 1: %s\n", strerror(err));
+    printf("thread 1 exit code %d\n", (int)tret);
+    
+    err = pthread_join(tid2, &tret);
+    if (err != 0)
+        err_quit("can't join with thread 2: %s\n", strerror(err));
+    printf("thread 2 exit code %d\n", (int)tret);
+    
+    exit(0);
+}
+```
+- 為了避免位置有效性的問題太麻煩，直接用強制轉型
+- 安全的寫法，但並不符合原本的方法
+```bash
+$ ./a.out
+thread 1 returning
+thread 2 exiting
+thread 1 exit code 1
+thread 2 exit code 2
+```
+</Aside>
+
+### Thread Cancel
+
+任何 thread 都可以 cancel 其他人
+
+**`int pthread_cancel(pthread_t tid)`**
+- 相當於讓要被 cancel 的呼叫 `pthread_exit()` 然後，然後傳參數給 `PTHREAD_CANCELED`
+- 被 cancel 的人可以決定自己要不要被 cancel
+
+**`int pthread_cancel(pthread_t tid)`**
+- `PTHREAD_CANCEL_ENABLE` (default)
+- `PTHREAD_CANCEL_DISABLE` 可以不讓別人 cancel
+- 在 `PTHREAD_CANCEL_ENABLE` 之下 傳來 cancel 也只是 Only makes the request 而已，會運行直到 **cancelation point**
+
+<Aside type="note" title="Cancelation Point">
+每個系統設計的不一樣，通常會是一些 function，設計出來的原因是因為，thread 通常是不能被任意 cancel，如果在上 lock 在 share resource 期間，非常危險，coorparate 關係會被打斷，其他人在等他 unlock 就不行，設計上通常都是一些需要 wait 的 function
+</Aside>
+
+**`int pthread_setcanceltype(int type, int *oldtype)`**
+- 在可以被 cancel 的情況下
+    - `PTHREAD_CANCEL_DEFERRED` (default) 運行到 cancelation point
+    - `PTHREAD_CANCEL_ASYNCHRONOUS` 直接死
+
+**`void pthread_testcancel(void)`**
+- 設定成可以 cancel 的 cancel point，在我沒有任何 cancelation point 的情況下
+
+**`void pthread_cleanup_push(void (*rtn)(void *), void *arg)`**
+**`void pthread_cleanup_pop(int execute)`**
+- 也是可以 clean up，用 reverse way
+- 可以自行 push, pop
+- `rtn` 裡面的 function 會被 call 出來的情況
+    - `pthread_exit()`
+    - `pthread_cleanup_pop()`
+    - 被 cancel
+
+<Aside type="tip" title="Example">
+```c
+void *
+thr_fn2(void *arg)
+{
+    printf("thread 2 start\n");
+    pthread_cleanup_push(cleanup, "thread 2 first handler");
+    pthread_cleanup_push(cleanup, "thread 2 second handler");
+    printf("thread 2 push complete\n");
+    if (arg)
+        pthread_exit((void *)2);
+    pthread_cleanup_pop(0);
+    pthread_cleanup_pop(0);
+    pthread_exit((void *)2);
+}
+```
+</Aside>
+- 如果呼叫 `return ((void *) 2);` 就不會往後 pop 出所有東西
+- 正常異常死亡都會呼叫出 `rtn` 內的 function 們，用 reverse way
+
+<Aside type="note" title="">
+![截圖 2025-11-28 下午3.41.47](https://hackmd.io/_uploads/SyuSG0Ib-l.png)
+- Thread 之間並沒有階層式的架構，任何 thread 都可以去 `join` 其他 thread
+- cancelation point 概念會執行到某些重要節點才會停下
+</Aside>
+
+
+## Thread Synchronization
+- Share memory 太常出現，所以我們必須要產生同步，不然會出現問題，因為一個高階語言指令可能是四五個低階語言指令
+![截圖 2025-11-29 晚上10.54.56](https://hackmd.io/_uploads/rJaBFYubbe.png)
+
+- 兩個 thread 要讀/寫入同一個資料是不同的 code 會競爭到同一個 resource
+- 即便有一個 resource 只有一個 function 可以 access，兩個 thread call 同一個 function 還是會有 competition，還是需要 Synchronization
+
+### Mutexes
+- 全名 Mutual-exclusion interfaces
+- 是一種 binary advisory lock 但是是 for memory resource 而非先前的 file lock
+- A thread 用完 resource unlock 後，BCD 三個 pending lock 就會變成 runable，也就是 unlock 後剩下的人才會被送到 ready queue
+    - 再由 system 根據 priority 去決定是誰獲得 mutex lock
+    - 其他沒拿到 lock 的 thread 又會被 suspend
+    - 只有搶到 lock 才會 return
+- `read()`, `write()` 前都需要先進行 mutexes check
+    - programmer 要自己去 check，如果跳過這關也不會被阻止，因為 thread 在 OS view 來看是互相 trustable 的
+
+**`int pthread_mutex_init ( pthread_mutex_t *mutex, pthread_mutexattr_t *attr )`**
+**`int pthread_mutex_destroy ( pthread_mutex_t *mutex )`**
+- 宣告一個 `pthread_mutex_t` 要做 initialize
+    - 也可以
+        ```c
+        pthread_mutex_t mlock = PTHREAD_MUTEX_INITIALIZER;
+        ```
+      做靜態宣告
+    - 也可以動態宣告，用 `pthread_mutex_init()` + `pthread_mutex_destroy()`
+- **Process-shared** attrubute
+- **type** attribute
+- `NULL` 就是 default
+
+**`int pthread_mutexattr_init (pthread_mutexattr_t *attr)`**
+**`int pthread_mutexattr_destroy (pthread_mutexattr_t *attr)`**
+- attribute 也要做 initialize
+- **Process-share** attribute
+    - `PTHREAD_PROCESS_SHARED` 可否接受多個 process share Mutex 的 **memory**（非 file）
+    - compile time 用 `_POSIX_THREAD_PROCESS_SHARED` 看 system 有沒有這個功能
+    - runtime check `_SC_THREAD_PROCESS_SHARED` 看 system 有沒有這個功能
+    - `pthread_mutexattr_getpshared()`, `pthread_mutexattr_setpshared()`
+- **Type** attribute
+    - `PTHREAD_MUTEX_NORMAL`: 不做 error check 也不做 deadlock check
+    - `PTHREAD_MUTEX_ERRORCHECK`
+    - `PTHREAD_MUTEX_RECURSIVE`: relock 幾次都不出事，`lockcount` 會記錄被鎖幾次，解鎖也要相對次數
+    - **PTHREAD_MUTEX_DEFAULT**: 會是以上三種的其中一種，每個 system 不一樣
+
+<Aside type="note" title="Error/Deadlock Check">
+![截圖 2025-11-29 晚上11.38.34](https://hackmd.io/_uploads/rJdF7c_bZl.png)
+- **Deadlock**: own A lock 的 thread request B lock, own B lock 的 thread request A lock，會產生 Deadlock 因為會產生問題，因為自己被 suspend 了
+- Relock 產生 deadlock
+</Aside>
+
+**`int pthread_mutex_lock(pthread_mutex_t *mutex)`**
+**`int pthread_mutex_trylock(pthread_mutex_t *mutex)`**
+**`int pthread_mutex_unlock(pthread_mutex_t *mutex)`**
+- `pthread_mutex_lock()` 是 block mode
+- `pthread_mutex_trylock()` 是 non-block mode 如果出錯會 return `EBUSY` 為錯誤碼
+
+<Aside type="caution" title="">
+Mutex lock 並沒有保護機制，是互相信任的，要切記 check 不能繞過
+</Aside>
+
+<Aside type="tip" title="Example">
+```c
+static int count;
+
+void increment(void) {
+    count++;
+}
+
+void decrement(void) {
+    count--;
+}
+
+int getcount() {
+    return count;
+}
+```
+- 同時呼叫 `increment()`, `decrement()` 就會出錯
+```c
+static int count = 0;
+static pthread_mutex_t countlock =
+    PTHREAD_MUTEX_INITIALIZER;
+
+int increment(void) { /* decrement() similar */
+    int error;
+    if (error = pthread_mutex_lock(&countlock))
+        return error;
+    count++;
+    return pthread_mutex_unlock(&countlock);
+}
+
+int getcount(int *countp) {
+    int error;
+    if (error = pthread_mutex_lock(&countlock))
+        return error;
+    *countp = count;
+    return pthread_mutex_unlock(&countlock);
+}
+```
+- 要上 lock
+</Aside>

@@ -1,0 +1,1249 @@
+---
+title: "NTU-SP 系統程式設計 Ch7 Signal"
+description: "NTU PJ System Programming: Ch7 Signal"
+publishDate: "2025-11-30 12:09:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "SP"
+  - "note"
+language: "zh-TW"
+comment: true
+heroImage: { src: './back.png', color: '#dd9994ff' }
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Signal
+
+**Signal v.s. Interrupt**
+- **Interrupt**：對 CPU 中斷，有重要的 event 來了，一定要先做
+- **Signal**：任何事件的發送
+    - Synchronous：內部 event 出現馬上發送（e.g. divide by 0）
+    - Asynchronous：外部發送的
+
+<Aside type="note" title="Procedure of Signal action">
+- Keyboard I/O 可以發出 **IRQ** (Interrupt Request)
+- **PIC** (Programmable Interrupt Controller)，以前 CPU 沒有這種接腳，會直接一條專門接 IRQ 的腳，現在則是由 PIC 統一接收
+    - PIC, CPU 都有 mask 的能力
+- CPU 會做很像 Context Switch 的事，中斷時會做 **ISR** (Interrupt Service Routine)
+    - **Phase 1**: 去找對應 PCB 紀錄他收到的 Signal (相當於 translation) 做 **DPC** Deferred Procedure Call 到 phase 2
+    - **Phase 2**: DPC 後，process 被 Schedule 到後 Action 處理 Signal，然後放到 user mode 裡
+</Aside>
+
+## Type of Signal
+
+**Terminal-generated signals**
+- DELETE key, Ctrl-C: **`SIGINT`** (2)
+
+**Signals from exceptions**
+- divided-by-0: **`SIGFPE`** (8)
+- illegal memory access: **`SIGSEGV`** (11)
+
+**Shell command kill**
+- kill –9 pid (**`SIGKILL`**)
+
+**Function kill**
+- Owner or superuser
+
+**Signals because of software conditions**
+- reader of the pipe terminated: **`SIGPIPE`**
+- expiration of an alarm clock: **`SIGALRM`**
+
+### Action (disposition) of Signal
+**Ignore signals**
+- 直接忽略
+
+**Catch signals**
+- 由程式自己定義訊號處理函式（**signal handler function**）來處理 signal
+- **`SIGCHLD`** 
+
+**Apply the default action**
+- 這是作業系統預設的反應，除非程式自行改變它。
+    - Terminate, ignore, stop
+- **`SIGKILL`**: 無法 Ignore 或 Catch
+- **`SIGSTOP`** 無法 Ignore 或 Catch
+
+### Example of Signal
+**`SIGABRT`**
+- Call `abort()`
+- 要求 OS 送一個 `SIGABRT` 來殺了自己，收到後 process 死亡
+- terminate with core
+
+**`SIGALARM`**
+- Call `setitimer()`
+    - `ITIMER_REAL`, `ITIMER_VIRTUAL`, `ITIMER_PROF`
+- terminate
+
+**`SIGCHLD`**
+- ignore
+
+**`SIGFPE`**
+- Divid-by-0, floating point overflow
+- terminate with core
+
+**`SIGHUP`**
+- 以前主機跟螢幕分開，需要用來告訴 terminal (no daemons) 斷線了
+- 現在用來叫 daemon 重新讀取 configuration file
+- terminate
+
+**`SIGINT`**
+- terminate
+- DELETE key, CTRL-C
+
+**`SIGIO`**
+- asynchronous I/O event
+- 會讀完，但不需要等，讀完後會收到 `SIGIO`
+
+**`SIGKILL`**
+- 無法 ignore
+
+**`SIGPIPE`**
+
+**`SIGPWR`**
+- UPS (不斷電系統)，斷電時要有能力把東西從 cache 寫到 DISK
+- 快沒電時會送 `SIGPWR` 給 `init`，進行收尾動作
+
+**`SIGQUIT`**
+- 比 `SIGINT` 更加強制性
+- 會做 core dump
+
+**`SIGSEGV`**
+- 不合法記憶體
+
+**`SIGSTOP`**
+- 類似 `SIGTSTP` 但無法 ignore, catch
+
+**`SIGTERM`**
+- `kill` command 會送
+
+**`SIGTSTP`**
+- 暫停而已
+
+**`SIGURG`**
+- out-of-band
+- 跟 networking 有關
+
+**`SIGUSR1`, `SIGUSR2`** 
+- user define
+
+
+### System call
+
+**`void (*signal(int signo, void (*func)(int)))(int);`**
+- ```c
+  typedef void Sigfunc(int)
+  Sigfunc *signal(int, Sigfunc *); 
+  ```
+- `SIG_IGN` 就可以 ignore
+- return 值會是上次的 address setting
+- 不同的 signal number 也可以 call 同一個 signal handler
+
+<Aside type="tip" title="Example">
+```c
+static void sig_usr(int);     /* one handler for both signals */
+
+int
+main(void)
+{
+    if (signal(SIGUSR1, sig_usr) == SIG_ERR)
+        err_sys("can't catch SIGUSR1");
+    if (signal(SIGUSR2, sig_usr) == SIG_ERR)
+        err_sys("can't catch SIGUSR2");
+    for ( ; ; )
+        pause();
+}
+
+static void
+sig_usr(int signo)            /* argument is signal number */
+{
+    if (signo == SIGUSR1)
+        printf("received SIGUSR1\n");
+    else if (signo == SIGUSR2)
+        printf("received SIGUSR2\n");
+    else
+        err_dump("received signal %d\n", signo);
+}
+```
+
+`pause()` return 之前會先把 catch 到的 function run 完
+```bash
+$ ./a.out &                      
+[1] 7216                         # start process in background
+$ kill -USR1 7216                # send it SIGUSR1
+received SIGUSR1
+$ kill -USR2 7216                # send it SIGUSR2
+received SIGUSR2
+$ kill 7216                      # now send it SIGTERM
+[1]+  Terminated                 ./a.out
+```
+</Aside>
+
+<Aside type="tip" title="Example of SIGIO">
+```c
+void sigio_handler(int signo) {
+    char buf[100];
+    int n = read(STDIN_FILENO, buf, sizeof(buf));
+    if (n > 0) write(STDOUT_FILENO, buf, n);
+}
+
+int main() {
+    fcntl(STDIN_FILENO, F_SETOWN, getpid());
+    fcntl(STDIN_FILENO, F_SETFL, O_ASYNC | O_NONBLOCK);
+    signal(SIGIO, sigio_handler);
+    while (1);
+    return 0;
+}
+```
+根本沒在等 `signal(SIGIO, sigio_handler);` 這件事，但是我在 terminal 上做任何 I/O 就會收到 SIGIO，就可以做 Asynchronous I/O，打入東西就會被 echo 出來 (`sigio_handler()` 在做的)
+</Aside>
+
+<Aside type="note" title="收到 Signal 後">
+![截圖 2025-11-06 上午10.40.06](https://hackmd.io/_uploads/B1Z9ctF1Zg.png)
+- 可以無限套，把 Signal 收到後，就會先出去執行 signal handler
+- 在執行 signal handler 期間收到 其他 signal 2 要執行其他 signal handler 2 也用一樣的模式出去執行s ignal handler 2，然後回來 signal handler，最後回去 main function
+</Aside>
+
+## Problem of Signal
+
+### Signal succeed
+- `fork()` 會把所有註冊的行為完全繼承
+- `exec()` 不一定，以下是轉換圖
+    - 除了 **Ignore** 其餘全都 **Default**
+![截圖 2025-11-06 上午10.43.53](https://hackmd.io/_uploads/BkE_oKYybe.png)
+
+### Signal Start-up
+- 當有些 process 我想讓他變成 background (using `double fork()`)，有些 foreground 的 Signal 我不能讓他收到
+    - disposition of `SIGINT` will be set to **Ignore** by shell
+
+### Interrupt System call
+
+- 這種 Slow system call (not DISK I/O) 必須被 Interrupt
+    - `pause()`：需要一個非 ignore 的 signal 叫醒
+
+<Aside type="tip" title="Example of interrupt">
+```c
+again:
+    if ((n = read(fd, buff, BUFFSIZE)) < 0) {
+        if (errno == EINTR)
+            goto again;
+    } 
+```
+- `goto` 語法可能打壞 locality 對 compiler 優化影響很大
+    - structural programming 容易被優化。 
+- `EINTR` 代表被 signal 中斷，如果是這種錯誤就可以重新繼續等，不用更新 
+</Aside>
+
+### Auto Restart
+
+- 為了避免上面的 example 用法，有些 function 會設定成 auto restart
+- 但這有時候會違反 Interrupt 設計的原則
+    - slow system call 應該要被 interrupt
+    - signal 可能是來救這整支程式的，如果右 auto restart 就會 forever block 
+    - IPC funciton, `wait`, `read`, `write`...   
+
+### Reentrant Function
+<Aside type="tip" title="Example">
+![截圖 2025-11-06 上午11.03.48](https://hackmd.io/_uploads/BJy7g5K1bl.png)
+</Aside>
+- 這種 Recursive 結構，本來可以寫，但在這種情況下，**Signal 來的時間不可控**，會出現問題
+- `malloc()` 會動到一個 linklist，是一個 global variable，上一個 `malloc()` 的 linklist 還沒弄好，下一個直接進來會爆炸
+- 所以有一些 function 是 non-reentrant 的
+
+<Aside type="tip" title="Example of non-reentrant">
+```c
+char *strtoupper(char *string) {
+    static char buffer[MAX_STRING_SIZE];
+    int index;
+
+    for (index = 0; string[index]; index++)
+        buffer[index] = toupper(string[index]);
+    buffer[index] = 0;
+    return buffer;
+}
+```
+- `static char buffer[MAX_STRING_SIZE];` 要放在 global variable，讓 compiler 預先得知，放在 stack 會被 pop up 出去
+- 但別的 function 不能 access 他，因為 compiler 會阻擋他
+- reentrant 會發生問題
+</Aside>
+
+<Aside type="tip" title="Example of non-reentrant">
+```c
+char *strtoupper(char *string) {
+    char *buffer;
+    int index;
+
+    /* error-checking should be performed! */
+    buffer = malloc(MAX_STRING_SIZE);
+
+    for (index = 0; string[index]; index++)
+        buffer[index] = toupper(string[index]);
+    buffer[index] = 0;
+    return buffer;
+}
+```
+- 裡面 call 了 non-reentrant function 當然自己也 non-reentrant
+</Aside>
+
+- 以下都是 non-reentrant function
+    - 雖然 `printf()` 是 non-reentrant 但是 debug 的時候不要複雜化問題，直接寫就好
+![截圖 2025-11-06 上午11.21.48](https://hackmd.io/_uploads/ryjO45KJ-x.png)
+
+
+### Unreliable Signals
+
+**Action reset to Default**
+- Action 會被自動 reset to Default 要解決
+- **Solution 1**
+    - 典型的 race condition
+    - 以下這種解方也會出問題
+    ```c
+    int sig_int();
+    ...
+    signal(SIGINT, sig_int);
+    ...
+    sig_int() {
+        // 如果 Signal 出現在這就會出問題
+        signal(SIGINT, sig_int);
+        ...
+    }
+    ```
+- **Solution 2**
+    - global variable 初始必定為 0
+    - TOCTTOU 問題，典型 race condition
+    ```c
+    int sig_int_flag;
+
+    main() {
+        ...
+        signal(SIGINT, sig_int);
+        ...
+        while (sig_int_flag == 0)
+            // 此處來了 signal 你就不會動了
+            pause();
+    }
+
+    sig_int() {
+        signal(SIGINT, sig_int);
+        sig_int_flag = 1;
+    }
+    ```
+
+### Reliable Signals
+- 紀錄時間，把它分成兩個 phase 
+![截圖 2025-11-06 上午11.53.04](https://hackmd.io/_uploads/HyoojqY1-l.png)
+    - 先 **signal generated**，這是無法控制的情況
+    - 一直到 **signal delivered** 前都可以改變 **action**
+    - 在 signal generated, signal delivered 之間被 block 住就是叫 **signal pending**
+- 除非我兩個情況，不然 Signal 永遠 pending (**block**)
+    - action 設定 ignore
+    - unblock
+- 如果 block signal 產生不只一次，那 signal 會 queued
+- **Order of signal**：現今會按照嚴重程度來決定順序
+
+## sleep
+**`int kill(pid_t pid, int signo);`**
+- 需要有 permission (real/effective 其中一個對就好)
+- 送 特定 `signo` 給 pid 的 process
+    - `pid > 0` : to the process
+    - `pid == 0` : to “all” processes with the same gid
+    of the sender (excluding proc 0, 1, 2)
+    - `pid < 0` : to “all” processes with gid == |pid|
+    - `pid == -1` : broadcast signals under SVR4 and
+    4.3+BSD
+- `signo == 0` 是要看他的 return 值，看他是死是活（但有缺陷，檢查了不能用）
+
+**`int raise(int signo);`**
+- 送一個 signal 給自己
+
+> 可以一次送一個 signal 給一群 process
+
+<Aside type="caution" title="Signal side effect">
+- 有些動作在 Signal 出現的時候會多做一些有意義的事
+- `kill()`/`raise()` 自己，在 reutrn 之前會 check 有沒有 pending (包含這一個) unblock signal，會起碼送一個出去
+- `abort()` 自殺指令要送 signal 給自己，先保證 `SIGABRT` 為 unblock 再把其他 signal block 住，就可以保證被送出的必定是 `SIGABRT`
+</Aside>
+
+**`unsigned int alarm(unsigned int secs)`**
+- 設定幾秒後發出 `SIGALRM`
+- 同一個 process 裡的會被覆蓋，若前一個   還沒響 return 剩餘秒數
+- 當 multi-tasking 要做 scheduling 的時候有可能會有 delay 所以要抓保守空間。
+- `alarm(0)` 關掉。
+
+<Aside type="note" title="">
+`SIGALRM` default 是 terminate
+</Aside>
+
+**`int pause(void)`**
+- ignore, blocked signal 無法叫醒他
+- return `-1` with `errno == EINTR`
+
+<Aside type="tip" title="sleep v.1.">
+
+```c
+static void sig_alrm(int signo)
+{
+    /* nothing to do, just return to wake up the pause */
+}
+
+unsigned int sleep1(unsigned int nsecs)
+{
+    if (signal(SIGALRM, sig_alrm) == SIG_ERR)
+        return(nsecs);
+
+    alarm(nsecs);       /* start the timer */
+    pause();            /* next caught signal wakes us up */
+    return(alarm(0));   /* turn off timer, return unslept time */
+}
+```
+- 被非 ignore unblock 的 signal 叫醒
+- `SIGALRM` default 是 terminate 所以要寫一個 handler 來取消他
+
+**Problem**
+- 現在有問題，一個 process 只有一個鬧鐘，如果之前就有自己設定 `alarm()` 那就會被蓋掉
+- 如果有別的 `SIGALRM` handler 也會被覆蓋
+- **Race condition**：有可能會被 context switch 出去（在 context switch 期間 `SIGALRM` 就被發送）
+</Aside>
+
+<Aside type="caution" title="Problem of old alarm">
+```c
+if ( (oldalarm = alarm(nsecs)) > 0 ) {
+    if (oldalarm < nsecs) {
+        alarm( oldalarm );
+        pause();
+        return(alarm(0));}
+    else {
+        pause();
+        return( alarm( oldalarm – nsecs ) );
+    }
+}
+```
+- 一個鬧鐘模擬多個鬧鐘
+- 看新鬧鐘還是舊鬧鐘會先響，設定秒數為先響的那個
+</Aside>
+    
+
+<Aside type="caution" title="Problem of signal handler">
+```c
+if ( (oldhandler = signal(SIGALRM, sig_alrm)) == SIG_ERR )
+    return (nsecs);
+
+alarm( nsecs );
+pause();
+
+signal(SIGALRM, oldhandler);
+return( alarm(0) );
+```
+- 記住舊的 handler 等 return 再改回來就好
+</Aside>
+
+#### Stack frame
+- Call function 的時候需要紀錄四個值（為了要保持 caller 原樣）
+    - Return address
+    - Passed parameter(s)
+    - Saved registers
+    - Local variable(s)
+
+<Aside type="tip" title="Warning of local variable">
+```c
+#define DATAFILE    "datafile"
+FILE *
+open_data(void)
+{
+    FILE *fp;
+    char databuf[BUFSIZ];     /* setvbuf makes this the stdio buffer */
+
+    if ((fp = fopen(DATAFILE, "r")) == NULL)
+        return(NULL);
+
+    if (setvbuf(fp, databuf, _IOLBF, BUFSIZ) != 0)
+        return(NULL);          /* error */
+
+    return(fp);
+}
+```
+- 若我們是 return 指向 `fp` 的 pointer，buffer I/O 記錄的 buffer 是用這裡 call 的 stack frame 的 buffer 所以照理來說會被 `pop` 掉，會失效
+- 但因為 Unix 做的 `pop` 只是挪動 `pop` 要操作的那塊 memory 只要沒有人動過他就會正確（但邏輯上錯誤）
+</Aside>
+
+<Aside type="caution" title="Problem of stack frame">
+```c
+static void f1(void), f2(void);
+
+int main(void)
+{
+    f1();
+    f2();
+    _exit(0);
+}
+
+static void f1(void)
+{
+    pid_t pid;
+
+    if ((pid = vfork()) < 0)
+        err_sys("vfork error");
+    /* child and parent both return */
+}
+
+static void f2(void)
+{
+    char buf[1000];     /* automatic variables */
+    int i;
+
+    for (i = 0; i < sizeof(buf); i++)
+        buf[i] = 0;
+}
+```
+- 本來使用 main function 的 stack frame，在 `f1` 內使用 `vfork()` 會共用 memory
+- child process 會把 `f1()` 的 stack frame `pop` 掉，然後 `push` `f2()` 的 stack frame，由於共用的緣故，就會出問題（main stack frame 會以為 `f1()` 的 stack frame 還在）
+</Aside>
+
+#### nonlocal jump
+- 由於 function stack frame 要弄跳回 `main()` cost 很高，所以用 nonlocal jump 可以直接跳躍進去
+
+**`int setjmp(jmp_buf env);`**
+- 功能類似 `setjmp()` 是 label
+- 呼叫 `setjmp()` 會 return `0`，從 `longjmp()` return `val`
+- `env` 是 label name 要是 global variable
+    - `env` 內部紀錄一些必要值（stack_frame）但是是 machine dependent
+
+**`int longjmp(jmp_buf env, int val);`**
+- `longjump()` 是 `goto`
+- call 一個 function 可以在另一個 return，通常在兩個 function return
+- 呼叫 `longjmp()` 從 `setjmp()` return
+
+<Aside type="tip" title="Example">
+```c
+#define TOK_ADD     5
+
+jmp_buf jmpbuffer;
+
+int main(void)
+{
+    char line[MAXLINE];
+
+    if (setjmp(jmpbuffer) != 0)
+        printf("error");
+
+    while (fgets(line, MAXLINE, stdin) != NULL)
+        do_line(line);
+
+    exit(0);
+}
+
+... // 不斷 call function
+
+void cmd_add(void)
+{
+    int token;
+
+    token = get_token();
+    if (token < 0)        /* an error has occurred */
+        longjmp(jmpbuffer, 1);
+    /* rest of processing for this command */
+}
+```
+- 下層出錯，可以直接回到 `main` 裡面
+</Aside>
+
+<Aside type="caution" title="Effect of variable">
+```c
+main(void) {
+    int autoval;
+    register int regival;
+    volatile int volaval;
+    static int statval;
+
+    globalval = 1; autoval = 2; regival = 3; volaval = 4; statval = 5;
+
+    if (setjmp(jmpbuffer) != 0) {
+        printf("after longjmp:\n");
+        printf("globalval = %d, autoval = %d, regival = %d, "
+               "volaval = %d, statval = %d\n",
+               globalval, autoval, regival, volaval, statval);
+        exit(0);
+    }
+
+    /*
+     * Change variables after setjmp, but before longjmp.
+     */
+    globalval = 95; autoval = 96; regival = 97; volaval = 98; statval = 99;
+
+    f1(autoval, regival, volaval, statval); /* never returns */
+    exit(0);
+}
+
+static void f1(int i, int j, int k, int l)
+{
+    printf("in f1():\n");
+    printf("globalval = %d, autoval = %d, regival = %d, "
+           "volaval = %d, statval = %d\n",
+           globalval, i, j, k, l);
+
+    f2();
+}
+
+static void f2(void)
+{
+    longjmp(jmpbuffer, 1);
+}
+```
+- 紀錄所有 variable 是不符合 cost 的，應該要預設他全部不會 restore
+```sh
+[cshih@oris environ]$ ./testjmp
+in f1():
+globval = 95, autoval = 96, regival = 97, volaval = 98, statval = 99
+after longjmp:
+globval = 95, autoval = 96, regival = 97, volaval = 98, statval = 99
+
+[cshih@oris environ]$ ./testjmp.opt # optimize
+in f1():
+globval = 95, autoval = 96, regival = 97, volaval = 98, statval = 99
+after longjmp:
+globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
+```
+- 實際上發現 一般變數, `register` 會 restore，compiler 做優化可能會放到 register 就可以 restore 
+</Aside>
+
+<Aside type="note" title="Variable type">
+- `volatile`：易揮發（易變）
+    - 易改變的 variable 就不要讓 compiler 做這種優化
+![截圖 2025-11-13 上午10.16.39](https://hackmd.io/_uploads/ryQcypfl-x.png)
+    - 不讓 compiler 去做 catch（一定放在記憶體）
+- `restrict`：讓別的 pointer 改不到這塊記憶體（no alias）
+    - 可以隱藏告訴記憶體有沒有 overlap
+    ```c
+    void *memcpy(void *restrict dst, const void *restrict src, size_t n);
+    ```
+- `register`：請 compiler 儘量放到 CPU register
+    - 不能對 register 變數取 address
+- `static`：存活時間延長、防止 symbol 外洩
+</Aside>
+
+
+<Aside type="tip" title="Problem of Nonlocal Jumps">
+### Idea: 必定由深層到淺層跳
+![截圖 2025-11-13 上午10.22.48](https://hackmd.io/_uploads/By7-Wpzx-x.png)
+- 這個 code 可以 call 因為他的 stack 順序是正確的
+
+![截圖 2025-11-13 上午10.23.36](https://hackmd.io/_uploads/H1X4bTfl-l.png)
+- 壓掉 `P2` 後還繼續跳 `P2` 不行
+</Aside>
+
+<Aside type="note" title="Co-routine">
+- 雖然理論上不能從淺層往深層 jump，但實務上我們會用這個方法做 co-routine
+![截圖 2025-11-17 下午3.42.30](https://hackmd.io/_uploads/r1GZfLdeWx.png)
+- 紅色代表當前的 `top`
+- 當我們運行到下層使用 `longjump()` 跳回 `P1`，理論上跳回 `P1`，`P2`~`P5` 應該要被 `pop` 清理掉，但是實際上 `pop` 只是改 `top` 值而已，因此會留存資料
+- 我們可以利用這個循環不段切換在 `P1`, `P2` 以及 `P4`, `P5` 之間。   
+</Aside>
+
+
+<Aside type="tip" title="sleep v.2.">
+```c
+static jmp_buf env_alrm;
+
+static void sig_alrm(int signo)
+{
+    longjmp(env_alrm, 1);
+}
+
+unsigned int sleep2(unsigned int nsecs)
+{
+    if (signal(SIGALRM, sig_alrm) == SIG_ERR)
+        return(nsecs);
+
+    if (setjmp(env_alrm) == 0) {
+        alarm(nsecs);    /* start the timer */
+        pause();         /* next caught signal wakes us up */
+    }
+
+    return(alarm(0));    /* turn off timer, return unslept time */
+}
+```
+- 發生 race condition 後，alarm 會去呼叫 `sig_alrm()` 所以，跳到 if 內，發現 `setjump() != 0` 成功跳過 `pause()`
+- 如果正常收到 `alarm()` 也依樣成功跳過 `pause()` 
+</Aside>
+
+<Aside type="caution" title="Problem of sleep v.2.">
+![截圖 2025-11-13 上午10.43.35](https://hackmd.io/_uploads/SyfJ8TGebg.png)
+- 深層可以 restore 淺層，但直接把 `sig_int()` `pop` 掉，不一層一層上 `pop`，會出問題
+- 只要 `sig_int()` 超過 5 秒，讓 `sleep(5)` 發送 `SIGALRM`，就會被 `longjump()` 往前淺層跳，就會出問題。  
+- signal handler 一開始需要存 `errno`（為了在 run 完之後 restore 回來），錯誤時 system 會去 check 他，但其實根本沒出錯，所以不能 check 他，但是如果 `sig_int()` 直接被越過，會改到 `errno`，restore 回 `sig_int()` 裡面的狀態，但跳回 `main()`
+- 如果不影響正確性就可以用（open sorce 會使用。 ）
+</Aside>
+
+## Signal mask
+- 我們不能阻止 signal 送來，但我們可以把它 block 住，讓他不被 interrupt
+- 可以把 disposition 設定成 ignore
+- 一串 bit-stream
+
+**`int sigemptyset(sigset_t *set);`**
+**`int sigfillset(sigset_t *set);`**
+**`int sigaddset(sigset_t *set, int sig_no);`**
+**`int sigdelset(sigset_t *set, int sig_no);`**
+**`int sigismember(const sigset_t *set, int sig_no);`**
+- 設定用 system call
+
+**`int sigprocmask(int how, const sigset_t *set, sigset_t *oset);`**
+- `oset` 只要不是 `NULL` 就可以把目前的 signal mask 顯示出來
+    - `oset` 不為 `NULL` 就是要設定的那個 mask
+- `set` 不是 `NULL` 就去 check `how` 
+    - 比如 `how == SIGBLOCK` 就是把它設定成 `1`
+    - `SIG_BLOCK` 是 on, `SIG_ UNBLOCK` 是 off, `SIG_SETMASK` 是直接設定成 `set`
+
+**`int sigpending(sigset_t *set);`**
+- 被 generate 而且不被 ignore 就是在 **pending**
+- 檢查某個 signal 有沒有在 pending
+
+<Aside type="tip" title="Example">
+```c
+static void sig_quit(int signo)
+{
+    printf("caught SIGQUIT\n");
+    if (signal(SIGQUIT, SIG_DFL) == SIG_ERR)
+        perror("can't reset SIGQUIT");
+}
+
+int main(void)
+{
+    sigset_t newmask, oldmask, pendmask;
+
+    if (signal(SIGQUIT, sig_quit) == SIG_ERR)
+        perror("can't catch SIGQUIT");
+
+    /* Block SIGQUIT and save current signal mask */
+    sigemptyset(&newmask);
+    sigaddset(&newmask, SIGQUIT);
+    if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0)
+        perror("SIG_BLOCK error");
+
+    sleep(5);  /* During this time, SIGQUIT will remain pending */
+
+    if (sigpending(&pendmask) < 0)
+        perror("sigpending error");
+    if (sigismember(&pendmask, SIGQUIT))
+        printf("\nSIGQUIT pending\n");
+
+    /* Reset signal mask, unblocking SIGQUIT */
+    if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0)
+        perror("SIG_SETMASK error");
+    printf("SIGQUIT unblocked\n");
+
+    sleep(5);  /* SIGQUIT here will terminate with core dump */
+    exit(0);
+}
+```
+```sh
+$ ./a.out
+
+^\
+SIGQUIT pending
+caught SIGQUIT
+SIGQUIT unblocked
+^\Quit (core dumped)
+```
+```sh
+$ ./a.out
+
+^\^\^\^\^\^\^\^\^\^\^\^
+SIGQUIT pending
+caught SIGQUIT
+SIGQUIT unblocked
+^\Quit (core dumped)
+```
+</Aside>
+
+<Aside type="note" title="">
+通常不用 `SIG_UNBLOCK` 來解開，因為你不知道他的初始狀態，會使用 `sigprocmask(SIG_SETMASK, &oldset, NULL)` 讓他回覆原始狀態
+</Aside>
+
+**`int sigaction(int sig, const struct sigaction *restrict act, struct sigaction *restrict oact);`**
+```c
+struct  sigaction {
+    void     (*sa_handler)(int);  /* signal handler */
+    sigset_t sa_mask;             /* signal mask to apply */
+    int      sa_flags;            /* see signal options below */
+    /* alternate handler */
+    void     (*__sa_sigaction)(int, siginfo_t *, void *);
+};
+```
+- `sigaction()` 是 `signal()` 的 reliable 版本
+    - 可以查詢舊的 handler
+    - `sa_mask` 可以在 handler 運行的期間去 block 其他的 additional signal (原來的 signal mask 本來就 block 住會繼承，還會把自己也 block 住)
+- 若 `act` 不為 `NULL` 則去註冊那個 action
+- 若 `oact` 不為 `NULL` return previous handler
+- 現今的 `signal()` 通常都用 `sigaction()` 實現，但為了兼容舊系統就要改一下
+- `flag`
+    - `SA_INTERRUPT`：針對 slow system call，被這個 signal 叫了就不能 auto restart
+    - `SA_NOCLDWAIT`: 如果是 `SIGCHLD` 就讓他相容 `SIGCLD`
+    <Aside type="note" title="">
+    `SIGCLD` 被設定成 `SIG_IGN` 就會讓 child process 完全不會產生 zmobie process，不需要呼叫 `wait()`，此時呼叫 `wait()` 會 block 直到所有 child process 死亡
+    </Aside>
+    - `SA_RESETHAND`：退化成註冊一次一次有效（兼容）
+- 新版 handler `void handler(int signo, siginfo_t *info, void *context);` 可以 call 很多新的功能，取用裡面資訊得知錯誤訊息
+![截圖 2025-11-13 上午11.30.05](https://hackmd.io/_uploads/HkFpgRfg-e.png)
+
+<Aside type="note" title="Reliable signal()">
+```c
+Sigfunc *signal(int signo, Sigfunc *func)
+{
+    struct sigaction act, oact;
+
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    if (signo == SIGALRM) {
+#ifdef SA_INTERRUPT
+        act.sa_flags |= SA_INTERRUPT;
+#endif
+    } else {
+#ifdef SA_RESTART
+        act.sa_flags |= SA_RESTART;
+#endif
+    }
+    if (sigaction(signo, &act, &oact) < 0)
+        return (SIG_ERR);
+
+    return (oact.sa_handler);
+}
+```
+- 現今的 `signal()` 都用 `sigaction()` 實現，也就是終身有效註冊
+</Aside>
+
+**`int sigsetjmp(sigjmp_buf env, int savemask);`**
+**`void siglongjmp(sigjmp_buf env, int val);`**
+- 在 `sigsetjmp()` 要不要存下 `mask`
+- 做 `siglongjmp()` 就可以還原成原本 `mask`
+- Signal mask 是有限的變數，照理來說是應該本來就要還原，但這是個 implementation issue
+- **一定要配對**
+
+<Aside type="tip" title="Example">
+```c
+static void                    sig_usr1(int), sig_alrm(int);
+static sigjmp_buf              jmpbuf;
+static volatile sig_atomic_t   canjump;
+
+static void
+sig_usr1(int signo)
+{
+    time_t  starttime;
+
+    if (canjump == 0)
+        return;         /* unexpected signal, ignore */
+
+    pr_mask("starting sig_usr1: ");
+    alarm(3);           /* SIGALRM in 3 seconds */
+    starttime = time(NULL);
+
+    for ( ; ; )          /* busy wait for 5 seconds */
+        if (time(NULL) > starttime + 5)
+            break;
+
+    pr_mask("finishing sig_usr1: ");
+
+    canjump = 0;
+    siglongjmp(jmpbuf, 1);    /* jump back to main, don't return */
+}
+
+static void
+sig_alrm(int signo)
+{
+    pr_mask("in sig_alrm: ");
+}
+
+int
+main(void)
+{
+    if (signal(SIGUSR1, sig_usr1) == SIG_ERR)
+        err_sys("signal(SIGUSR1) error");
+    if (signal(SIGALRM, sig_alrm) == SIG_ERR)
+        err_sys("signal(SIGALRM) error");
+
+    pr_mask("starting main: ");     /* Figure 10.14 */
+
+    if (sigsetjmp(jmpbuf, 1)) {
+        pr_mask("ending main: ");
+        exit(0);
+    }
+
+    canjump = 1;   /* now siglongjmp() is OK */
+
+    for ( ; ; )
+        pause();
+}
+```
+- `canjump` 是用來確定 `setjump()` 後才能開始做 Signal 接收，如果還沒 `setjump()` 就 `longjump()` 會亂跳
+- 必須設定成 `sig_atomic_t` 雖然在高階語言，設定變數是一個動作，但是在 assembly 中是好多個動作，必須設定為 atomic 防止變數改變不完全
+
+![截圖 2025-11-20 上午9.37.03](https://hackmd.io/_uploads/ryRTllnlWg.png)
+1. 開始時 mask 為 empty
+2. `pause()` 在 SIGUSR1 deliver 並且 handler 執行完畢才會 return;
+3. `sig_usr1()` 執行期間會把自己 `SIGUSR1` 給 block 住
+4. 此時 `SIGALARM` 被 deliver 所以接收到就會執行自己的 `sig_alrm()` 額外把自己 block 住
+5. 執行完畢 return 到 `sig_usr1()` mask 回覆，執行 `siglongjump()` 跳躍到 main 裡面的 `sigsetjump()`
+6. 跳回去因為有紀錄 mask 所以回覆 mask 狀態  
+</Aside>
+
+<Aside type="tip" title="">
+```c
+sigset_t    newmask, oldmask;
+
+sigemptyset(&newmask);
+sigaddset(&newmask, SIGINT);
+
+/* block SIGINT and save current signal mask */
+if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0)
+    err_sys("SIG_BLOCK error");
+
+/* critical region of code */
+
+/* reset signal mask, which unblocks SIGINT */
+if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0)
+    err_sys("SIG_SETMASK error");
+
+/* problem HERE */
+
+/* window is open */
+pause();        /* wait for signal to occur */
+
+/* continue processing */
+```
+- 會產生問題
+</Aside>
+
+<Aside type="note" title="Critical Region (session)">
+- 如果一段 code 有去 access share memory（兩個 function 都可以執行那段 code），有可能兩個 function 同時執行那段 code
+- 多個 function 執行對同一段 memory access 也必須上 lock，而且必須上同一個 lock
+- 為了避免產生 race 我們必須對這段 code 進行 lock 保護，這段被保護的就叫做 **Critical Region**
+- 被保護的 data 就叫做 Critical session
+</Aside>
+
+**`int sigsuspend(const sigset_t *sigmask)`**
+- `sigprocmask()` 跟 `pause()` 包成一個 atomic operation
+- 要先往上抓 `sigprocmask()` 把某個 signal block 住，replace 掉他的 sigmask（相等於 unblock），然後等有一個 non-ignore 的 signal 叫醒他，run 完 handler 之後 return
+
+<Aside type="note" title="blocking">
+- 只要某些 signal 被 unblock，可能會有**順序**問題，mask 被換掉之後可能同時有好多 signal 要被送出。
+</Aside>
+
+<Aside type="tip" title="Example">
+```c
+static void sig_int(int);
+
+int main(void)
+{
+    sigset_t    newmask, oldmask, waitmask;
+
+    pr_mask("program start: ");
+
+    if (signal(SIGINT, sig_int) == SIG_ERR)
+        err_sys("signal(SIGINT) error");
+    sigemptyset(&waitmask);
+    sigaddset(&waitmask, SIGUSR1);
+    sigemptyset(&newmask);
+    sigaddset(&newmask, SIGINT);
+
+    /*
+     * Block SIGINT and save current signal mask.
+     */
+    if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0)
+        err_sys("SIG_BLOCK error");
+
+    /*
+     * Critical region of code.
+     */
+    pr_mask("in critical region: ");
+
+    /*
+     * Pause, allowing all signals except SIGUSR1.
+     */
+    if (sigsuspend(&waitmask) != -1)
+        err_sys("sigsuspend error");
+
+    pr_mask("after return from sigsuspend: ");
+
+    /*
+     * Reset signal mask which unblocks SIGINT.
+     */
+    if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0)
+        err_sys("SIG_SETMASK error");
+
+    /*
+     * And continue processing ...
+     */
+    pr_mask("program exit: ");
+    exit(0);
+}
+
+static void
+sig_int(int signo) {
+    pr_mask("\nin sig_int: ");  
+}
+```
+```shell
+$ ./a.out
+program start:
+in critical region: SIGINT
+^? 
+in sig_int: SIGINT SIGUSR1
+after return from sigsuspend: SIGINT
+program exit:
+```
+- `^?` 是 interrupt symbol
+1. start 的時候並沒有任何 mask
+2. 在 critical region 前設定了 mask 為 `SIGINT`
+   ```c
+   sigemptyset(&newmask);
+   sigaddset(&newmask, SIGINT);
+
+   sigprocmask(SIG_BLOCK, &newmask, &oldmask)
+   ```
+3. 在這個 function
+   ```c
+   sigsuspend(&waitmask);
+   ``` 
+   運行過程中，`^?` 按下後 `SIGINT` 送出，但是我們有 mask 所以被 block 住了，所以會有 `SIGUSR1`, `SIGINT` 的 mask，因為 reliable signal 會把自己 handle 的 signal 也 block 住
+4. `sigsuspend()` 結束 return 後 mask 被還原成 `SIGINT`（此時 `SIGINT` 依然被 block 住）
+5. 最後
+   ```c
+   sigprocmask(SIG_SETMASK, &oldmask, NULL);
+   ```
+   還原原始的 signal mask，`SIGINT` 被 unblock，program 結束出現
+</Aside>
+
+### Signal Mask with fork(), exec()
+**NOT Change**
+- `exec()`: signal mask, pending signals 會繼承
+- `fork()`: signal mask, dispositions, time of `SIGALRM` 會繼承
+
+**Change**
+- `exec()`: disposition of caught signals 會變 default
+- `fork()`: pending signals 會變 empty，ending alarms are cleared
+
+<Aside type="tip" title="Example">
+```c
+static void charatatime(char *);
+
+int
+main(void)
+{
+    pid_t   pid;
+
+    TELL_WAIT();
+
+    if ((pid = fork()) < 0) {
+        err_sys("fork error");
+    } else if (pid == 0) {
+        WAIT_PARENT();                  /* parent goes first */
+        charatatime("output from child\n");
+    } else {
+        charatatime("output from parent\n");
+        TELL_CHILD(pid);
+    }
+    exit(0);
+}
+
+static void
+charatatime(char *str)
+{
+    char    *ptr;
+    int     c;
+
+    setbuf(stdout, NULL);               /* set unbuffered */
+    for (ptr = str; (c = *ptr++) != 0; )
+        putc(c, stdout);
+}
+```
+</Aside>
+
+### IPC with signal
+**Wrong case**
+![截圖 2025-11-20 上午10.20.16](https://hackmd.io/_uploads/Sknmienxbl.png)
+- 任何 signal 都可以叫醒 `sigsuspend()`，所以我們可以用 `sigflag` 來確認，發現不是 `SIGUSR1` 就繼續睡。 
+- 但由於我們要對紅色片段做 critical region 處理，所以必須做 `sigpromask()` 的動作，但在 `fork()` 後 `sigpromask()` 前，signal 可能就來了，造成 signal get lost 的情況
+
+**Right case**
+![截圖 2025-11-20 上午10.33.50](https://hackmd.io/_uploads/r1KM0ehl-e.png)
+- `fork()` 前要先做 `TELL_WAIT()` 弄成 critical session
+- 然後才在 child 裡面做 suspend
+- 這樣 `SIGUSR1` 就被 block 一定會在最後才 deliver 才 handle.   
+
+<Aside type="tip" title="Example">
+```c
+static volatile sig_atomic_t sigflag;   /* set nonzero by sig handler */
+static sigset_t newmask, oldmask, zeromask;
+
+static void
+sig_usr(int signo)        /* one signal handler for SIGUSR1 and SIGUSR2 */
+{
+    sigflag = 1;
+}
+
+void
+TELL_WAIT(void)
+{
+    if (signal(SIGUSR1, sig_usr) == SIG_ERR)
+        err_sys("signal(SIGUSR1) error");
+    if (signal(SIGUSR2, sig_usr) == SIG_ERR)
+        err_sys("signal(SIGUSR2) error");
+
+    sigemptyset(&zeromask);
+    sigemptyset(&newmask);
+    sigaddset(&newmask, SIGUSR1);
+    sigaddset(&newmask, SIGUSR2);
+
+    /*
+     * Block SIGUSR1 and SIGUSR2, and save current signal mask.
+     */
+    if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0)
+        err_sys("SIG_BLOCK error");
+}
+
+void
+TELL_PARENT(pid_t pid)
+{
+    kill(pid, SIGUSR2);        /* tell parent we're done */
+}
+
+void
+WAIT_PARENT(void)
+{
+    while (sigflag == 0)
+        sigsuspend(&zeromask);   /* and wait for parent */
+    sigflag = 0;
+
+    /*
+     * Reset signal mask to original value.
+     */
+    if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0)
+        err_sys("SIG_SETMASK error");
+}
+
+void
+TELL_CHILD(pid_t pid)
+{
+    kill(pid, SIGUSR1);        /* tell child we're done */
+}
+
+void
+WAIT_CHILD(void)
+{
+    while (sigflag == 0)
+        sigsuspend(&zeromask);   /* and wait for child */
+    sigflag = 0;
+
+    /*
+     * Reset signal mask to original value.
+     */
+    if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0)
+        err_sys("SIG_SETMASK error");
+}
+```
+</Aside>
+
+### sleep
+**`unsigned int sleep(unsigned int secs);`**
+- return 沒睡飽幾秒 or 0
+- 由於共用 `SIGALRM` 萬一在 `sleep()` 前有一個 `alarm()`
+    - `alarm(10)`, 3 secs, `sleep(5)` 大部分系統可以響鬧鐘，但理論上是可以 ignore 的
+    - `alarm(10)`, 3 secs, `sleep(5)` 某些系統會讓 `sleep(5)` 睡不飽
+
+<Aside type="caution" title="sleep v.final (Reliable implemention)">
+```c
+static void
+sig_alrm(int signo)
+{
+    /* nothing to do, just returning wakes up sigsuspend() */
+}
+
+unsigned int
+sleep(unsigned int nsecs)
+{
+    struct sigaction    newact, oldact;
+    sigset_t            newmask, oldmask, suspmask;
+    unsigned int        unslept;
+
+    /* set our handler, save previous information */
+    newact.sa_handler = sig_alrm;
+    sigemptyset(&newact.sa_mask);
+    newact.sa_flags = 0;
+    sigaction(SIGALRM, &newact, &oldact);
+
+    /* block SIGALRM and save current signal mask */
+    sigemptyset(&newmask);
+    sigaddset(&newmask, SIGALRM);
+    sigprocmask(SIG_BLOCK, &newmask, &oldmask);
+
+    alarm(nsecs);
+
+    suspmask = oldmask;
+    sigdelset(&suspmask, SIGALRM);    /* make sure SIGALRM isn't blocked */
+    sigsuspend(&suspmask);            /* wait for any signal to be caught */
+
+    /* some signal has been caught, SIGALRM is now blocked */
+
+    unslept = alarm(0);
+    sigaction(SIGALRM, &oldact, NULL); /* reset previous action */
+
+    /* reset signal mask, which unblocks SIGALRM */
+    sigprocmask(SIG_SETMASK, &oldmask, NULL);
+
+    return(unslept);
+}
+```
+- 重點是要讓 `alarm()` `pause()` 之間，signal 是不能來的，要製作 critical session
+- 在 `alarm()` 前就先把 `SIGALRM` block 起來
+- 保證在 `sigsuspend()` 裡面運作處理 `SIGALRM` 
+</Aside>
+
+**`void abort(void)`**
+- 送出 `raise(SIGABRT)`
+- 可能死不了
+    - 如果先前就先 block 住 `SIGABRT` 那就死不了
+    - Catch 到 `SIGABRT` 然後在 handler 裡面用 `longjump()` 跳走
+
+<Aside type="caution" title="Implementation of abort()">
+```c
+void
+abort(void)          /* POSIX-style abort() function */
+{
+    sigset_t        mask;
+    struct sigaction    action;
+
+    /*
+     * Caller can't ignore SIGABRT, if so reset to default.
+     */
+    sigaction(SIGABRT, NULL, &action);
+    if (action.sa_handler == SIG_IGN) {
+        action.sa_handler = SIG_DFL;
+        sigaction(SIGABRT, &action, NULL);
+    }
+    if (action.sa_handler == SIG_DFL)
+        fflush(NULL);        /* flush all open stdio streams */
+
+    /*
+     * Caller can't block SIGABRT; make sure it's unblocked.
+     */
+    sigfillset(&mask);
+    sigdelset(&mask, SIGABRT);    /* mask has only SIGABRT turned off */
+    sigprocmask(SIG_SETMASK, &mask, NULL);
+    kill(getpid(), SIGABRT);      /* send the signal */
+
+    /*
+     * If we're here, process caught SIGABRT and returned.
+     */
+    fflush(NULL);        /* flush all open stdio streams */
+    action.sa_handler = SIG_DFL;
+    sigaction(SIGABRT, &action, NULL);  /* reset to default */
+    sigprocmask(SIG_SETMASK, &mask, NULL);  /* just in case ... */
+    kill(getpid(), SIGABRT);             /* and one more time */
+    exit(1);            /* this should never be executed ... */
+}
+```
+- 會 block 著所有其他 signal，只 unblock `SIGABRT`
+    - `sigpromask()` 又至少一個 signal 被 deliver 才會 return 
+- 要先把 `SIGABRT` handler deliver 掉
+- 然後把執行完後把東西再次設定為 default 然後才能送出第二次 `kill()`
+- `exit()` 是保險
+</Aside>

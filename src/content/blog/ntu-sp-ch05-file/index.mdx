@@ -1,0 +1,357 @@
+---
+title: "NTU-SP 系統程式設計 Ch5 File and Directory"
+description: "NTU PJ System Programming: Ch5 File and Directory"
+publishDate: "2025-11-30 12:07:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "SP"
+  - "note"
+language: "zh-TW"
+comment: true
+heroImage: { src: './back.png', color: '#dd9994ff' }
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Files and Directories
+
+## Intro
+
+- Session for **"i-node"** 裡面的資料
+- Unix 系統裡面都有很多 header 可以查詢 file 的各種 attribute，就會放在 i-node 裡面
+    ```c
+    struct stat {
+        mode_t st_mode;    /* file type & mode (permissions) */
+        ino_t st_ino;      /* i-node number (serial number) */
+        dev_t st_dev;      /* device number (file system) */
+        dev_t st_rdev;     /* device number for special files */
+        nlink_t st_nlink;  /* number of links */
+        uid_t st_uid;      /* user ID of owner */
+        gid_t st_gid;      /* group ID of owner */
+        off_t st_size;     /* size in bytes, for regular files */
+        time_t st_atime;   /* time of last access */
+        time_t st_mtime;   /* time of last modification */
+        time_t st_ctime;   /* time of last file status change */
+        blksize_t st_blksize; /* best I/O block size */
+        blkcnt_t st_blocks;   /* number of disk blocks allocated 
+                               * Block size might be 512 or 1024 */
+    };
+    ```
+<Aside type="caution" title="">
+大部份 i-node 都有這些 parameter，但會有些許不同
+</Aside>
+
+- **`int stat(const char *pathname, struct stat *buf);`**
+    - 如果是 symbolic link 的話，你直接對他呼叫是跑不出來的，需要換另一個 function
+    - `int fstat(int filedes, struct stat *buf)`: for file stat
+    - `int lstat(const char *pathname, struct stat *buf);` for link stat
+
+## File type
+
+- **Regular file**:
+    - **Text file** v.s. **Binary file**: 
+        - text file 有換行改念，在不同系統中是用不同的方式表達的 `\n` or `\r\n`
+- **Directory file**: 
+    - 只有 kernel 可以 編輯格式是
+    - 欄位內紀錄 `{(filename, pointer)}`, pointer 紀錄 i-node number
+    - 讓 system 可以直接到資料夾裡面抓取 file metadata 
+    - filename 並不是 metadata，一個 file 可以有多個 metadata
+- **Character Special Files**: `tty`, `audio`
+- **Block Special Files**: `disks`
+- **FIFO**: 是一種 pipeline
+- **Socket file**
+- **Symbolic Links**
+
+<Aside type="note" title="">
+有專門的 macro 可以去可以去看他是不是那個種類的檔案
+</Aside>
+
+## UID, GID and Access permission
+
+- 0 -> 8 進位
+    - ```c
+      #define S_IRWXU 00700 /* read, write, execute: owner */
+      #define S_IRUSR 00400 /* read permission: owner */
+      #define S_IWUSR 00200 /* write permission: owner */
+      #define S_IXUSR 00100 /* execute permission: owner */
+      #define S_IRWXG 00070 /* read, write, execute: group */
+      #define S_IRGRP 00040 /* read permission: group */
+      #define S_IWGRP 00020 /* write permission: group */
+      #define S_IXGRP 00010 /* execute permission: group */
+      #define S_IRWXO 00007 /* read, write, execute: other */
+      #define S_IROTH 00004 /* read permission: other */
+      #define S_IWOTH 00002 /* write permission: other */
+      #define S_IXOTH 00001 /* execute permission: other */
+      #define S_IRWXU 00700 /* read, write, execute: owner */
+      #define S_IRUSR 00400 /* read permission: owner */
+      #define S_IWUSR 00200 /* write permission: owner */
+      #define S_IXUSR 00100 /* execute permission: owner */
+      #define S_IRWXG 00070 /* read, write, execute: group */
+      #define S_IRGRP 00040 /* read permission: group */
+      #define S_IWGRP 00020 /* write permission: group */
+      #define S_IXGRP 00010 /* execute permission: group */
+      #define S_IRWXO 00007 /* read, write, execute: other */
+      #define S_IROTH 00004 /* read permission: other */
+      #define S_IWOTH 00002 /* write permission: other */
+      #define S_IXOTH 00001 /* execute permission: other */
+      ```
+### **Operation** vs **Permission**
+- **Directory**
+    - `X`: Search 權限
+    - `R`: 可以 list 出所有資料 (`ls`)
+    - `W`: 可以更新這個資料夾（delete, create）
+        - **Delete**: `X` + `W`，<span class="red">刪除一個 file 只是把他的 entry 從 directory 拿掉而已，因此**只需要對 directory 有 Write 權限**，file 無所謂，在 $RC$ 上 $-1$ 而已</span>
+        - **Create**: `X` + `W`
+        - `/tmp`: 永遠都是 `777` permission
+- **File**
+    - `X`: 執行權限
+    - `R`: `O_RDONLY`, `O_RDWR`
+    - `W`: `O_WRONLY`, `O_RDWR`, `O_TRUNC`
+
+### GID, UID
+
+<Aside type="note" title="">
+明明沒權限但可以改密碼
+```bash
+-rw-r--r-- 1 root root 1746 2/21 13:00 /etc/passwd
+-r-------- 1 root root 1142 2/21 13:01 /etc/shadow
+```
+只有 super user 可以寫
+> **用一個執行檔「借 Owner 權限」給別的 process**
+</Aside>
+
+- Real UID/GID
+    - 誰執行這個檔案以他為準
+- Effective UID/GID
+    - Check file access permission
+- Saved Set-User/Group-ID
+    - Effective UID/GID 可以變動所以要暫存 (Ch.8 細講) 
+- **Set GID/UID**
+    - 開始執行的時候 Effective UID/GID 會變成執行檔 owner 的 UID/GID
+    - `--s --- ---` 表示被 set UID `S` 是不可執行
+    - `--- --s ---` 表示被 set GID
+    - `04000` 表示有外借 UID
+    - `02000` 表示有外借 GID
+    
+    <Aside type="tip" title="">
+    ![截圖 2025-10-14 上午11.53.17](https://hackmd.io/_uploads/Sk_EFBjTgx.png)
+    - Real-id: B
+    - Effective-id: **B**
+    - B **可執行** A1 因為現在是 `0755`，B 被歸在 other user
+    - Process 想讀 A2 **不可讀**，`0400` B 被歸在 other user
+    </Aside>
+  
+    <Aside type="tip" title="">
+    ![截圖 2025-10-14 上午11.58.01](https://hackmd.io/_uploads/HJLI9Hopxg.png)
+    - Real-id: B
+    - Effective-id: **A**
+    - B **可執行** A1 因為現在是 `4755`，B Process 借到了 owner permission 是 `7` 權限
+    - Process 讀到 A2 **可讀**，`0400` B Process 借到了 owner permission 是 `4` 權限
+    </Aside>
+
+    <Aside type="note" title="">
+    How can a user just allow his friend to copy his files?
+    - ACL (Access Control List)
+    - Set-User-ID: 可以把 Set-User-ID 的執行檔設定 passwd
+    - 設定一個 `x` 權限的 directory 給 other（不可以有 `r` 不然可以 `ls` 得知內容），要給別人 copy 的 file 要有 `r` 給 other
+    </Aside>
+
+- File access test 是在 open/create/delete 檔案的瞬間就直接測過了，只要在那一瞬間有權限就好
+   - use `chmod` to change the permission or set-uid
+
+### Ownership 
+- **UID**: 根據那個 create file 的 process 的 effective UID 來決定他的 ownership
+- **GID**: 
+    - Effect GID of the create process
+    - GID of Directory
+    - 有些系統會把他跟 locker 綁在一起
+- **`int access(const char *pathname, int mode);`**
+    - 去 check 執行 process 對某個檔案有沒有 `mode` 權限
+- **`mode_t umask(mode_t cmask);`**
+    - 設定某個檔案的 `umask`
+    - 與權限做 `實際檔案權限 = 程式請求權限 & ~cmask` 但其實可以看作，也可以看作減去
+    - 必須要是 internal(built-in) command，也就是不需額外ㄎㄞ process 的 command（運行時可以改掉自己的 attribute，不可以 fork 出去）
+- **`int chmod(const char *pathname, mode_t mode);`**
+  **`int fchmod(int filedes, mode_t mode);`**
+    - 呼叫這個 system call 的 process 必須擁有和 file 相同的 UID，若不同 system 會偷偷關掉
+    - 底層原理是 **update i-node** 並非 synchronize 不會動到 DISK
+    - 權限可收回浮動（Midterm 後
+- **Sticky Bit** (Save-text bit)
+    - 原本目的是 mirror 一份到 swap area 裡面
+    - 以前沒有 Virtual Memory 但是要 handle 東西，我們可能會先放在 DISK 要拿回來的時候需要知道我們這次是不是 cold start，但現在已經被 Virtual memory 取代
+    - 檔案會變大變小，為了防止 memory fragment 出現，會預留一些 block，會讓 memory fragment 這種情況減少，也取代了 sticky bit
+    - <span class="red">**現在的用處**</span>: 如果一個 directory 的 sticky bit 被 set，裡面的檔案只有在 process 有 `w` 權限並且符合以下其一才能刪除或 rename
+        - Owner of file
+        - Owner of directory
+        - SU
+    > `/tmp` 雖然 777，但有開 sticky bit 所以只有 owner 可以對他的 file 做事
+    - `--- --- --t` 表示 一樣用大小寫區分有沒有 `x`
+- **`int chown(const char *pathname, uid_t owner, gid_t, grp);`**
+**`int fchown(int filedes, uid_t owner, gid_t, grp);`**
+**`int lchown(const char *pathname, uid_t owner, gid_t, grp);`**
+    - 處理 未開啟 / 已開啟 / Symbolic link
+### Limit
+- Compiler-time: 
+  e.g. range of short
+- Run-time limit:
+    - **`long sysconf(int name);`**: 系統限制
+        - `_SC_CHILD_MAX`, `_SC_OPEN_MAX`
+    - **`long pathconf(const char *pathname, int name);`** for file/directory
+    - **`long fpathconf(int *filedes, int name);`**: for fd
+        - 可以接 `_PC_LINK_MAX`, `_PC_PATH_MAX`, `_PC_PIPE_BUF`, `_PC_NAME_MAX`, `_PC_SYMLINK_MAX` 來得到 limit
+
+### File Size
+- Regular files – 0~max (`off_t`)
+- Directory files – multiples of 16/512
+- Symbolic links – pathname length
+- 有 File hole 可能導致邏輯大小與實際大小不一樣大
+  > 邏輯大小 > data block size: 用 `lseek` 到很後面寫入會造成 hole
+  > 邏輯大小 < data block size: 占不完整的 block
+- **`int truncate(const char *pathname, off_t length);`**, 
+  **`int ftruncate(int filedes, off_t length);`**
+  
+
+## Unix file and directory
+
+### Structure
+- 各種 file 連接在 `/` 的下面 disk partition 可以 mount 到 directory，裝置也是一個 file
+- **Partition**
+    - 前面會有 `boot` block
+    - 在一個 super block (歷史淵源)
+    - 多個 cylinder groups 組成 (Hard Drive)
+        - 先 copy 一份 super block 然後紀錄 metadata，map 用來紀錄 usage
+        - **i-nodes**
+        - **i-nodes map**
+        - **Data blocks**
+        - **Data blocks map**
+    - ![截圖 2025-10-15 凌晨2.38.06](https://hackmd.io/_uploads/Sk5quG26ee.png)
+- **i-node list** (fix list)
+    - ![截圖 2025-10-15 凌晨2.40.52](https://hackmd.io/_uploads/SyfSFznplx.png)
+    - 記錄**佔用哪些 DISK block**
+    - open 某個 file 就會被 mirror 到 buffer cache 裡面
+    - owner, type, file size
+    - **Per file**，不同的 filename 用 **hard link** 連接
+        - 裡面有一個 `st_nlink` 紀錄 link count 類似於 Reference count
+    - ![截圖 2025-10-15 凌晨2.52.43](https://hackmd.io/_uploads/BkLWnMhTxl.png)
+- File operation
+    - move 檔案只需要改一改 i-node 的值就好了
+    - delete 就是 link count -1 
+- Example: 4.4BSD i-node
+    - ![截圖 2025-10-15 上午8.38.48](https://hackmd.io/_uploads/BkmXpD26el.png)
+    - direct block: 每個指向一個 block
+    - single indirect: 指向一個 block，其中都是 direct blocks (direct block 會用完)，single indirect 的第一層 pointer 也可以存在 buffer cache
+    - double indirect，指向一個blcok，其中都是 single indirect blocks
+    - triple indirect，指向一個blcok，其中都是 double indirect blocks
+    - **lock**: 會在 i-node table 底下串 lock 對 process 的資料
+![截圖 2025-10-15 上午10.24.59](https://hackmd.io/_uploads/HJjWUFhall.png)
+### Hard link & Soft link 
+- Hard link
+    - 只有 SU 可以對一個 directory create 一個 hard link
+    - 不能 Cross file system
+    - ![截圖 2025-10-15 上午8.55.59](https://hackmd.io/_uploads/SkjmZO2Tel.png)
+- Soft link (Symbolic link)
+    - 紀錄路徑 
+    - 能 Cross file system
+    - 缺點是，**被指到的人不知道自己被指了**（可能出現 link 還在，但檔案已經爛掉了的情況）
+    - 還可能出現 traverse infinite loop: 
+        - 紀錄 i-node number 解決
+        - 紀錄 走過幾次 soft-link 解決  
+    - ![截圖 2025-10-15 上午8.56.18](https://hackmd.io/_uploads/ry3V-O3pgl.png)
+- **`int link(char *existingpath, char *newpath)`**
+    - hard link
+    - 必須 atomic
+    - create 一個 entry -> link count +1 
+- **`int unlink(char *pathname)`**
+    - open 檔案後 unlink 你會 `ls` 不到他，但卻可以 access
+    - <Aside type="tip" title="">
+      創建一個 `tempfile` 來儲存計算高峰值，
+      - 一 `open` 馬上 `unlink` 就可以防止別人 `ls` 出來，但依然可以 access
+      - process 結束 fd 本來就會自動 `close` 所以就可以真正移除
+      ```c
+      int main(void) {
+          if (open("tempfile", O_RDWR) < 0)
+              err_sys("open error");
+          if (unlink("tempfile") < 0)
+              err_sys("unlink error");
+          printf("file unlinked\n");
+          sleep(15);
+          printf("done\n");
+          exit(0);
+      }
+      ```
+      </Aside>
+      
+- **`int remove(const char *pathname);`**
+    - `unlink` if is a file
+    - `rmdir` if is a directory
+- **`int rename(const char *oldname, const char *newname);`**
+    - `oldname`, `newname` 必須對齊，必須 file-to-file, directory-to-directory
+    - If `oldname` 是 file
+        - 對 `oldname` `unlink` 然後再換名字
+        - 要對兩個 directory contain `oldname`/`newname` 都要 有 `w+x` 權限
+    - If `oldname` 是 directory
+        - 跟 file 的所有條件都一樣
+        - `oldname` 不可以是 `newname` 的 prefix
+            - `/a/b` -> `a/b/c` 會跳 Error
+- **`int symlink(const char *actualpath, const char *sympath);`**
+**`int readlink(const char *pathname, char *buf, int bufsize);`**
+    - 用 `open` 會直接開路徑上的檔案本人，要讀 symbolic link 本人要 call `readlink()`
+### File time
+- `st_atime`: last access
+- `st_mtime`: last modify
+- `st_ctime`: last modify i-node(`chmod`, `chown`)，沒有system call可竄改
+    - create、remove、rename、(un)link file 會設 `a`、`m`、`c` 影響包含的 directory 的 `m`、`c`
+        - 原則: 要改 dir 的 dir block，因此 i-node 也要改大小
+    - 改 permission、owner 只會影響 i-node -> `c`
+    - open file:
+        - 還沒讀寫不會有a、m
+        - `O_CREAT` 才會有 `a`
+        - `O_TRUNC` 不需要 `a`，只有 `m`、`c`
+- **`int utime(const char *pathname, const struct utimbuf *times);`** 
+    - 要讀只要用 `stat()` 就好，這個 function 通常用來 modify
+    - 要有權限
+- **`int mkdir(const char *pathname, mode_t mode);`**
+**`int rmdir(const char *pathname);`**
+    - `rmdir()` 要 empty
+- **`DIR *opendir(const char *pathname);`**
+**`struct dirent *readdir(DIR *dp);`**
+**`void rewinddir(DIR *dp);`**
+**`int closedir(DIR *dp);`**
+- **`int ftw(char* dir_path, *fn(char* f_path,stat *sb,type_flag), n_openfd)`**
+    - dirpath 要開的資料夾
+    - fn 找到新檔案會呼叫的函數
+    - nopenfd 允許開啟的 fd 數量，太少 tree 又太深的話就會只留下面幾層，每次要換目錄就得要從dirpath重新開始，浪費時間
+- **`int chdir(const char *pathname);`**
+**`int fchdir(int filedes);`**
+    - Change current working directory
+    - 一樣要是 built-in function，parent, child process 會擁有獨立參數 
+- **`char *getcwd(char *buf, size_t size);`**
+    - 只能  從當前目錄的 i-node traverse 上去，輸出是檔名
+    - 不可以用 soft
+    - <Aside type="tip" title="">
+      - `chdir` follows soft link，因為讀的是檔名，從根目錄開始找 i-node，輸出是 i-node
+      ```c
+      int main(void) {
+          char *ptr;
+          int size;
+
+          if (chdir("/usr/spool/uucppublic") < 0)
+              err_sys("chdir failed");
+               
+          ptr = path_alloc(&size);  /* 我們自訂的函式，用來配置足夠大的緩衝區 */
+          if (getcwd(ptr, size) == NULL)
+              err_sys("getcwd failed");
+              
+          printf("cwd = %s\n", ptr);
+          exit(0);
+      }
+      ```
+      執行結果
+      ```bash
+      $ ./a.out
+      cwd = /var/spool/uucppublic
+      $ ls -l /usr/spool
+      lrwxrwxrwx 1 root 12 Jan 31 07:57 /usr/spool ->  ../var/spool
+      ```
+      並沒有真正改到 cwd，因為 follow hard/soft link 的區別
+      </Aside>

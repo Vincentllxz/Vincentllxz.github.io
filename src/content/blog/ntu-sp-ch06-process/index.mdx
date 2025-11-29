@@ -1,0 +1,707 @@
+---
+title: "NTU-SP 系統程式設計 Ch6 Process Control & IPC"
+description: "NTU PJ System Programming: Ch6 Process"
+publishDate: "2025-11-30 12:08:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "SP"
+  - "note"
+language: "zh-TW"
+comment: true
+heroImage: { src: './back.png', color: '#dd9994ff' }
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Process Control & IPC
+
+## Booting 
+### Bootstrapping
+- 開機用 program 在 BIOS 裡 (硬體檢查硬體)
+- 並非 Unix kernel 本人
+1. 把 Unix kernel 的幾隻 process 叫起來 (OS 檢查硬體)
+2. Unix kernel 將整個 system 叫起來到 single (super) user mode 做一些事情 
+  e.g. check host name, timezone, disk data consistency
+3. 開啟 multiuser mode
+
+**Special process**
+- **`PID 0`**: swapper (scheduler)
+    - kernel process 做一些 prior 的事情，躲在 partition
+- **`PID 1`**: `init` 所有 process 的共同祖先
+    - 把系統的 service 叫起來
+    - `inetd`: 管理 remote login 會 fork surface process 出來像是 `telnetdaemon`
+- **`PID 2`**: `pagedaemon`
+![截圖 2025-10-16 上午9.32.39](https://hackmd.io/_uploads/B1USspT6lg.png)
+
+### Process Control Block (PCB)
+- Process 的 metadate
+- Process states:
+    - New
+    - Running
+    - Waiting
+    - Ready
+    - Terminated
+- ![截圖 2025-10-16 上午9.40.01](https://hackmd.io/_uploads/BJoeTpa6lg.png)
+- Program Counter (IP: Instruction Pointer)
+- CPU registers
+    - context switch 回來要 restore
+- CPU scheduling information
+    - priority 檢查
+- Memory-management information
+- Accounting information
+    - 紀錄任何時間參數
+- I/O status information
+![截圖 2025-10-16 上午9.44.27](https://hackmd.io/_uploads/SJL-RaTTlx.png)
+
+### Process table
+- 每個 entry 都是 PCB，記錄當前所有 process
+- run 一次看看誰的 `ppid` 是自己就知道自己有多少 child 了
+
+### Context switch
+![截圖 2025-10-16 上午9.53.12](https://hackmd.io/_uploads/Sy4zxAT6ex.png)
+
+<Aside type="note" title="">
+**Process Scheduling Queue**
+- **Job queue**: 所有 process
+- **Ready queue**: 準備好在 main memory 的 process
+- **Device queues**: 準備 I/O 的
+![截圖 2025-10-16 上午10.00.45](https://hackmd.io/_uploads/HyCJGA6pel.png)
+</Aside>
+
+
+### Process Content & Metadata
+- **Content**: Virtual memory 
+- ![截圖 2025-10-16 上午9.55.36](https://hackmd.io/_uploads/rkNjeCpalg.png)
+- text: instruction
+- un-initialized data, initialized data: global variable
+- stack: local variable
+- heap: 只漲不縮
+
+### Process Creation & Termination
+
+![截圖 2025-10-16 上午10.00.02](https://hackmd.io/_uploads/ry2iZCTTle.png)
+- `fork()` 開始，會出現很多狀況: parent 先死, 直接 `exec()`
+- 兩個 process 的關聯性只有 `ppid`
+
+<Aside type="note" title="">
+**`pid_t fork(void)`**
+- 要根據 `fork()` 的 return 判斷現在是 parent 還是 child，因為兩者跑一樣的 code
+    - 對於 parent 會 return child PID
+    - 不可能有人得 child-id 是 0 所以 return 0 就是 parent
+- **Call once return twice**
+- 在 bootstrapping 後唯一可以創建 process 的 system call
+- **只 call fork 是不會執行 process**
+
+![截圖 2025-10-16 上午10.04.28](https://hackmd.io/_uploads/Syd2fRTTel.png)
+</Aside>
+
+**Virtual Memory 的運作**
+- 把整個 process copy 是 high-cost 的
+- 把 virtual memory map 到 physical memory 上
+    - 對應在 `p_ldt` 上的 table
+    - Virtual Memory 用不完的，所以會有洞，但這樣浪費空間
+    - ![截圖 2025-10-16 上午10.13.23](https://hackmd.io/_uploads/SyJR4Apalx.png)
+- **Copy-on-write**
+    - ![截圖 2025-10-16 上午10.13.35](https://hackmd.io/_uploads/Hk5R4C6aeg.png)
+    - 當發現出現 share memory 要更改的時候再 copy
+    - 第一次開始寫入才真正複製
+
+<Aside type="tip" title="Example of `vfork()`">
+ ```c
+int     glob = 6;                        /* external > variable in initialized data */
+char    buf[] = "a write to stdout\n";
+
+int main(void) {
+    int     var;                         /* automatic variable on the stack */
+    pid_t   pid;
+
+    var = 88;
+    if (write(STDOUT_FILENO, buf, sizeof(buf)-1) != sizeof(buf)-1)
+        err_sys("write error");
+    printf("before fork\n");             /* we don't flush stdout */
+
+    if ((pid = fork()) < 0)
+        err_sys("fork error");
+    else if (pid == 0) {                 /* child */
+        glob++;                          /* modify variables */
+        var++;
+    } else {
+        sleep(2);                        /* parent */
+    }
+
+    printf("pid = %d, glob = %d, var = %d\n", getpid(), glob, var);
+    exit(0);
+}
+```
+- parent 睡兩秒
+- child 改變數
+
+**Result**
+```bash
+$ ./a.out
+a write to stdout
+before fork
+pid = 430, glob = 7, var = 89
+pid = 429, glob = 6, var = 88
+```  
+```bash
+$ ./a.out > temp.out
+a write to stdout
+before fork
+pid = 430, glob = 7, var = 89
+before fork
+pid = 429, glob = 6, var = 88
+```
+- File 是 fully-buffered, Terminal 是 line-buffered. 
+    - 有寫入 `\n` 但沒有 flush 出去，因為是 fully-buffered.
+    - 此時呼叫 `fork()` child copy 了一塊 parent 的 memeory 所以那句多出來的也被 copy 到了。 
+</Aside>
+
+<Aside type="note" title="Practice 1">
+```c
+void forkfunc() {
+    if (fork() && fork())
+        fork();
+    write (1, “*\n”, 2);
+}
+```
+- 4 個 `*`
+- 切記 `fork()` return twice
+</Aside>
+
+<Aside type="note" title="Practice 2">
+```c
+void forkfunc() {
+    if (fork() || fork())
+        fork();
+    write (1, “*\n”, 2);
+}
+```
+- 5 個 `*`
+-     
+</Aside>
+
+### **Normal cases in fork**
+- 通常 parent 會等到 child 結束後 call `wait()` return 然後繼續運行
+- 但也可以 parent 繼續做事 (跟 child 並行) 但 eventually 還是得呼叫 `wait()` 
+- 有 `CHILD_MAX`
+
+**Inherited properties**
+- **Effective UID**, time, umask ... etc
+
+**Differences on properties**
+- PID/PPID
+- PCB 裡面的 time 是 process time 不是 program time
+- lock
+- pending SIGNAL
+
+
+
+![截圖 2025-10-16 上午10.51.20](https://hackmd.io/_uploads/rkzpTCapxe.png)
+
+
+<Aside type="note" title="**Usage of fork**">
+- 複製一個 process 去跑別的東西 e.g. Network servers
+- shells (`spawn` = `fork` + `exec`)
+    - 但有些 process 是不需要 `exec()` 的
+</Aside>
+
+
+<Aside type="note" title="**vfork**">
+- 不 copy 而是共用 virtual memory，會去改到 parent 的 variable (open fd table 也是 parent 的)
+- Child 呼叫 `exec()` 之後才會真正為了 child 去 allocate 一塊 virtual memory
+- child 永遠先執行並且 parent 要在 child 結束後執行
+</Aside>
+
+<Aside type="tip" title="Example of `vfork()`">
+```c
+int  glob = 6;        /* external variable in initialized data */
+
+int main(void)
+{
+    int     var;         /* automatic variable on the stack */
+    pid_t   pid;
+
+    var = 88;
+    printf("before vfork\n");    /* we don't flush stdio */
+    if ((pid = vfork()) < 0) {
+        err_sys("vfork error");
+    } else if (pid == 0) {       /* child */
+        glob++;                  /* modify parent's variables */
+        var++;
+        _exit(0);                /* child terminates */
+    }
+    /*
+     * Parent continues here.
+     */
+    printf("pid = %d, glob = %d, var = %d\n", getpid(), glob, var);
+    exit(0);
+}
+```
+- Child 先行，改動 parent 的 virtual memory 的空間
+- 此處用 `_exit()` 因為 `exit()` 會被 flush 掉，parent 的 filestream 也會被關掉，要小心，如果 parent 要呼叫 Buffered I/O 會出問題
+</Aside>
+
+
+###   Deadlock
+- 三個 process 互相 lock 著對方需要的 condition
+- Lock 必須互斥，並且系統不可干預
+
+<Aside type="note" title="">
+```c
+int main(void) {
+    int var;
+    pid_t pid;
+
+    var = 88;
+    printf("before vfork\n");
+    if ((pid = vfork()) < 0) {
+        err_sys("vfork error");
+    } else if (pid == 0) {      /* child */
+        while (var < 100)
+            ;                   /* busy wait */
+        _exit(0);               /* child terminates */
+    }
+
+    /* parent continues here */
+    var = 100;
+    exit(0);
+}
+```
+- child 想等 `var >= 100`
+- parent 要等 child terminate
+</Aside>
+
+### Process Termination
+- **Normal termination**
+    - ![截圖 2025-10-16 上午11.11.33](https://hackmd.io/_uploads/rJMuMJCpeg.png)
+    - main 內部 call `exit()` 直接回到 kernel 直接消失
+    - 你不 exit()，C start-up routine 會幫你 `exit(main(argc, argv));`
+    - `_exit()` 就直接死，不 clean up
+- **Abnormal termination**
+    - Signal 傳出
+    
+**`int atexit(void (*func)(void));`**
+- 可以註冊一連串 function先註冊再執行
+- 在要死前執行（main return 後）
+- 反向往回叫 stack
+
+**`pid_t wait(int *statloc)`**
+- Blocking mode，任何一個 child 死掉就死了
+- return 值會是死掉 child 的 PID
+- `statloc` 會是死亡結束碼
+
+**`pid_t waitpid(pid_t pid, int *statloc, int op)`**
+- 可以選擇 non-blocking 直接 return
+      - `op` 塞 `WNOHANG` 可以製造這種效果
+- 可以指定哪個 child
+- wait 到不是自己的 child 會 return error，沒 child 也一樣
+
+<Aside type="note" title="Terminate Status">
+可以透過一系列 macro 去獲得死亡訊息
+ ![截圖 2025-10-18 下午3.04.40](https://hackmd.io/_uploads/S1EGnhx0ll.png)
+- parent 呼叫 `wait()` 不一定是要等小孩死，而是要等待他狀態改變
+</Aside>
+
+<Aside type="tip" title="Example of wait()">
+```c
+#include "apue.h"
+#include <sys/wait.h>
+
+void pr_exit(int status) {
+    if (WIFEXITED(status))
+        printf("normal termination, exit status = %d\n",                 WEXITSTATUS(status));
+    else if (WIFSIGNALED(status))
+        printf("abnormal termination, signal number = %d%s\n",
+                WTERMSIG(status),
+#ifdef WCOREDUMP
+                WCOREDUMP(status) ? " (core file generated)" : "");
+#else
+                "");
+#endif
+    else if (WIFSTOPPED(status))
+        printf("child stopped, signal number = %d\n", WSTOPSIG(status));
+}
+```
+```c
+int main(void) {
+    pid_t   pid;
+    int     status;
+
+    if ((pid = fork()) < 0)
+        err_sys("fork error");
+    else if (pid == 0)              /* child */
+        exit(7);
+
+    if (wait(&status) != pid)       /* wait for child */
+        err_sys("wait error");
+    pr_exit(status);                /* and print its status */
+
+    if ((pid = fork()) < 0)
+        err_sys("fork error");
+    else if (pid == 0)              /* child */
+        abort();                    /* generates SIGABRT */
+
+    if (wait(&status) != pid)       /* wait for child */
+        err_sys("wait error");
+    pr_exit(status);                /* and print its status */
+
+    if ((pid = fork()) < 0)
+        err_sys("fork error");
+    else if (pid == 0)              /* child */
+        status /= 0;                /* divide by 0 generates SIGFPE */
+
+    if (wait(&status) != pid)       /* wait for child */
+        err_sys("wait error");
+    pr_exit(status);                /* and print its status */
+
+    exit(0);
+}
+```
+</Aside>
+
+<Aside type="note" title="process die">
+通常 Unix 是知道有 process 死了，系統就會寄送 `SIGCHILD` 給他的 parent，但是出現的時機不一定，要進行分別處理
+- `SIGCHILD` 的 default 是 ignore
+</Aside>
+
+## Zombie & Orphan
+
+### Zombie  
+- Child 死了 但 Parent 還沒呼叫 `wait()` 就會出現 Zombie process，雖然沒有 virtual memory 但會有 PCB.  
+- Keep minimal information aka PCB
+- 一定要 `kill -9`
+
+### Orphan
+- Process 死的時候，child 還沒有死掉，`init` 會把所有沒有 `ppid` 的 process 轉成自己
+- `init` 會定期掃描整個 `PCB` 執行 `wait()`
+
+<Aside type="note" title="Existence of Zombie Process">
+- Process 死了 PCB 不能丟，`p_xstat` 會記錄結束碼，parent 才能知道 child 的狀態
+    - 所以不一定是死亡，也有可能被 stop 像是視窗只有最前面的會接收 device I/O
+- 可能會不小心拿到別人的 child process，會以為自己的 child 活著
+</Aside>
+
+**Double fork**
+- 不想呼叫 `wait()` 但也不希望有 zombie process
+![截圖 2025-10-26 下午4.06.58](https://hackmd.io/_uploads/By6jI8i0xg.png)
+- Grandchild 才是真正我們想要的
+
+<Aside type="tip" title="Example of double fork">
+```c
+int main(void)
+{
+  pid_t   pid;
+
+  if ((pid = fork()) < 0) {
+      err_sys("fork error");
+  } else if (pid == 0) {   /* first child */
+      if ((pid = fork()) < 0)
+          err_sys("fork error");
+      else if (pid > 0)
+          exit(0);  /* parent from second fork == first child */
+      /*
+       * We're the second child; our parent becomes init as soon
+       * as our real parent calls exit() in the statement above.
+       * Here's where we'd continue executing, knowing that when
+       * we're done, init will reap our status.
+       */
+      sleep(2);
+      printf("second child, parent pid = %d\n", getppid());
+      exit(0);
+  }
+
+  if (waitpid(pid, NULL, 0) != pid)   /* wait for first child */
+      err_sys("waitpid error");
+
+  /*
+   * We're the parent (the original process); we continue executing,
+   * knowing that we're not the parent of the second child.
+   */
+  exit(0);
+}
+```
+```
+$ ./a.out
+second child, parent pid = 1
+```
+- `sleep()` 是為了讓 CPU schedule 到 kill first child 這個動作
+- 可以讓 grandchild 短暫變 orphan 然後 `init` 成為 parent，會自己 `wait` 他
+- 可以讓他變成 background process
+    - 組成 group 可以控制誰是 background or 前面
+</Aside>
+
+**`pid_t waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);`**
+- 可以用 `idtype` 指定要等
+    - `P_PID`: wait for a particular process
+    - `P_PGID`: wait for a group of process
+    - `P_ALL`: wait for any child process
+- 可以選擇 blocking or non-blocking
+- `WNOWAIT` 是一個 `option` 可以把 PCB 留下
+
+**`pid_t wait3(int *statloc, int op, struct rusage
+*rusage);`**, 
+**`pid_t wait4(pid_t pid, int *statloc, int op, struct
+rusage *rusage);`**
+- 檢查 CPU time 跟 Mem usage
+
+### Race Condition
+- 兩個 Process 的執行先後順序不一定是誰，要看 CPU Schedule，是個 **Nondeterministic** 的過程
+- 可能因為順序不同，造成不想要的結果
+
+<Aside type="tip" title="Example">
+```c
+static void charatatime(char *);
+
+int main(void)
+{
+    pid_t   pid;
+
+    if ((pid = fork()) < 0) {
+        err_sys("fork error");
+    } else if (pid == 0) {
+        charatatime("output from child\n");
+    } else {
+        charatatime("output from parent\n");
+    }
+    exit(0);
+}
+
+static void charatatime(char *str)
+{
+    char    *ptr;
+    int     c;
+
+    setbuf(stdout, NULL);          /* set unbuffered */
+    for (ptr = str; (c = *ptr++) != 0; )
+        putc(c, stdout);
+}
+```
+```
+$ ./a.out
+ooutput from child
+utput from parent
+
+$ ./a.out
+ooutput from child
+utput from parent
+
+$ ./a.out
+output from child
+output from parent
+```
+- 雖然是 buffer I/O 但是我們得從 unbuffered I/O 走，因為 `NULL`
+- child, parent 會 share **terminal** 這個資源
+    - 因為是 unbuffered 所以會產生 context switch，在 **terminal 的 buffer 滿的時候**會 context switch
+- 真正要進行 I/O 才會創建 buffer，並且決定 type
+    - 在執行真正 I/O 前設定 buffer 就有效 
+![截圖 2025-10-26 下午4.46.45](https://hackmd.io/_uploads/rJb-gviAlg.png)
+</Aside>
+
+<Aside type="note" title="Example of double fork">
+- 其實 double fork 的情況，`sleep()` 可能會發生 race condition，可能產生錯誤
+- 用這段 code 可以等，但是這是一段 busy waiting
+  ```c
+  while (getppid() != 1)
+      sleep(1);
+  ```
+</Aside>
+
+**`int execl(const char *pathname, const char *arg0, … /* (char *) 0 */);`**
+**`int execv(const char *pathname, char *const argv[]);`**
+**`int execle(const char *pathname, const char *arg0, … /* (char *) 0, char *const envp[] */);`**
+**`int execve(const char *pathname, char *const argv[], char *const envp[]);`**
+- 程式執行一定要在一個 process 上，但執行並非從 exec 開始算，而是 fork 開始
+    - `spawn()` 會同時 `fork()`, `exec()`
+- **`exec` 是把既有的 process 換成另一隻 process，instruction, data (virtual memory) 全部替換，但是不改 open file descriptor table**
+- `l`, `v` argument 用 list 還是 vector 表示 `e` 是 environment
+
+<Aside type="note" title="Environment">
+- **`int main(int agrc, char **argv, char **envp);`**
+    - `main()` function 裡面的 `**envp` 指向一個 environment list，`NULL` 結尾
+    - C library 會提供一個 `extern char **environ` 如果 virtual memory 不夠，系統會動這個參數，所以不要亂指令 `**envp`
+    - `PATH` 會按照 `PATH=/bin:/usr/bin:/usr/local/bin \0` 的順序，因為 ls 是 internal command，要看要執行哪裡的 `ls` 這個順序就是他找的順序
+    - 通常會被放在 stack 的上層
+![截圖 2025-10-26 晚上7.38.50](https://hackmd.io/_uploads/SkD8_tiRex.png)
+
+![截圖 2025-10-26 晚上7.26.35](https://hackmd.io/_uploads/HyhuBFsRlg.png)
+</Aside>
+
+**`int execlp(const char *filename, const char *arg0, … /* (char *) 0 */);`**
+**`int execvp(const char *filename, , char *const argv[]);`**
+- p 家族放 `filename`
+- 用 `PATH=/bin:/usr/bin:.` 的順序找執行檔
+- p 會把東西 binary file 當 shell script 執行，先呼叫 `/bin/sh` 讓他去執行
+
+<Aside type="note" title="">
+![截圖 2025-10-26 晚上7.48.31](https://hackmd.io/_uploads/rJi5cKiRgl.png)
+同常只有 `execve` 是 system call 其他都可以根據這張圖，用 function call 外包
+</Aside>
+
+**Close on exec**
+![截圖 2025-10-26 晚上7.53.58](https://hackmd.io/_uploads/ryWy3toRxg.png)
+- 要不要再執行後把 element 關掉
+- child 的 open fd table 就是 parent 的
+    - 預設是 close，只有 open 的時候才會長得不一樣
+
+<Aside type="caution" title="為何要分開 fork(), exec()">
+- child 只是要執行 parent 的某些 code 而已，並沒有要額外 `exec()`
+- `exec()` 要在某個環境底下運作，要在 `fork()` 後設定，然後才能 `exec()`，可以分開 parent, child 的環境設定
+</Aside>
+
+## IPC (Inter-process Communication)
+
+### Pipe
+
+**` int pipe( int filedes[2] );`**
+
+- 一端寫一端讀，不一定多少人
+- ![截圖 2025-10-16 上午11.55.07](https://hackmd.io/_uploads/By8o3kCagx.png)
+- `fork()` 時如何送資訊給別人
+    - 都是單向讀寫，一個 process 只會有一個 fd 開著
+    - 一端寫了另一端還沒讀就 suspend 因為這是 fd blocking mode
+    - Multiplexing 就 `poll` 就好了，因為也是 file
+    - pipe 完畢再 fork 就可以繼承 pipe
+- ![截圖 2025-10-16 上午11.55.50](https://hackmd.io/_uploads/S1fR21R6lg.png)
+- ![截圖 2025-10-16 上午11.57.24](https://hackmd.io/_uploads/ryJ4akApxg.png)
+- `$ ls | more`
+    - 就是 `$` shell 先呼叫 pipe 然後 fork 出兩個 process
+
+<Aside type="note" title="">
+- **有人讀沒人寫**
+    - 讀到 `EOF` 剛好停止
+- **有人寫沒人讀**
+    - 系統會送 `SIG_PIPE` 給 process
+
+PIPE 可以保證，只要訊息比較 buffer size 小，絕對不會被切開
+</Aside>
+
+<Aside type="tip" title="Example of pipe()">
+```c
+int main(void) {
+    int     n;
+    int     fd[2];
+    pid_t   pid;
+    char    line[MAXLINE];
+
+    if (pipe(fd) < 0)
+        err_sys("pipe error");
+    if ((pid = fork()) < 0) {
+        err_sys("fork error");
+    } else if (pid > 0) {          /* parent */
+        close(fd[0]);
+        write(fd[1], "hello world\n", 12);
+    } else {                      /* child */
+        close(fd[1]);
+        n = read(fd[0], line, MAXLINE);
+        write(STDOUT_FILENO, line, n);
+    }
+    exit(0);
+}
+```
+- `close()` 掉自己不用的 pipe 防止出錯
+</Aside>
+
+<Aside type="caution" title="Avoiding Race Condition">
+```c
+#include "apue.h"
+
+static int pfd1[2], pfd2[2];
+
+void TELL_WAIT(void) {
+    if (pipe(pfd1) < 0 || pipe(pfd2) < 0)
+        err_sys("pipe error");
+}
+
+void TELL_PARENT(pid_t pid) {
+    if (write(pfd2[1], "c", 1) != 1)
+        err_sys("write error");
+}
+
+void WAIT_PARENT(void) {
+    char c;
+
+    if (read(pfd1[0], &c, 1) != 1)
+        err_sys("read error");
+
+    if (c != 'p')
+        err_quit("WAIT_PARENT: incorrect data");
+}
+
+void TELL_CHILD(pid_t pid) {
+    if (write(pfd1[1], "p", 1) != 1)
+        err_sys("write error");
+}
+
+void WAIT_CHILD(void) {
+    char c;
+
+    if (read(pfd2[0], &c, 1) != 1)
+        err_sys("read error");
+
+    if (c != 'c')
+        err_quit("WAIT_CHILD: incorrect data");
+}
+```
+```c
+static void charatatime(char *);
+
+int main(void) {
+    pid_t pid;
+
+    TELL_WAIT();
+
+    if ((pid = fork()) < 0) {
+        err_sys("fork error");
+    } else if (pid == 0) {
+        WAIT_PARENT();   /* parent goes first */
+        charatatime("output from child\n");
+    } else {
+        charatatime("output from parent\n");
+        TELL_CHILD(pid);
+    }
+
+    exit(0);
+}
+
+static void charatatime(char *str) {
+    char *ptr;
+    int c;
+
+    setbuf(stdout, NULL);          /* set unbuffered */
+    for (ptr = str; (c = *ptr++) != 0; )
+        putc(c, stdout);
+}
+```
+![截圖 2025-10-26 晚上8.34.33](https://hackmd.io/_uploads/SkVPB9jCee.png)
+- 用這樣的 one way pipe 讓雙方互相溝通
+</Aside>
+
+### FIFO
+- 為了讓 `pipe` 不必要用 `fork()` 形成繼承關係
+- 另外創建一個獨立的 file，當作 pipe 的 fd
+    - 無法 random access
+    - 把 data 讀掉就沒了，不會像傳統檔案留東西在裡面
+    - 沒人去 reference 那個 pipe 裡面的 data 會被 remove
+ 
+**`int mkfifo(const char *pathname, mode_t mode);`**
+- 跟傳統 `open` 相同，權限都跟傳統檔案一樣
+- `O_NONBLOCK` 
+    - NO: 會讓沒人 write 的時候 suspend，寫端也一樣
+    - YES: 直接 return
+- Write for no-reader FIFO: 會收到 `SIGPIPE`
+- `PIPE_BUF` 指定最多讀多少，避免資料混淆
+
+<Aside type="tip" title="Example">
+![截圖 2025-10-26 晚上9.06.54](https://hackmd.io/_uploads/Sy9ep9sRex.png)
+- 把東西同時送給兩個地方
+</Aside>
+ 
+<Aside type="tip" title="Socket">
+![截圖 2025-10-26 晚上9.13.08](https://hackmd.io/_uploads/Hy0vAcsAee.png)
+- 可以讓大家都寫在裡面，server 可以讀
+- pipe 無法單端讀寫，因此 response 需要這樣送，如下圖
+    - client 的會是 specific 的，不然會混淆
+![截圖 2025-10-26 晚上9.17.26](https://hackmd.io/_uploads/SJ-uJjo0gx.png)
+- open well-known FIFO for `R`, `W` 變成
+</Aside>

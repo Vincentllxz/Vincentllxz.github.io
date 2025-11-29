@@ -1,0 +1,197 @@
+---
+title: "NTU-SP 系統程式設計 Ch1 OS concept"
+description: "NTU PJ System Programming: Ch1 OS concept"
+publishDate: "2025-11-30 12:03:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "SP"
+  - "note"
+language: "zh-TW"
+comment: true
+heroImage: { src: './back.png', color: '#dd9994ff' }
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# OS concept
+
+<Aside type="note" title="OS function">
+**Vetical**: 把硬體 kernel 包裝
+- 有分成 kernel mode 跟 user mode => kernel space 跟 user space
+- 用 system call 去 access kernel
+
+**Horizontal**: 資源管理
+</Aside>
+
+## System call v.s Function call
+
+![截圖 2025-11-30 凌晨1.03.27](https://hackmd.io/_uploads/SkluDs_Z-g.png)
+
+### User mode v.s. Kernel mode
+
+![截圖 2025-11-30 凌晨1.15.38](https://hackmd.io/_uploads/B1KS5su-Zl.png)
+
+- Hardware always in **Kernel Mode**
+
+### Horizontal
+
+- **Services for Application Programs**: User Identification, Process Management,
+Memory Management, File/Directory Management,
+Inter-process Communication, Signal, I/O Management
+(e.g., Terminal, Network, etc), …
+- **OS Kernel**: CPU Scheduling, Virtual Memory, File System,
+Protection, Security, Synchronization, I/O Control, …
+
+
+## User identification
+
+> User 是一種權限，不一定是真實使用者
+
+在 `/etc/passwd`（local host or NIS DB）裡面記錄
+```bash
+cat /etc/passwd
+```
+可以取得資訊，每個 row 是一個 User，format 是：
+```
+{User-name}:{Passwd}:{User-Id}:{Group-id}:{Comment}:{Home-dir}:{Shell}
+```
+```bash=
+root:*:0:0:System Administrator:/var/root:/bin/sh
+daemon:*:1:1:System Services:/var/root:/usr/bin/false
+_uucp:*:4:4:Unix to Unix Copy Protocol:/var/spool/uucp:/usr/sbin/uucico
+_taskgated:*:13:13:Task Gate Daemon:/var/empty:/usr/bin/false
+_networkd:*:24:24:Network Services:/var/networkd:/usr/bin/false
+_installassistant:*:25:25:Install Assistant:/var/empty:/usr/bin/false
+```
+
+<Aside type="note" title="關於Shell">
+若出現 `/usr/bin/false` 等類似，即為無法 login，只能使用 Super-user 改變身分
+
+- **Unix 系統不認名字，只認ID（`User-id` = 0 為 Super-User）**
+</Aside>
+
+- `crypt()`
+    - 是一個 one-way func，用於登入帳號
+    - 第一個參數 `{passwd}` 是真正的密碼
+    - 第二個參數 `{salt bit}` 是為了製造同樣 common word 隨機性，System 會選擇 time-base 的參數
+    - ```bash
+      crypt("apple", "am") → "amADBMNoVAZpc"
+      crypt("water", "pm") → "pmRarHxhhU34U"
+      ```
+    - 系統使用你的帳號跟你輸入的密碼放入比對
+    - ```man 3 crypt``` 可以查看
+
+
+## Process Management
+
+- **Program** is a executable file
+- **Process** is an executing instance of a program
+    - ```ps``` is a snapshot of the current process
+    - ```top``` is display processes
+
+### CPU Scheduling
+
+<Aside type="tip" title="Multitasking">
+Only one core of CPU, but want to make **multitasking**.
+</Aside>
+
+- **Time Sharing**: the rate is too fast that user won't realize that they are sharing
+
+![截圖 2025-09-11 上午9.55.14](https://hackmd.io/_uploads/BkbGhs1sgx.png)
+
+- Event can be DISK
+- **(IMPROTANT)** A process want to inline of ready queue, it has to put every data into the memory.
+
+![截圖 2025-09-11 上午10.00.21](https://hackmd.io/_uploads/HJer6okjee.png)
+
+**Context Switch**
+- **Time Slice** maybe just a nano second
+- We have to **store** the status of last process before kicking.
+- Then we have to **restore** the status of the next process. 
+- Memory is too slow, so we have **L1, L2 cahce** on CPU.
+- If one process want to ask DISK, CPU will kick out this process into event, but not time slice.
+
+ 
+![截圖 2025-09-11 上午10.06.48](https://hackmd.io/_uploads/HyVTCiyiex.png)
+
+- Exit have many kind.
+
+![截圖 2025-09-11 上午10.09.00](https://hackmd.io/_uploads/S1x_r121ixg.png)
+
+<Aside type="note" title="About Mode switch and Context switch">
+**Mode switch may not lead to Context switch**
+- Data can be catch into memory first.
+</Aside>
+
+### UNIX Process
+![截圖 2025-09-11 上午10.32.53](https://hackmd.io/_uploads/S1bJr31jgl.png)
+
+From "init" prcess use **fork** to build a process tree.
+
+![截圖 2025-09-11 上午10.42.34](https://hackmd.io/_uploads/HkBmP2kjxl.png)
+
+
+**Pipe**
+- A way to send the output of one command to the input of another
+**Filter**
+- A program that takes input and transforms it in some way
+- `wc-` gives a count of words/lines/chars
+- `grep-` searches for lines with a given string 
+- `more`
+- `sort-` sorts lines alphabetically or numerically
+    ```bash
+    ls -la | more
+    ```
+    ```bash
+    cat file | wc
+    ```
+    ```bash
+    man ksh | grep “history”
+    ```
+    ```bash
+    ls -l | grep “bowman” | wc
+    ```
+    ```bash
+    who | sort > current_users
+    ```
+
+**UNIX philosophy**:
+- Write programs that do one thing and do it well
+- Write programs that work together
+- Write programs that handle text streams, because that is the universal interface
+
+## Memory Management
+
+![截圖 2025-11-22 下午3.33.52](https://hackmd.io/_uploads/rke_vyJWZg.png)
+
+## File/Directory Management
+
+<Aside type="note" title="File System">
+**File**
+- A sequence of bytes
+
+**Directory**
+- A file that includes info on how to find other files.
+
+更多內容會在 Ch4 File & Directory 裡面介紹
+</Aside>
+
+### File Structure
+
+![截圖 2025-11-18 晚上11.26.31](https://hackmd.io/_uploads/Byp9eM9eWg.png)
+
+- **root** `/`: all unix like system's root.
+- **lib**: library, the include path
+- **bin**: binary, in the system genuinly
+- **var**: dynamic file
+
+![截圖 2025-09-11 上午10.58.54](https://hackmd.io/_uploads/S1qgsh1sel.png)
+
+```bash
+chmod <mode> <file(s)>
+chmod 700 file.txt
+
+chmod g+rw file.txt
+```
+
+```chmod```,```chown```,```touch```

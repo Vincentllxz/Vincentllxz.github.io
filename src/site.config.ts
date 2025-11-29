@@ -99,7 +99,6 @@ export const theme: ThemeUserConfig = {
     share: ['weibo', 'x', 'bluesky']
   }
 }
-
 export const integ: IntegrationUserConfig = {
   // Links management
   // See: https://astro-pure.js.org/docs/integrations/links

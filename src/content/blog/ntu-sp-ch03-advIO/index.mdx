@@ -1,0 +1,186 @@
+---
+title: "NTU-SP 系統程式設計 Ch3 Advance I/O"
+description: "NTU PJ System Programming: Ch3 Advance I/O"
+publishDate: "2025-11-30 12:05:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "SP"
+  - "note"
+language: "zh-TW"
+comment: true
+heroImage: { src: './back.png', color: '#dd9994ff' }
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Advance I/O
+
+> **Blocking / Non-blocking**:
+> - By Default Blocking 是要求全部操作都結束才能 return
+>     - 中間可能發生 Context switch，可能被踢出 CPU
+>     - 系統比較喜歡這個，可以讓每個 resources 獲得最好的效能
+> - Non-blocking 是有多少就要求多少，return immediately
+>     - 不要被踢出 CPU
+
+**Non-blocking**:
+- 如果一次要 100 個 bytes，第一次 OS 會先把在 buffer cache 裡面的給你，然後 OS 再默默把剩下的慢慢給你
+- **"Slow system calls"**: 
+    - 是 forever block 的（像是要等 user input），如果前面不給資料，後面就不用動了
+    - Reads or writes on pipes, terminal devices, and network devices
+- ![截圖 2025-09-25 上午10.11.46](https://hackmd.io/_uploads/Bke-BQMngg.png)
+    - 雖然 DISK 不是傳統上會造成 Slow system call 的東東西
+
+<Aside type="tip" title="">
+- `val | flags`: turn on flags
+- `val &= ~flags`: clear the flag
+
+```c
+#include <fcntl.h>
+#include "ourhdr.h"
+
+void set_fl(int fd, int flags) 
+/* flags are file status flags to turn on */
+{
+    int val;
+
+    if ( (val = fcntl(fd, F_GETFL, 0)) < 0 )
+        err_sys("fcntl F_GETFL error");
+
+    val |= flags;       /* turn on flags */
+
+    if (fcntl(fd, F_SETFL, val) < 0) 
+        err_sys("fcntl F_SETFL error");
+}
+
+```
+</Aside>
+
+**`Terminal Device`**: 
+- 這樣的 buffer 會是 circular 的，一端讀一端寫
+    - input 是 memory to memory **快**
+    - output 是 memory to I/O **慢**
+    - 若是 mode Non-blocking: **polling** (busy waiting; a waste of CPU time on a multiuser system) 因為要不停 query 詢問 queue 是否有空
+![截圖 2025-09-25 上午10.27.46](https://hackmd.io/_uploads/r1ao_7M2le.png)
+
+## I/O Multiplexing
+
+理念就是，讓 OS 提醒 data 已經 ready 再去拿，space ready 再去寫
+
+<Aside type="caution" title="">
+Problem of blocking I/O: 會卡死，一直等
+- **Idea 1**: non-blocking I/O, huge waste of cycles (query) if data is not ready
+- **Idea 2**: multi-processes, too many processes, IPC overhead
+
+都是非常耗資源的方法，所以引入 I/O Multiplexing（多功）
+</Aside>
+
+
+**`totalFds = select(nfds, readfds, writefds, errorfds, timeout)`**
+- `nfds` 有多少 fd
+- `readfds` 有興趣要讀的 fd，用 bits string 代表，有興設定為 `1`
+- `writefds` 有興趣要寫的 fd，，用 bits string 代表，有興設定為 `1`
+- `readfds`, `writefds` 的 type 是 `fd_set` 因為是 system depending 的
+- ![截圖 2025-09-25 上午10.46.36](https://hackmd.io/_uploads/B1LzpQGhlg.png)
+- 呼叫 `select()` 後，system 就會去看 4 個，後面的就不用幫忙看，當有 partial ready 後，就會 return 一個 totalFds（幾個 ready 了），所以 `readfds`, `writefds` 同時是輸入也是輸出
+
+**`totalFds = poll( fdarray[], nfds, timeout )`**
+- ```c
+  struct pollfd {
+     int fd; // file descriptor to check, or <0 to ignore
+     short events; // bit mask: each bit indicates an event of interest on fd
+     short revents; // bit mask: each bit indicates an event that occurred on fd
+  }
+  ```
+- `nfds`: the number of items in the fds array
+- `timeout`: how long to wait before un-suspending the process
+    - `-1`: wait forever, `0`: don’t wait: `>0`: wait (milliseconds)
+- `select()` 呼叫後會等待，直到 return，期間會 context switch 去其他地方
+
+`select()` 是為了在 blocking 環境下不被 block 住，但實務上，我們會做成 atomic 的，`select()` 跟 `read()` 中間會有一個 gap，我們會把它的 fd 改成 non-blocking，不然資料可能被別人讀走
+
+
+## File Lock
+- 本來有 1000，藍色 program 先提了 100 然後綠色 提出 100，但 write 的 process 是藍色，他會寫入 900 而非 800
+![截圖 2025-09-25 上午11.25.09](https://hackmd.io/_uploads/Byk78VGhxg.png)
+- 只要有 process 在 `write()` File 就會被 lock 住，多個 process 會搶一個 file
+- 只有 `read()` 是可以 share 的
+- 使否上所是 Unix 決定的，因為只有系統知道其他人有沒有在讀寫，如果不行鎖，就等到可以鎖 （blocking）或 context switch 走（nonblocking） 
+
+
+### Type of Lock
+![截圖 2025-09-25 上午11.30.04](https://hackmd.io/_uploads/B1PSwEGnel.png)
+- Shared read lock
+    - 可以多人共享
+    - 但不在鎖裡面的人都不能讀
+- Exclusive write lock
+    - 只有一個 process 可以 lock
+    - 上了 write lock 就不能上 read lock
+- 實務上即使可以上 read lock 也不一定會上，因為有 process 在等 write lock，而 read lock unlock 要等所有人 unlock 有公平性問題
+
+**Function**
+- `flock()`: 整個檔案鎖，不推
+- `fcntl()`
+- `lockf()`: 也是 `fcntl()` 不推
+
+**`int fcntl (int filedes, int cmd, ... /* struct flock *flockptr */ )`**
+- `F_GETLK`: query
+- `F_SETLK`: lock
+- lock 的時候不必問，直接鎖，因為 context switch 出去會出現狀態改變，time-to-check time-to-use 不壹樣
+- `Lockptr`
+  ```c
+  struct flock {
+    short l_type; /* F_RDLCK, F_WRLCK, or F_UNLCK */
+    off_t l_start; /* offset in bytes, relative to l_whence */
+    short l_whence; /* SEEK_SET, SEEK_CUR, or SEEK_END */
+    off_t l_len; /* length, in bytes; 0 means lock to EOF */
+    pid_t l_pid; /* returned with F_GETLK */
+  }
+  ```
+  
+<Aside type="note" title="">
+lock 與 fd 無關，跟 process, file 有關
+- 所有共享 file 的 fd 都可以去關掉他，file close, process terminated 會被 release
+- lock 無法繼承，因為 write lock 是 exclusive 的
+
+同一隻 file 被 read lock 又想上 write lock，OS 是不會擋住的，OS 認為是 programmer 的責任，會爆炸
+</Aside>
+
+
+![截圖 2025-09-25 上午11.48.09](https://hackmd.io/_uploads/B17KjEfhxx.png)
+- 因為 i-node table 上有記錄上 lock 的 process，他只認 process 所以只要是從正確的 process 來的就可以把 lock release 掉
+
+<Aside type="note" title="">
+```c
+fd1 = open(pathname, ...);
+read_lock(fd1, ...);
+fd2 = dup(fd1);
+close(fd2);
+```
+- 根據圖片，他會被關掉
+
+```c
+fd1 = open(pathname, ...);
+read_lock(fd1, ...);
+fd2 = open(pathname, ...);
+close(fd2);
+```
+- 根據圖片，即便它有重新開了一個 open file table，但 lock 是紀錄 process id，所以 lock 也會被 release 掉
+</Aside>
+
+**Advisory lock**
+- 有人可能會不去 `F_GETLK`, `F_SETLK`，直接 call `write()`
+- 但是通常會搭配 Unix account 的機制，其他人根本對檔案並沒有權限，只有自己動得了自己的檔案
+
+**Mandatory lock**
+- 所有 system call 全都要 check lock
+- 成本極高
+
+## Networking 
+
+- **Client** v.s. **Server**
+    - **Client**: 提出 request
+    - **Server**: 處理 request
+![截圖 2025-09-25 中午12.06.41](https://hackmd.io/_uploads/r1J1lBG3xe.png)
+
+**Socket Programming**
+![截圖 2025-09-25 中午12.08.17](https://hackmd.io/_uploads/ByAVeSG2ll.png)
