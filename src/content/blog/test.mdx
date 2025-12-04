@@ -10,6 +10,8 @@ draft: true
 ---
 
 import { GithubCard } from 'astro-pure/advanced';
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
 
 ```
 test
@@ -32,3 +34,130 @@ Test `inline code`
 | Row 1    | Data 1   | Data 2   |
 | Row 2    | Data 1   | Data 2   |
 | Row 3    | Data 1   | Data 2   |
+
+## Chomsky Normal Form
+
+我們希望能簡化 Context-Free Grammars (CFG) 的結構。其中一種有用的正規形式是 Chomsky Normal Form (CNF)。
+
+<Aside type="note" title="Definition: Chomsky Normal Form">
+  一個 Context-Free Grammar 如果滿足以下所有生成規則的形式，則稱為處於 **Chomsky Normal Form**：
+  
+  * $A \to BC$，其中 $A, B, C$ 是非終結符號 (non-terminal symbols)，且 $B, C$ 不是起始符號。
+  * $A \to a$，其中 $a \in \Sigma$ ($\varepsilon \notin \Sigma$)。
+  * 允許 $S \to \varepsilon$，其中 $S$ 是起始符號。
+</Aside>
+
+<Aside type="tip" title="Example">
+  將以下的 CFG 轉換為 CNF：
+  
+  $$
+  \begin{aligned}
+      S &\to ASA \mid aB \\
+      A &\to B \mid S \\
+      B &\to b \mid \varepsilon
+  \end{aligned}
+  $$
+</Aside>
+
+首先，我們加入 $S_0$ 作為新的起始符號：
+
+$$
+S_0 \to S \quad  S \to ASA \mid aB \quad A \to B \mid S \quad B \to b \mid \varepsilon
+$$
+
+接著，移除 $\varepsilon$-productions ($B \to \varepsilon$)：
+
+$$
+S_0 \to S \quad S \to ASA \mid aB \mid {\color{red}a} \quad A \to B \mid {\color{red}\varepsilon} \mid S \quad B \to b
+$$
+
+接著，移除 $\varepsilon$-productions ($A \to \varepsilon$)：
+
+$$
+S_0 \to S \quad S \to ASA \mid aB \mid a \mid {\color{red}AS} \mid {\color{red}SA} \mid {\color{red}S} \quad A \to B \mid S \quad B \to b
+$$
+
+接著，移除單一生成規則 (Unit production) $S \to S$：
+
+$$
+S_0 \to S \quad S \to ASA \mid aB \mid a \mid AS \mid SA \quad A \to B \mid S \quad B \to b
+$$
+
+接著，移除單一生成規則 $S_0 \to S$：
+
+$$
+S_0 \to {\color{red}ASA \mid aB \mid a \mid AS \mid SA} \quad S \to ASA \mid aB \mid a \mid AS \mid SA \quad A \to B \mid S \quad B \to b
+$$
+
+接著，移除單一生成規則 $A \to B$ 和 $A \to S$：
+
+$$
+S_0 \to ASA \mid aB \mid a \mid AS \mid SA \quad S \to ASA \mid aB \mid a \mid AS \mid SA \quad A \to {\color{red}b \mid ASA \mid aB \mid a \mid AS \mid SA} \quad B \to b
+$$
+
+最後，將其轉換為 CNF 形式，為終結符號引入新變數並拆解過長的生成規則：
+
+$$
+\begin{aligned}
+    S_0 &\to AA_1 \mid U B \mid a \mid A S \mid S A \\
+    S &\to AA_1 \mid U B \mid a \mid A S \mid S A \\
+    A &\to b \mid AA_1 \mid U B \mid a \mid A S \mid S A \\
+    A_1 &\to SA \\
+    B &\to b \\
+    U &\to a
+\end{aligned}
+$$
+
+### Procedure of Converting CFG to CNF
+
+要將任何 CFG 轉換為 CNF，我們可以遵循以下步驟：
+
+1.  **Add**: 加入一個新的起始符號 $S_0$ 並加入規則 $S_0 \to S$。
+2.  **Remove**: 移除所有的 $\varepsilon$-productions（除了起始符號以外），亦即 $A \to \varepsilon \ (A \neq S_0)$。對於任何 $\cdots \to uAv$，加入規則 $\cdots \to u v$。
+3.  **Remove**: 移除單一生成規則 $A \to B$，其中 $A, B \in V/\{S\}$。
+    $$
+    A \to B, \ B \to \gamma \quad \implies \quad A \to \gamma
+    $$
+    <Aside type="caution" title="Remark">
+    $A \to \gamma$ 不能是之前已經移除過的 unit rule。
+    </Aside>
+4.  **Convert**: 將剩餘的規則轉換為 CNF：
+    對於 $A \to u_1 u_2 \cdots u_k$ ($u_i \in V \cup \Sigma$)，如果 $k=1$，則 $u_i \in \Sigma$。
+    轉換方式如下：
+    $$
+    \begin{aligned}
+        A &\to u_1 A_1 \\
+        A_1 &\to u_2 A_2 \\
+        &\vdots
+    \end{aligned}
+    $$
+    將每個終結符號 $u_i \in \Sigma$ 替換為新變數 $U_i$，並加入 $U_i \to u_i$。
+
+### Infinite Loop in Converting
+
+<Aside type="tip" title="Example">
+    考慮以下文法：
+    $$
+    \begin{aligned}
+        S &\to B \mid \varepsilon \\
+        B &\to S \mid \varepsilon
+    \end{aligned}
+    $$
+</Aside>
+
+首先加入新起始符號：
+$$ S_0 \to S \quad S \to B \mid \varepsilon \quad B \to S \mid \varepsilon $$
+
+接著移除 $\varepsilon$-productions：
+$$ S_0 \to S \mid \varepsilon \quad S \to B \quad B \to S \mid \varepsilon $$
+
+再次移除 $\varepsilon$-productions：
+$$ S_0 \to S \mid \varepsilon \quad S \to B \mid \varepsilon \quad B \to S $$
+
+這個過程會無限循環。原因是 $S \to \varepsilon$ 已經處理過了，所以不需要再次加入 $S \to \varepsilon$。
+
+---
+
+## Pushdown Automata
+
+我們現在介紹識別 Context-Free Languages (CFL) 的機器，稱為 Pushdown Automata (PDA)。PDA 是一種帶有 **stack**（堆疊）的機器，這是一種儲存先前狀態的方式。
