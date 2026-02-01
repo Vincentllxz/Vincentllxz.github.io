@@ -11,6 +11,7 @@ comment: true
 draft: true
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import PDFCard from '../../../components/PDFCard.astro';
 
 
 ## 前言
@@ -20,7 +21,6 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - 氣球社社長（唯一不是意外的
 - 巴笛重奏團（被老師情勒的
 - 專題研究（半強迫
-- 資訊營總召（很神秘的接了
 - 微積分 TA
 
 這學期過下去發現自己還是個分奴，分數真的對我的心情影響巨大，希望我可以克服吧～
@@ -39,11 +39,6 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **全校性通識**
   - [🧪 毒道之處～看不見的危機](#毒道之處～看不見的危機)
   - [🧠 普通心理學](#普通心理學)
-- **雜項**
-  - [➗ 微積分助教](#微積分助教)
-  - [🎈 氣球社](#氣球社)
-  - [🎵 巴笛重奏團](#巴笛重奏團)
-  - [💻 專題研究](#專題研究)
 
 ---
 
@@ -52,9 +47,9 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 |    | ㄧ   | 二  | 三  | 四   | 五     |
 |----|-----|----|----|-----|-------|
 | 1  |     |    |    |     |       |
-| 2  |     |    | 計程 | SP  | 平行    |
-| 3  | 自動機 |    | 計程 | SP  | 平行    |
-| 4  | 自動機 |    | 計程 | SP  | 平行    |
+| 2  |     |    | 計程 | SP  |     |
+| 3  | 自動機 |    | 計程 | SP  |     |
+| 4  | 自動機 |    | 計程 | SP  |     |
 | 5  | 自動機 |    |    |     |       |
 | 6  |     | 線代 |    |     |       |
 | 7  |     | 線代 | 計網 | ADA | 普心    |
@@ -75,15 +70,67 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - **授課教授：** 呂學一  
 - **學分：** 3  
-- **等第：** 
+- **等第：** A
 
-- **甜度：** ?/5  
+- **甜度：** 4/5  
 - **涼度：** 10/5 (段考前 200/5)
-- **收穫：** 3/5 
+- **收穫：** 2/5 
 
 </div>
 
+我想要說這堂課真的很難，很難到我覺得我應該要重修一次才對（？
 
+認真說的話，隨機客真的很會上課，上課內容很明顯是經過精心設計的，完全是自己的理解方式在講解演算法，而不是直接照抄課本，不愧是隨機客。但是，我稍微有點不喜歡他的上課模式，因為他完全不給任何作業，考試超級難預測，而且他對所有定義都很嚴格，只要錯一點小地方就會被扣分，而且這學期的考題真的很刁鑽，上課就有講到的題目不是很多，即便有出現，也都是那種要抄很長的解釋的題目，定義的部分包含但不限於 big-O notation 不可以用
+$$
+\lim_{n \to \infty} \frac{f(n)}{g(n)} = 0 \ \Rightarrow\ f(n) = O(g(n))
+$$
+這種東西，必須要用正式的定義
+
+<Aside type="note" title="Definition">
+If $f(n) = O(g(n))$, then 
+$$
+\exists\ c > 0, n_0 > 0, \forall n \geq n_0, 0 \leq f(n) \leq c \cdot g(n)
+$$
+</Aside>
+
+或這種定義
+
+<Aside type="note" title="Definition">
+The equality $O(O(g(n))) = O(h(n))$
+signifies that the equality
+$$
+  O(f(n)) = O(h(n))
+$$
+holds for any function $f$ with 
+$$
+  f(n) = O(g(n))
+$$
+i.e. $f(n) = O(g(n))$ implies $O(f(n)) = O(h(n))$.
+</Aside>
+
+個人給他的考試的評價是~~拉完了~~NPC，但是我覺得是因為我真的不是走純理論演算法的料，隨機客的課比較適合數學好（~~很會通靈~~）的人，是一門很好評價自己是否是數學天才~~瘋子~~的課，隨然我自認抄筆記抄得挺認真，但看到考試題目除了訂議題之外第一時間還是腦袋空白，關於收穫的部分，我覺得我認真地認識到自己完全不適合 Graph Theory 之類的 Pure Math 或 Algorithm 的領域，雖然覺得這門課的內容還蠻有趣的，但一到了要我自己想的時候，我就完全不行了。
+
+關於成績的部分，三次考試分別是滿分 120 100 80 分，我考的就別說了，是沒及格過，但最後在呂氏黑箱大調分之下，居然也拿到 A，真的是很神奇的一門課。看系上同學的統計我大概是落在 A+ 線之下一點點
+
+<details class="info-box">
+<summary> <b>&nbsp;關於 三次考試</b></summary>
+
+- **第一次段考**：第一次體驗呂氏期考，考前學長都說是考投影片有出現的東西，結果根本只有第一題的前兩小題是真的在投影片裡的抄抄題，其他題目全都是要自己想的，然後其中有一題，我大概寫了 2 面的答案，最後因為我的開頭寫錯，所以整題 20 分，我一共拿了 0 分，真的很慘（~~結果只要我拿個 5 分就有 A+ 了~~
+- **第二次段考**：經過第一次段考慘痛經驗，我大概是有稍微準備一點點，結果最後還是考的挺慘（~~果然是拉完了~~，一樣根本沒有抄抄題，這次的策略錯誤是我寫題目很分散，就是一種能撈一點是一點，結果這種能撈一點是一點的題目，全在 $[0, 2)$ 這個區間內，對於一題 10 分來說根本等於沒有。
+- **期末考**：期末考我真的準備的超級用力，甚至把他的 PPT 全部自己看一次再抄成自己的筆記，而且我改變了策略，先把自己會的題目全部寫完，再來處理不會的題目，結果雖然結果出來分數沒高多少，但因為三次段考的滿分分別是 120 100 90，所以期末考我考的其實算不錯。
+
+總之，考試前真的要好好準備，隨機客的題目完全~~邪惡~~變化很多來的～
+
+</details>
+
+附上我自己的筆記 PDF，只有期末考的部分，因為我前面以為不用寫筆記，~~真的很抱歉~~
+
+<PDFCard
+  title="Algorithm Design and Analysis"
+  subtitle="演算法設計與分析 呂學一 教授"
+  href="/pdf/ADA_cut.pdf"
+  imageSrc="/images/ADA.png"
+/>
 
 ### 線性代數
 
@@ -99,47 +146,31 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 </div>
 
-這裡附上一份線性代數的筆記 PDF，給有需要的同學參考～
+Amy 班線代就兩個字：甜涼，每週都有作業，8~10 題計算題、證明題，考試也不難，一共應該 11 左右作業，上課前一定要教，不接受任何延期，三次考試，考試題目大部分都在作業範圍內，考試難度大概就是作業小小進階，整體來說是一門很輕鬆的課，但是這樣輕鬆的課的壞處就是整個學期學到的東西不是很多，學到最多的都是矩陣運算跟向量空間這些東西，SVD 老師甚至當成期末補充，沒有教，課程安排大概是
 
-<a href="/pdf/LinearAlgebra.pdf" class="group relative block h-80 w-full overflow-hidden rounded-2xl bg-gray-900 border border-gray-800 shadow-xl transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/30">
-  
-  <div class="absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-110">
-    <img 
-      src="/images/LinearAlgebra.png" 
-      alt="Cover"
-      class="h-full w-full object-cover opacity-50 blur-[3px] scale-[1.03] transition-all duration-500 group-hover:opacity-30 group-hover:blur-md"
-    />
-  </div>
+- Matrics and Gaussion Elimination
+- Vector Space and Linear Equations
+- Orthogonality
+- Determinants
+- Eigenvalues and Eigenvectors
 
-  <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/60 to-black/10"></div>
+老師的上課方式大概就是在台上瘋狂抄筆記，抄完之後開始講解，也會有很多證明因為太長放在 COOL 上面，課本 *Linear Algebra and Its Applications, Gilbert Strang, Fourth Edition*，一直瘋狂手寫很容易睡著（對我來說），不過老師人真的很好，上課也會講很多小故事，像是他以前在美國吧啦吧啦，還有在電梯裡面因為長得很年輕所以被當成學生之類的，筆記有點像是課本的節錄加上一點點自己的內容，老師上課的內容沒有放上 NTU COOL，要自己抄，考試範圍也都是自己抄的內容，但其實有看過別人的筆記就好了
 
-  <div class="absolute inset-0 flex flex-col p-7 z-10">
-    
-    <div>
-      <h3 class="text-3xl font-extrabold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] transition-colors group-hover:text-blue-100">
-        Linear Algebra
-      </h3>
-      
-      <br/>
+<details class="info-box">
+<summary> <b>&nbsp;關於 加簽</b></summary>
 
-      <p class="mt-4 font-medium text-gray-100 drop-shadow-sm tracking-wide">
-        線性代數 李明穗 教授
-      </p>
-    </div>
+好像是去年受到了隨機客的荼毒，今年第一堂課的時候一坨人跑去找 Amy 加簽，但這堂課是三類加簽，Amy 完全不管你是幾年級，反正交給電腦隨機選就對了，所以我看到有些大三的學長沒簽到，但是大一的卻簽到了，隔壁班因為李彥寰是第一次教，所以有很多同屆也都來簽 Amy 班，最後就是大爆滿，聽說明年線代又會換回隨機客？可能又是爆多人加簽的一次
 
-    <div class="flex-grow"></div>
+</details>
 
-    <div>
-      <button class="flex w-fit items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-blue-900/40 transition-all duration-300 hover:bg-blue-500 hover:scale-105 hover:shadow-blue-500/50 active:scale-95">
-        <span>Read PDF</span>
-        <svg class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-        </svg>
-      </button>
-    </div>
+這裡附上一份線性代數的筆記 PDF，給~~不想上課~~有需要的同學參考～
 
-  </div>
-</a>
+<PDFCard 
+    title="Linear Algebra"
+    subtitle="線性代數 李明穗 教授"
+    href="/pdf/LinearAlgebra.pdf"
+    imageSrc="/images/LinearAlgebra.png"
+/>
 
 ### 系統程式設計
 
@@ -147,14 +178,27 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - **授課教授：** 鄭卜壬 
 - **學分：** 3  
-- **等第：** 
+- **等第：** A+
 
-- **甜度：** /5  
+- **甜度：** 3/5  
 - **涼度：** 0.00001/5  
 - **收穫：** 10/5 
 
 </div>
 
+這應該是我這學期學到最多的一門課，用的課本是 Advanced Programming in the UNIX Environment 3e，但課本比較像是工具書，老師上課內容大部分都是自己整理的筆記，內容大概有
+
+- OS concept
+- Unbuffered I/O
+- Advance I/O
+- Buffered I/O
+- Files and Directories
+- Process Control & IPC
+- Signal
+- Thread
+- Process Environment
+
+基本上就是系統知識大雜燴，從 OS 基本概念到 Unix 如何去實作 Syncronization，或是一些 Process communication 的方法，老師上課會講很多實際的例子，也很喜歡講一些故事，像是他以前在 Google 扒拉扒拉，PJ 的語速真的很快，我這學期一直在反覆看他的錄影，不然上課根本沒辦法一次就理解，PJ 在上課時會補充很多很細節的觀念，跟他的錄影不太一樣，所以還是建議可以去現場聽一下，再去聽錄影的細節，而且他的現場錄音品質真的超爛，爆麥是常有的事情，PJ 還有一個獨門絕技，就是他會超時並且壓縮下課時間，真的很強，有時候上一上就忘我了
 
 ### 自動機與形式語言
 
@@ -162,55 +206,22 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - **授課教授：** 林智仁
 - **學分：** 3  
-- **等第：** 
+- **等第：** A
 
-- **甜度：** /5  
+- **甜度：** 5/5  
 - **涼度：** 4/5  
 - **收穫：** 5/5 
 
 </div>
 
-這裡附上一份自動機筆記 PDF，給有需要的同學參考～
+這裡附上一份自動機筆記 PDF，一樣給大家參考（這份比較像抄投影片
 
-<a href="/pdf/IntroComputation.pdf" class="group relative block h-80 w-full overflow-hidden rounded-2xl bg-gray-900 border border-gray-800 shadow-xl transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/30">
-  
-  <div class="absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-110">
-    <img 
-      src="/images/IntroComputation.png" 
-      alt="Cover"
-      class="h-full w-full object-cover opacity-50 blur-[3px] scale-[1.03] transition-all duration-500 group-hover:opacity-30 group-hover:blur-md"
-    />
-  </div>
-
-  <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/60 to-black/10"></div>
-
-  <div class="absolute inset-0 flex flex-col p-7 z-10">
-    
-    <div>
-      <h3 class="text-3xl font-extrabold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] transition-colors group-hover:text-blue-100">
-        Introduction to Computation Theory
-      </h3>
-      
-      <br/>
-
-      <p class="mt-4 font-medium text-gray-100 drop-shadow-sm tracking-wide">
-        自動機與形式語言 林智仁 教授
-      </p>
-    </div>
-
-    <div class="flex-grow"></div>
-
-    <div>
-      <button class="flex w-fit items-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-blue-900/40 transition-all duration-300 hover:bg-blue-500 hover:scale-105 hover:shadow-blue-500/50 active:scale-95">
-        <span>Read PDF</span>
-        <svg class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-        </svg>
-      </button>
-    </div>
-
-  </div>
-</a>
+<PDFCard
+  title="Introduction to Computation Theory"
+  subtitle="自動機與形式語言 林智仁 教授"
+  href="/pdf/IntroComputation.pdf"
+  imageSrc="/images/IntroComputation.png"
+/>
 
 ### 計算機網路
 
@@ -218,9 +229,9 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - **授課教授：** 逄愛君
 - **學分：** 3  
-- **等第：** 
+- **等第：** A+
 
-- **甜度：** /5  
+- **甜度：** 4/5  
 - **涼度：** 1/5  
 - **收穫：** 4/5 (作業收穫 5/5) 
 
@@ -239,6 +250,8 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **收穫：** 0.1/5 
 
 </div>
+
+甜甜涼涼水水，跟 PF Liu 的計程比起來根本不是一個量級，
 
 ---
 
@@ -275,13 +288,3 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **收穫：** 4/5 
 
 </div>
-
-## 雜項
-
-### 微積分助教
-
-### 氣球社社長
-
-### 巴笛重奏團
-
-### 專題研究

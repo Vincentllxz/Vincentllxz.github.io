@@ -184,7 +184,7 @@ figcaption {
   text-align: center;
 }
 
-.prose table {
+/* .prose table {
   width: min(100%, 900px);
   margin: 1.75em auto;
   border-collapse: collapse;
@@ -212,4 +212,4 @@ figcaption {
 .prose td:first-child {
   font-weight: 600;
   color: hsl(var(--foreground) / 0.85);
-}
+} */
