@@ -49,6 +49,7 @@ export const theme: ThemeUserConfig = {
     menu: [
       { title: 'Home', link: '/' },
       { title: 'Blog', link: '/blog' },
+      { title: 'Note', link: '/note' },
       { title: 'Tags', link: '/tags' },
       { title: 'Archives', link: '/archives' },
       { title: 'About', link: '/about' }
@@ -104,13 +105,7 @@ export const integ: IntegrationUserConfig = {
   // See: https://astro-pure.js.org/docs/integrations/links
   links: {
     // Friend logbook
-    logbook: [
-      { date: '2025-03-16', content: 'Is there a leakage?' },
-      { date: '2025-03-16', content: 'A leakage of what?' },
-      { date: '2025-03-16', content: 'I have a full seat of water, like, full of water!' },
-      { date: '2025-03-16', content: 'Must be the water.' },
-      { date: '2025-03-16', content: "Let's add that to the words of wisdom." }
-    ],
+    logbook: [],
     // Yourself link info
     applyTip: [
       { name: 'Name', val: theme.title },
@@ -160,7 +155,7 @@ export const integ: IntegrationUserConfig = {
   waline: {
     enable: false,
     // Server service link
-    server: 'https://astro-theme-pure-waline.arthals.ink/',
+    server: '',
     // Refer https://waline.js.org/en/guide/features/emoji.html
     emoji: ['bmoji', 'weibo'],
     // Refer https://waline.js.org/en/reference/client/props.html

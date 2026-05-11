@@ -6,7 +6,6 @@ import { PostPreview } from 'astro-pure/components/pages'
 import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import avatar from '@/assets/avatar.png'
@@ -21,7 +20,7 @@ const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 ---
 
-<PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
+<PageLayout meta={{ title: 'Home' }} highlightColor='#FF9966'>
   <main class='flex w-full flex-col items-center'>
     <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
       <Image
@@ -48,20 +47,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         </div>
       </div>
 
-      <!-- {/* Get template */}
-      <a
-        href='https://github.com/cworld1/astro-theme-pure'
-        target='_blank'
-        class='flex flex-row items-center gap-x-3 rounded-full border bg-background px-4 py-2 text-sm shadow-sm transition-shadow hover:shadow-md'
-      >
-        <span class='relative flex items-center justify-center'>
-          <span
-            class='absolute size-2 animate-ping rounded-full border border-green-400 bg-green-400 opacity-75'
-          ></span>
-          <span class='size-2 rounded-full bg-green-400'></span>
-        </span>
-        <p class='font-medium text-muted-foreground'>Get Template</p>
-      </a> -->
     </section>
 
     <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
@@ -69,12 +54,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         <p class='text-muted-foreground'>CS Student / Developer</p>
         <p class='text-muted-foreground'>
         我是 VinSong，本來其實都喜歡叫 Vincent 的，但這名字好像太菜市場了一直被用掉，所以只好自己取一個別的名字。
-        </br>
-        </br>
-          目前就讀於台大資工，平常喜歡嘗試各種新奇的東西，從新技術、新興趨勢到一些很無厘頭的小點子我都愛玩；也喜歡認識不同的人、和朋友天南地北聊八卦，是個再普通不過、卻也充滿熱情與好奇心的大學生。
-        </br>
-        </br>
-          原本喜歡化學，一直夢想當一個化學家，但不知道哪年開始，突然轉換跑道，在電腦科學的道路上一去不複返。
         </br>
         </br>
           我很喜歡紀錄生活，無論是用文字、照片還是影片，只要能留下什麼，我就會想做做看。架設這個網站，其實最初只是心血來潮的想法，但希望未來能一直延續下去，把生活的點點滴滴、一點一滴的成長，都留在這裡，也分享給願意停下來看看的人。
@@ -96,35 +75,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         )
       }
 
-      {
-        /* <Section title='Experience'>
-      <Card
-        heading='Lorem Ipsum'
-        subheading='Sit amet consectetur'
-        date='Dec 2022 - Nov 2023'
-        imagePath='/src/assets/about-astro.png'
-        altText='Lorem, ipsum dolor sit'
-        imageClass='h-12 w-auto md:-start-16'
-      >
-        <ul class='ms-4 list-disc text-muted-foreground'>
-          <li>
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolore debitis recusandae, ut
-            molestiae laboriosam pariatur!
-
-            <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae, pariatur!</li>
-          </li>
-        </ul>
-      </Card>
-      <Card
-        heading='Lorem Ipsum'
-        subheading='Sit amet consectetur'
-        date='Dec 2022 - Nov 2023'
-        imagePath='/src/assets/about-astro.png'
-        altText='Lorem, ipsum dolor sit'
-        imageClass='h-12 w-auto md:-start-16'
-      />
-    </Section> */
-      }
       <Section title='Education'>
         <Card
           as='a'
@@ -145,44 +95,6 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
         </Card>
       </Section>
 
-      <!-- <Section title='Website List'>
-        <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-          <ProjectCard
-            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-            heading='Lorem ipsum'
-            subheading='dolor sit amet, oratio ornatus explicari pro ex'
-            imagePath='/src/assets/projects/alex-tyson-2BAXJ7ha74s-unsplash.jpg'
-          />
-          <ProjectCard
-            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-            heading='Lorem ipsum'
-            subheading='dolor sit amet, oratio ornatus explicari pro ex'
-            imagePath='/src/assets/projects/angelica-teran-Bk9hpaXHK4o-unsplash.jpg'
-          />
-          <ProjectCard
-            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-            heading='Lorem ipsum'
-            subheading='dolor sit amet, oratio ornatus explicari pro ex'
-            imagePath='/src/assets/projects/kseniia-zapiatkina-yATU3rg8tNI-unsplash.jpg'
-          />
-          <ProjectCard
-            href='/projects'
-            heading='More projects'
-            subheading='Check out more projects'
-            imagePath='/src/assets/projects/wen-qiao-g_w8I64FiO0-unsplash.jpg'
-          />
-        </div>
-      </Section> -->
-
-      <!-- <Section title='Certifications'>
-        <Card
-          as='a'
-          heading='Lorem ipsum'
-          subheading='Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio possit voluptatum. Dicat ceteros cu vim. Impetus fuisset ullamcorper pri cu, his posse iisque ad, aliquam honestatis usu id.'
-          date='July 2024'
-          href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-        />
-      </Section> -->
 
       <Section title='Skills'>
         <SkillLayout title='Languages' skills={languages} />

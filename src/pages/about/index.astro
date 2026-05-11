@@ -83,6 +83,8 @@ import avatar from '@/assets/avatar.png'
 import { Image } from 'astro:assets'
 
 const headings = [
+  { depth: 2, slug: 'education', text: 'Education' },
+  { depth: 2, slug: 'experience', text: 'Experience' },
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
   { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
@@ -113,12 +115,54 @@ const headings = [
     </div>
   </section>
 
+  <h2 id='education'>Education</h2>
+  <Timeline
+    events={[
+      {
+        date: '2021-09-01',
+        content:
+          'Taipei Municipal Cheng Kung Senior High School'
+      },
+      {
+        date: '2024-09-21',
+        content:
+          '<a href="https://www.ntu.edu.tw/" target="_blank">National Taiwan University</a>'
+      }
+    ]}
+  />
+
+  <h2 id='experience'>Experience</h2>
+  <Timeline
+    events={[
+      {
+        date: '2025-09-01',
+        content:
+          'TA of MATH4006~4009 Calculus I~IV'
+      },
+      {
+        date: '2025-09-01',
+        content:
+          'President of NTU Balloon Design Club'
+      },
+      {
+        date: '2026-02-23',
+        content:
+          'TA of CSIE1210 Data Structure & Algorithm'
+      },
+      {
+        date: '2026-02-23',
+        content:
+          '<a href="https://www.csie.ntu.edu.tw/~cjlin/mlgroup/index.html" target="_blank">Machine Learning and Data Mining Group</a>, advised by Prof. <a href="https://www.csie.ntu.edu.tw/~cjlin/" target="_blank">Chih-Jen Lin</a>'
+      }
+    ]}
+  />
+
   {/* general-talk */}
   <h2 id='hobbies'>Hobbies</h2>
   <ul>
     <li><Spoiler>滑抖音（對不起）</Spoiler></li>
     <li>
-      Play the clarinet.
+      Play the clarinet — currently performing with <a href='https://www.youtube.com/c/BuddyClarinet' target='_blank' rel='noreferrer'>Buddy Clarinet Ensemble</a>.
     </li>
     <li>Design balloon</li>
     <li>Play video games</li>
@@ -244,10 +288,6 @@ const headings = [
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne.
-  </p>
   <Substats
     stats={[
       {
@@ -265,7 +305,7 @@ const headings = [
       {
         platform: 'Email',
         icon: 'email',
-        link: 'mailto:vincent@gmail.com',
+        link: 'mailto:vincent.950313@gmail.com',
         text: 'contact'
       }
     ]}
@@ -277,33 +317,6 @@ const headings = [
     在這裡讀書真的累～
   </Collapse>
 
-  {/* about-blog */}
-  <h2 id='education'>Education</h2>
-  <Timeline
-    events={[
-      {
-        date: '2021-09-01',
-        content:
-          '台北市立成功高級中學'
-      },
-      {
-        date: '2024-09-21',
-        content:
-          '<a href="https://www.ntu.edu.tw/"target="_blank">國立台灣大學</a>'
-      }
-    ]}
-  />
-
-  <h2 id='experience'>Experience</h2>
-  <Timeline
-    events={[
-      {
-        date: '2025-09-01',
-        content:
-          'TA of MATH 4006~4009 Calculus I~IV'
-      }
-    ]}
-  />
   <!-- <p>
     The smooth operation and personalized customization of website also rely on the resources and
     technical support provided by the following excellent projects/service providers:
