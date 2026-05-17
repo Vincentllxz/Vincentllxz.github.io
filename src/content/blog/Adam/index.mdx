@@ -1,0 +1,159 @@
+---
+title: "Why Adam?"
+description: "Adam optimizer analysis"
+publishDate: "2026-02-17 15:51:42"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "Deep Learning"
+  - "Optimization"
+language: "zh-TW"
+comment: true
+draft: true
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import PDFCard from '../../../components/PDFCard.astro';
+
+# 深入理解 Adam Optimizer：從二階逼近到穩定性分析
+
+Adam (Adaptive Moment Estimation) 已經成為現代深度學習的標準配備。但在黑盒子的背後，Adam 其實是一種對二階最佳化（Hessian）方法的巧妙逼近。本文將從數學底層推導 Adam 的設計邏輯。
+
+<FormattedDate date={new Date('2026-03-30')} />
+
+---
+
+## 1. Adam 的物理本質：Hessian 的對角逼近
+
+Adam 雖然看起來是基於一階梯度的動量法，但其核心思想在於模擬 **Newton Step**。我們首先從機率模型的損失函數出發。
+
+### 損失函數定義
+假設損失函數 $\xi(\theta)$ 為分類問題中的交叉熵（Cross-Entropy）：
+$$
+\xi(\theta) = -\log p(y \, |x \, ; \theta)
+$$
+其中 $p(y \, |x \, ; \theta)$ 是模型在參數 $\theta$ 下預測 $y$ 的機率。
+
+### 梯度與 Hessian 推導
+透過連鎖律，我們計算梯度 $\mathbf{g}$：
+$$
+\mathbf{g} = \nabla_{\theta} \xi = -\frac{1}{p(y \, |x \, ; \theta)} \cdot \nabla_{\theta} p(y \, |x \, ; \theta) = -\frac{\nabla_{\theta} p}{p}
+$$
+
+接著計算 Hessian 矩陣 $H$：
+$$
+\begin{aligned}
+H &= - \left( \frac{(\nabla_{\theta}^2 p) p - (\nabla_{\theta} p) (\nabla_{\theta} p)^T}{p^2} \right) \\[3pt]
+&= -\frac{\nabla_{\theta}^2 p}{p} + \mathbf{g} \mathbf{g}^T
+\end{aligned}
+$$
+
+<Aside type="tip">
+**Hessian 的期望值簡化**
+當我們取 Hessian 的期望值時，第一項會消失：
+$$
+E\left[ \frac{\nabla_\theta^2 p}{p} \right] = \int p \cdot \frac{\nabla_\theta^2 p}{p} dy = \int \nabla_\theta^2 p \, dy = \nabla_\theta^2 \int p \, dy = \nabla_\theta^2 1 = 0
+$$
+因此，我們得到重要結論：**$E[H] = E[\mathbf{g} \mathbf{g}^T]$**。這正是 Adam 使用梯度平方和來估算二階資訊的理論依據。
+</Aside>
+
+---
+
+## 2. 從 Newton Step 到 Adam 更新公式
+
+標準的 Newton Step 定義為：
+$$
+\mathbf{d} = -G^{-1} \mathbf{g}
+$$
+其中 $G$ 是 Hessian 矩陣。然而，計算全矩陣的反矩陣代價過大。
+
+### 對角逼近 (Diagonal Approximation)
+Adam 做了對角逼近，假設各參數間獨立：
+$$
+\mathbf{g} \mathbf{g}^T \approx \text{diag}(\mathbf{g} \odot \mathbf{g})
+$$
+則步長可以簡化為：
+$$
+\mathbf{d} \approx -\text{diag}(\mathbf{g} \odot \mathbf{g})^{-1} \mathbf{g}
+$$
+
+### 為什麼要開根號？
+為了對抗噪聲干擾並保持數值穩定，我們希望更新方向具有類似 $\text{sign}(\cdot)$ 的特性。根據 **SignSGD (Bernstein et al. 2018)**，使用符號函數與原始梯度在收斂性上是等價的。
+
+因此，我們對對角項取平方根：
+$$
+\mathbf{d} \approx -\text{diag}(\sqrt{\mathbf{g} \odot \mathbf{g}})^{-1} \mathbf{g} = -\frac{\mathbf{g}}{\sqrt{\mathbf{g} \odot \mathbf{g}}}
+$$
+
+<Steps>
+1. **估計一階矩 (Momentum)**：$\hat{\mathbf{s}}$ 逼近 $E[g_t]$
+2. **估計二階矩 (Variance)**：$\hat{\mathbf{r}}$ 逼近 $E[g_t \odot g_t]$
+3. **最終更新**：
+   $$ \frac{\epsilon}{\sqrt{\hat{\mathbf{r}}} + \delta} \odot \hat{\mathbf{s}} $$
+</Steps>
+
+---
+
+## 3. Adam 的穩定性分析：線性層的挑戰
+
+雖然 Adam 在大多數場景下表現優異，但在線性層（Linear Layer）中存在潛在的不穩定性。
+
+考慮線性模型：
+$$
+y = W x, \quad W \in \mathbb{R}^{d_{out} \times d_{in}}
+$$
+
+### 元素級約束
+Adam 的更新是在元素層級進行約束的：
+$$
+\Delta W_{ij} = -\frac{\epsilon}{\sqrt{E[G_{ij}^2]} + \delta} \cdot E[G_{ij}]
+$$
+根據 **Jensen's Inequality**：
+$$
+\sqrt{E[G_{ij}^2]} \geq \sqrt{E[G_{ij}]^2} = |E[G_{ij}]|
+$$
+這保證了單一權重的變化量被限制在步長之內：
+$$
+|\Delta W_{ij}| \leq \epsilon \tag{1}
+$$
+
+### 輸出層的誤差放大
+然而，當我們觀察整個層的輸出 $y$ 時：
+$$
+\Delta y_i = \sum_{j=1}^{d_{in}} \Delta W_{ij} x_j
+$$
+利用 **Cauchy-Schwarz Inequality** 與式 (1)：
+$$
+\begin{aligned}
+(\Delta y_i)^2 &\leq \left( \sum_{j=1}^{d_{in}} \Delta (W_{ij})^2 \right) \cdot \left( \sum_{j=1}^{d_{in}} x_j^2 \right) \\
+&\leq d_{in} \cdot \epsilon^2 \cdot \|x\|_2^2
+\end{aligned}
+$$
+
+對整個輸出向量 $\mathbf{y}$ 而言：
+$$
+\|\Delta \boldsymbol{y}\|_2^2 = \sum_{i=1}^{d_{out}} (\Delta y_i)^2 = d_{out} \cdot d_{in} \cdot \epsilon^2 \cdot \|\boldsymbol{x}\|_2^2
+$$
+
+<Card title="穩定性結論">
+Adam 更新導致的輸出變化上限為：
+$$
+\|\Delta \boldsymbol{y}\|_2 \leq \sqrt{d_{out} \cdot d_{in}} \cdot \epsilon \cdot \|\boldsymbol{x}\|_2
+$$
+這意味著在高維矩陣中，Adam 的更新可能會導致輸出訊號產生較大的波動（受維度 $\sqrt{r \cdot c}$ 放大），這也是為什麼在極大規模的模型訓練中，超參數的微調顯得至關重要。
+</Card>
+
+---
+
+<Collapse title="延伸閱讀：關於 Hessian 的機率意義">
+當我們說 $E[H] = E[\mathbf{g} \mathbf{g}^T]$ 時，這在資訊理論中被稱為 **Fisher Information Matrix**。這代表了 Adam 本質上是在嘗試沿著黎曼流形（Riemannian manifold）進行最速下降。
+</Collapse>
+
+<Aside type="tip">
+想要更深入研究最佳化演算法嗎？可以參考這份完整論文。
+</Aside>
+
+<PDFCard 
+  title="Adam: A Method for Stochastic Optimization" 
+  description="Kingma et al. 2014 - 深度學習最佳化器的里程碑。"
+  link="https://arxiv.org/pdf/1412.6980"
+/>

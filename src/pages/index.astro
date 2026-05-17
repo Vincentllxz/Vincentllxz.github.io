@@ -20,17 +20,138 @@ const allPosts = await getBlogCollection()
 const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 ---
 
-<PageLayout meta={{ title: 'Home' }} highlightColor='#FF9966'>
-  <main class='flex w-full flex-col items-center'>
-    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
-      <Image
-        src={avatar}
-        alt='profile'
-        class='h-28 w-auto rounded-full border p-1'
-        loading='eager'
-      />
+<PageLayout meta={{ title: 'Home' }} highlightColor='#5BBCD6'>
+  <link
+    rel='preconnect'
+    href='https://fonts.googleapis.com'
+  />
+  <link
+    rel='preconnect'
+    href='https://fonts.gstatic.com'
+    crossorigin
+  />
+  <link
+    rel='stylesheet'
+    href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'
+  />
 
-      <div class='flex flex-col items-center gap-y-4'>
+  <main class='home-main flex w-full flex-col items-center'>
+    <div class='home-intro-backdrop' aria-hidden='true'></div>
+    <div class='home-scroll-hint' aria-hidden='true'>
+      <span class='home-scroll-label'>scroll</span>
+      <svg
+        class='home-scroll-chevron'
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        stroke-width='2.5'
+        stroke-linecap='round'
+        stroke-linejoin='round'
+      >
+        <path d='M6 9l6 6 6-6' />
+      </svg>
+    </div>
+    <section class='animate relative mb-10 flex flex-col items-center gap-y-4' id='content-header'>
+      <div class='home-codes' aria-hidden='true'>
+        <span class='home-code home-code-l'>{`{ }`}</span>
+        <span class='home-code home-code-r'>&gt;<span class='home-code-caret'>_</span></span>
+      </div>
+      <div class='home-signature' aria-label='Vinsong'>
+        <svg
+          class='home-signature-svg'
+          viewBox='0 0 560 180'
+          role='img'
+          aria-label='Vinsong'
+        >
+          <text
+            x='50%'
+            y='126'
+            text-anchor='middle'
+            class='home-signature-text'
+          >Vinsong</text>
+        </svg>
+      </div>
+
+      <script is:inline>
+        ;(() => {
+          try {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+            const main = document.querySelector('.home-main')
+            const sig = document.querySelector('.home-signature')
+            if (!main || !sig) return
+            const r = sig.getBoundingClientRect()
+            if (!r.width || !r.height) return
+            const vw = window.innerWidth
+            const vh = window.innerHeight
+            const scale = Math.max(
+              1.15,
+              Math.min((vw * 0.86) / r.width, (vh * 0.6) / r.height)
+            )
+            sig.style.setProperty('--intro-tx', (vw / 2 - (r.left + r.width / 2)).toFixed(1) + 'px')
+            sig.style.setProperty('--intro-ty', (vh / 2 - (r.top + r.height / 2)).toFixed(1) + 'px')
+            sig.style.setProperty('--intro-scale', scale.toFixed(3))
+            sig.style.position = 'relative'
+            sig.style.zIndex = '9991'
+            main.classList.add('intro')
+
+            // Lock the page so the full-screen signature can't be scrolled away.
+            const docEl = document.documentElement
+            const prevOverflow = docEl.style.overflow
+            docEl.style.overflow = 'hidden'
+
+            let entered = false
+            let touchY = 0
+            const onWheel = (e) => {
+              if (e.deltaY > 0) enter()
+            }
+            const onTouchStart = (e) => {
+              touchY = e.touches[0].clientY
+            }
+            const onTouchMove = (e) => {
+              if (touchY - e.touches[0].clientY > 24) enter()
+            }
+            const onKey = (e) => {
+              if (['ArrowDown', 'PageDown', 'End', ' ', 'Spacebar'].indexOf(e.key) !== -1) enter()
+            }
+            const enter = () => {
+              if (entered) return
+              entered = true
+              window.removeEventListener('wheel', onWheel)
+              window.removeEventListener('touchstart', onTouchStart)
+              window.removeEventListener('touchmove', onTouchMove)
+              window.removeEventListener('keydown', onKey)
+              docEl.style.overflow = prevOverflow
+              main.classList.add('entering')
+              window.setTimeout(() => {
+                sig.style.removeProperty('z-index')
+                sig.style.removeProperty('position')
+                const backdrop = main.querySelector('.home-intro-backdrop')
+                if (backdrop) backdrop.remove()
+                const hint = main.querySelector('.home-scroll-hint')
+                if (hint) hint.remove()
+              }, 1100)
+            }
+            window.addEventListener('wheel', onWheel, { passive: true })
+            window.addEventListener('touchstart', onTouchStart, { passive: true })
+            window.addEventListener('touchmove', onTouchMove, { passive: true })
+            window.addEventListener('keydown', onKey)
+          } catch (e) {
+            /* no gate on failure — page stays in its normal state */
+          }
+        })()
+      </script>
+
+      <div class='home-avatar-wrap'>
+        <span class='home-avatar-halo' aria-hidden='true'></span>
+        <Image
+          src={avatar}
+          alt='profile'
+          class='home-avatar relative h-28 w-auto rounded-full border p-1'
+          loading='eager'
+        />
+      </div>
+
+      <div class='flex flex-col items-center gap-y-4 home-hero-meta'>
         <h1 class='text-3xl font-bold'>{config.author}</h1>
         <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
           <Label title='Taiwan / Taipei'>
@@ -105,3 +226,338 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
     <Quote class='mt-12' />
   </main>
 </PageLayout>
+
+<style is:global>
+  /* === Floating code-symbol decorations beside the hero === */
+  .home-codes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 0;
+  }
+  .home-code {
+    position: absolute;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    font-weight: 500;
+    font-size: clamp(28px, 4.5vw, 44px);
+    line-height: 1;
+    color: hsl(var(--muted-foreground));
+    opacity: 0;
+    letter-spacing: 0.05em;
+    user-select: none;
+    animation:
+      home-code-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards,
+      home-code-drift 7s ease-in-out 1.5s infinite;
+  }
+  .home-code-l {
+    left: clamp(8px, 7vw, 70px);
+    top: 18px;
+  }
+  .home-code-r {
+    right: clamp(8px, 7vw, 70px);
+    top: 28px;
+    animation:
+      home-code-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards,
+      home-code-drift-alt 8.5s ease-in-out 1.7s infinite;
+  }
+  .home-code-caret {
+    display: inline-block;
+    margin-left: 2px;
+    animation: home-code-caret 1.05s steps(1, end) 1.5s infinite;
+  }
+  /* During the gate the code symbols stay hidden; they ride in after the scroll. */
+  .home-main.intro .home-code {
+    animation: none;
+  }
+  .home-main.intro.entering .home-code-l {
+    animation:
+      home-code-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards,
+      home-code-drift 7s ease-in-out 1.45s infinite;
+  }
+  .home-main.intro.entering .home-code-r {
+    animation:
+      home-code-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.7s forwards,
+      home-code-drift-alt 8.5s ease-in-out 1.6s infinite;
+  }
+
+  @keyframes home-code-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 0.55; transform: translateY(0); }
+  }
+  @keyframes home-code-drift {
+    0%, 100% { transform: translateY(0)    rotate(-2deg); }
+    50%      { transform: translateY(-10px) rotate(2deg); }
+  }
+  @keyframes home-code-drift-alt {
+    0%, 100% { transform: translateY(-2px) rotate(2deg); }
+    50%      { transform: translateY(-12px) rotate(-2deg); }
+  }
+  @keyframes home-code-caret {
+    0%, 49%   { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  /* === "Vinsong" signature above the avatar — clean single-ink writing === */
+  .home-signature {
+    display: block;
+    line-height: 1;
+    color: hsl(var(--foreground));
+    /* push the signature clear of the avatar below it */
+    margin-bottom: clamp(1.5rem, 4vw, 3rem);
+  }
+  .home-signature-svg {
+    width: clamp(340px, 66vw, 620px);
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  .home-signature-text {
+    font-family: 'Great Vibes', 'Caveat', 'Snell Roundhand', 'Apple Chancery', cursive;
+    font-size: 132px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    /* large enough to cover the longest contour of "Vinsong" in Great Vibes */
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 1400;
+    animation:
+      home-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
+      home-signature-fill 0.55s ease-out 2.05s forwards;
+  }
+  @keyframes home-signature-draw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes home-signature-fill {
+    to { fill: currentColor; }
+  }
+
+  /* Halo + floating avatar — main visual on /. */
+  .home-avatar-wrap {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    isolation: isolate;
+  }
+  .home-avatar {
+    animation: home-float 6s ease-in-out infinite;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 1;
+  }
+  .home-avatar:hover {
+    transform: scale(1.05) rotate(-2deg);
+  }
+  .home-avatar-halo {
+    position: absolute;
+    inset: -16px;
+    border-radius: 9999px;
+    background: conic-gradient(
+      from 0deg,
+      hsl(193 70% 62% / 0.6),
+      hsl(205 82% 74% / 0.0) 30%,
+      hsl(186 72% 54% / 0.6) 60%,
+      hsl(193 70% 62% / 0.0) 90%,
+      hsl(193 70% 62% / 0.6)
+    );
+    filter: blur(16px);
+    opacity: 0.7;
+    z-index: 0;
+    animation:
+      home-halo-spin 14s linear infinite,
+      home-halo-pulse 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  html.dark .home-avatar-halo {
+    opacity: 0.85;
+  }
+
+  /* === Opening gate: signature draws full-screen, scrolling down reveals the page === */
+  .home-intro-backdrop {
+    display: none;
+  }
+  .home-main.intro .home-intro-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: var(--background);
+    pointer-events: none;
+  }
+  /* Scrolled down → the cover fades away. */
+  .home-main.intro.entering .home-intro-backdrop {
+    animation: home-intro-fade 0.7s ease-out 0.1s forwards;
+  }
+
+  /* During the gate the signature is held full-screen (JS-measured transform). */
+  .home-main.intro .home-signature {
+    transform-origin: 50% 50%;
+    transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px))
+      scale(var(--intro-scale, 1));
+  }
+  /* Scrolled down → it shrinks back into the page flow. */
+  .home-main.intro.entering .home-signature {
+    animation: home-sig-shrink 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.05s forwards;
+  }
+  @keyframes home-sig-shrink {
+    from {
+      transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px))
+        scale(var(--intro-scale, 1));
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes home-intro-fade {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
+
+  /* "Scroll down to enter" hint — bottom-center, only while the gate is up. */
+  .home-scroll-hint {
+    display: none;
+  }
+  .home-main.intro .home-scroll-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    position: fixed;
+    left: 50%;
+    bottom: clamp(1.5rem, 5vh, 3.5rem);
+    transform: translateX(-50%);
+    z-index: 9992;
+    color: hsl(var(--foreground) / 0.6);
+    pointer-events: none;
+    animation: home-hint-in 0.8s ease-out 2.2s backwards;
+  }
+  .home-scroll-label {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    text-indent: 0.24em;
+  }
+  .home-scroll-chevron {
+    width: 1.55rem;
+    height: 1.55rem;
+    animation: home-hint-bounce 1.6s ease-in-out infinite;
+  }
+  /* Scrolled → the hint fades away. */
+  .home-main.intro.entering .home-scroll-hint {
+    animation: home-hint-out 0.3s ease-out forwards;
+  }
+  @keyframes home-hint-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes home-hint-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
+  @keyframes home-hint-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(5px); }
+  }
+
+  /* Hero entrance: stagger the avatar and meta blocks. */
+  #content-header .home-avatar-wrap,
+  #content-header .home-hero-meta {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: home-fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  #content-header .home-avatar-wrap { animation-delay: 0.15s; }
+  #content-header .home-hero-meta   { animation-delay: 0.35s; }
+  /* Gate: keep them hidden; the scroll plays them in. */
+  .home-main.intro #content-header .home-avatar-wrap,
+  .home-main.intro #content-header .home-hero-meta {
+    animation: none;
+  }
+  .home-main.intro.entering #content-header .home-avatar-wrap {
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
+  }
+  .home-main.intro.entering #content-header .home-hero-meta {
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.65s forwards;
+  }
+
+  /* Each Section in #content slides up on first paint, staggered. */
+  #content > section {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  #content > section:nth-child(1) { animation-delay: 0.45s; }
+  #content > section:nth-child(2) { animation-delay: 0.6s; }
+  #content > section:nth-child(3) { animation-delay: 0.75s; }
+  #content > section:nth-child(4) { animation-delay: 0.9s; }
+  /* Gate: hold the sections; the scroll plays them in, staggered. */
+  .home-main.intro #content > section {
+    animation: none;
+  }
+  .home-main.intro.entering #content > section:nth-child(1) {
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
+  }
+  .home-main.intro.entering #content > section:nth-child(2) {
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.72s forwards;
+  }
+  .home-main.intro.entering #content > section:nth-child(3) {
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.84s forwards;
+  }
+  .home-main.intro.entering #content > section:nth-child(4) {
+    animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.96s forwards;
+  }
+
+  /* The orange top gradient gently breathes. */
+  #highlight-gradient {
+    animation: home-highlight-breathe 8s ease-in-out infinite;
+  }
+
+  @keyframes home-fade-up {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes home-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+  @keyframes home-halo-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes home-halo-pulse {
+    0%, 100% { opacity: 0.55; filter: blur(16px); }
+    50%      { opacity: 0.9;  filter: blur(20px); }
+  }
+  @keyframes home-highlight-breathe {
+    0%, 100% { opacity: 0.22; }
+    50%      { opacity: 0.32; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-avatar,
+    .home-avatar-halo,
+    #content-header .home-signature,
+    #content-header .home-avatar-wrap,
+    #content-header .home-hero-meta,
+    #content > section,
+    #highlight-gradient {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .home-signature-text {
+      animation: none !important;
+      stroke-dashoffset: 0 !important;
+      fill: currentColor !important;
+    }
+    .home-code,
+    .home-code-caret {
+      animation: none !important;
+      opacity: 0.55 !important;
+      transform: none !important;
+    }
+  }
+</style>
