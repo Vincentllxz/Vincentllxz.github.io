@@ -40,4 +40,5 @@ bunfig.toml
 /src/content/blog/test.*
 /test/
 
+CLAUDE.md
 convert.md

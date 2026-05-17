@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from 'astro:content'
+
+import { getBlogCollection } from 'astro-pure/server'
+import { Card } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+
+export const prerender = true
+
+// A "series" is a top-level note — its id has no slash (e.g. `sp`). Chapters (`sp/ch01-...`) are nested.
+const series = ((await getBlogCollection('notes')) as CollectionEntry<'notes'>[])
+  .filter((note) => !note.id.includes('/'))
+  .sort(
+    (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()
+  )
+---
+
+<PageLayout title='Notes'>
+  <p class='text-muted-foreground'>課程筆記系列，每個系列底下有各自的章節目錄。</p>
+
+  <div class='not-prose mt-6 flex flex-col gap-4'>
+    {
+      series.map((s) => (
+        <Card
+          as='a'
+          href={`/notes/${s.id}`}
+          heading={s.data.title}
+          subheading={s.data.description}
+        />
+      ))
+    }
+    {series.length === 0 && <p class='text-muted-foreground'>還沒有筆記。</p>}
+  </div>
+</PageLayout>

@@ -1,0 +1,33 @@
+---
+import { render, type CollectionEntry } from 'astro:content'
+
+import { getBlogCollection } from 'astro-pure/server'
+import NotePost from '@/layouts/NotePost.astro'
+
+export const prerender = true
+
+export async function getStaticPaths() {
+  const notes = ((await getBlogCollection('notes')) as CollectionEntry<'notes'>[]).sort((a, b) =>
+    a.id.localeCompare(b.id)
+  )
+  return notes.map((note) => ({
+    params: { id: note.id },
+    props: { note, notes }
+  }))
+}
+
+type Props = {
+  note: CollectionEntry<'notes'>
+  notes: CollectionEntry<'notes'>[]
+}
+
+const { note, notes } = Astro.props
+const { Content, headings, remarkPluginFrontmatter } = await render(note)
+
+// Chapters (id like `sp/ch01-oscon`) go back to their series index; an index goes to /notes.
+const back = note.id.includes('/') ? `/notes/${note.id.split('/')[0]}` : '/notes'
+---
+
+<NotePost {note} {notes} {headings} {remarkPluginFrontmatter} {back}>
+  <Content />
+</NotePost>
