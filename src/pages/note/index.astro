@@ -38,7 +38,7 @@ const notes = [
     這裡放一些我修課時整理的筆記，點擊卡片即可開啟。
   </p>
 
-  <div class='not-prose mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2'>
+  <div class='not-prose mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
     {notes.map((note) => <PDFCard {...note} />)}
   </div>
 </PageLayout>

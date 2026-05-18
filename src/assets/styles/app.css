@@ -12,7 +12,7 @@
   font-display: swap;
 }
 html {
-  font-family: 'Satoshi', sans-serif;
+  font-family: 'Satoshi', 'Noto Sans TC', sans-serif;
 }
 
 /* Theme */
@@ -213,3 +213,34 @@ figcaption {
   font-weight: 600;
   color: hsl(var(--foreground) / 0.85);
 } */
+
+/* === Scroll reveal — children of [data-reveal] fade up as they enter the viewport.
+   The hidden state only applies once JS adds `.reveal-on` to <html>, so the page
+   degrades gracefully (full content) when JS is off or IntersectionObserver is missing. === */
+html.reveal-on [data-reveal] > * {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 0.6s ease,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+html.reveal-on [data-reveal] > *.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+html.reveal-on [data-reveal] > *:nth-child(2) {
+  transition-delay: 0.08s;
+}
+html.reveal-on [data-reveal] > *:nth-child(3) {
+  transition-delay: 0.16s;
+}
+html.reveal-on [data-reveal] > *:nth-child(4) {
+  transition-delay: 0.24s;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.reveal-on [data-reveal] > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

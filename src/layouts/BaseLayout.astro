@@ -24,6 +24,45 @@ const {
   <head>
     <BaseHead {articleDate} {description} {ogImage} {title} />
     <ThemeProvider />
+    {/* Scroll-reveal: reveal children of [data-reveal] as they enter the viewport. */}
+    <script is:inline>
+      ;(function () {
+        try {
+          if (
+            !('IntersectionObserver' in window) ||
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          )
+            return
+          var root = document.documentElement
+          root.classList.add('reveal-on')
+          var reveal = function () {
+            try {
+              var io = new IntersectionObserver(
+                function (entries) {
+                  entries.forEach(function (e) {
+                    if (e.isIntersecting) {
+                      e.target.classList.add('is-revealed')
+                      io.unobserve(e.target)
+                    }
+                  })
+                },
+                { rootMargin: '0px 0px -10% 0px', threshold: 0.1 }
+              )
+              document.querySelectorAll('[data-reveal] > *').forEach(function (el) {
+                io.observe(el)
+              })
+            } catch (err) {
+              root.classList.remove('reveal-on')
+            }
+          }
+          if (document.readyState === 'loading')
+            document.addEventListener('DOMContentLoaded', reveal)
+          else reveal()
+        } catch (err) {
+          /* no reveal on failure — page stays fully visible */
+        }
+      })()
+    </script>
   </head>
 
   <body class='flex justify-center bg-background text-foreground' {...props}>

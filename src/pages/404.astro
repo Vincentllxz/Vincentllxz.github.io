@@ -1,18 +1,75 @@
 ---
+import { Image } from 'astro:assets'
+
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import avatar from '@/assets/avatar.png'
 
 const meta = {
-  description: 'Not found',
+  description: '這個頁面好像飄走了',
   title: '404'
 }
 ---
 
-<PageLayout {meta}>
-  <div class='px-4 py-10 text-center sm:px-6 lg:px-8'>
-    <h1 class='block text-7xl font-bold sm:text-9xl'>404</h1>
-    <p class='mt-3 text-muted-foreground'>Oops, something went wrong.</p>
-    <p class='text-lg'>Sorry, we couldn't find your page.</p>
-    <Button title='Back to home' href='/' variant='ahead' class='mt-5' />
+<PageLayout {meta} highlightColor='#5BBCD6'>
+  <div class='nf flex min-h-[66vh] flex-col items-center justify-center px-4 text-center'>
+    <div class='nf-balloon'>
+      <Image src={avatar} alt='' class='h-24 w-auto rounded-2xl border p-1' loading='eager' />
+    </div>
+
+    <p class='nf-tag mt-7'>// 404 — page not found</p>
+    <h1 class='nf-number'>404</h1>
+    <p class='nf-title'>這個頁面好像飄走了</p>
+    <p class='mt-3 max-w-md text-muted-foreground'>
+      你要找的頁面被氣球帶走了，或者它根本還沒誕生。要不要回首頁，或去翻翻其他文章？
+    </p>
+
+    <div class='mt-8 flex flex-wrap items-center justify-center gap-3'>
+      <Button title='回首頁' href='/' variant='ahead' />
+      <Button title='看看文章' href='/blog' variant='ahead' />
+    </div>
   </div>
 </PageLayout>
+
+<style>
+  .nf-balloon {
+    animation: nf-float 5s ease-in-out infinite;
+  }
+  .nf-tag {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: hsl(var(--muted-foreground) / 0.75);
+  }
+  .nf-number {
+    margin-top: 0.1rem;
+    font-size: clamp(5.5rem, 20vw, 10rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    background: linear-gradient(120deg, hsl(198 80% 62%), hsl(188 72% 48%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nf-title {
+    margin-top: 0.4rem;
+    font-size: clamp(1.25rem, 4vw, 1.6rem);
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  @keyframes nf-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nf-balloon {
+      animation: none;
+    }
+  }
+</style>

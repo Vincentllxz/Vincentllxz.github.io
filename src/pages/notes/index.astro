@@ -18,7 +18,7 @@ const series = ((await getBlogCollection('notes')) as CollectionEntry<'notes'>[]
 <PageLayout title='Notes'>
   <p class='text-muted-foreground'>課程筆記系列，每個系列底下有各自的章節目錄。</p>
 
-  <div class='not-prose mt-6 flex flex-col gap-4'>
+  <div class='not-prose mt-6 flex flex-col gap-4' data-reveal>
     {
       series.map((s) => (
         <Card

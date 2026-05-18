@@ -24,6 +24,7 @@
     "@astrojs/vercel": "^9.0.4",
     "@waline/client": "^3.7.1",
     "astro": "^5.17.2",
+    "astro-og-canvas": "^0.11.1",
     "astro-pure": "1.3.6",
     "katex": "^0.16.25",
     "rehype-katex": "^7.0.1",
@@ -38,5 +39,9 @@
     "eslint-plugin-astro": "^1.5.0",
     "prettier": "^3.6.2",
     "prettier-plugin-astro": "^0.14.1"
+  },
+  "//overrides": "astro-pure targets zod v3; pin zod tree-wide to one v3 build so a hoisted zod v4 can't reach it (a v3/v4 cross-instance schema merge crashes the astro-pure config hook). zod 3.25.x still exposes the v4 API at `zod/v4` for any v4-only consumer.",
+  "overrides": {
+    "zod": "3.25.76"
   }
 }

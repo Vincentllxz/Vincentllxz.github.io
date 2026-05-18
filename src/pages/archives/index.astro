@@ -26,7 +26,7 @@ const meta = {
 
     {allPosts.length === 0 && <p>No posts yet.</p>}
 
-    <section id='content' class='animate' aria-label='Blog post list'>
+    <section id='content' class='animate' aria-label='Blog post list' data-reveal>
       {
         allPostsByYear.map(([year, posts]) => (
           <div class='relative mt-20'>

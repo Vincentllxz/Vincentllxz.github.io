@@ -115,7 +115,7 @@ comment: true
 </figure>
 
 <figure class="custom-figure">
-    <img src="/images/band.png" alt="圖片描述">
+    <img src="/images/band.jpg" alt="圖片描述">
     <figcaption>樂團表演</figcaption>
 </figure>
 

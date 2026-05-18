@@ -71,7 +71,7 @@ const paginationProps = {
               </a>
             </div>
             {/* posts */}
-            <ul class='flex flex-col gap-y-4 text-start'>
+            <ul class='flex flex-col gap-y-4 text-start' data-reveal>
               {page.data.map((post) => (
                 <PostPreview {post} detailed />
               ))}
