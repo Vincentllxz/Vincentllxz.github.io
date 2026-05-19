@@ -39,10 +39,9 @@ export const { getStaticPaths, GET } = await OGImageRoute({
       path: './src/assets/avatar.png',
       size: [104]
     },
-    bgGradient: [
-      [13, 16, 27],
-      [26, 32, 52]
-    ],
+    // The site's pixel-art social card, softened to a pastel backdrop.
+    bgGradient: [[224, 238, 246]],
+    bgImage: { path: './src/assets/og/card-bg.jpg', fit: 'cover' },
     border: { color: [91, 188, 214], width: 8, side: 'block-end' },
     padding: 72,
     fonts: ['./src/assets/og/NotoSansTC-Medium.otf'],
@@ -50,14 +49,14 @@ export const { getStaticPaths, GET } = await OGImageRoute({
       title: {
         families: ['Noto Sans TC'],
         weight: 'Medium',
-        color: [238, 241, 248],
+        color: [26, 32, 46],
         size: 66,
         lineHeight: 1.3
       },
       description: {
         families: ['Noto Sans TC'],
         weight: 'Medium',
-        color: [150, 161, 183],
+        color: [68, 80, 100],
         size: 32,
         lineHeight: 1.45
       }

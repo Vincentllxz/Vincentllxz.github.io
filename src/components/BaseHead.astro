@@ -78,6 +78,27 @@ const socialImageURL = new URL(ogImage ? ogImage : '/images/social-card.jpg', As
 <meta content={description} property='twitter:description' />
 <meta content={socialImageURL} property='twitter:image' />
 
+{/* Structured data (JSON-LD) — lets search engines render article rich results */}
+{
+  articleDate && (
+    <script
+      type='application/ld+json'
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: title,
+        description: description,
+        image: socialImageURL,
+        datePublished: articleDate,
+        dateModified: articleDate,
+        author: { '@type': 'Person', name: config.author },
+        publisher: { '@type': 'Person', name: config.author },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalURL.href }
+      }).replace(/</g, '\\u003c')}
+    />
+  )
+}
+
 {/* Sitemap */}
 <link href='/sitemap-index.xml' rel='sitemap' />
 

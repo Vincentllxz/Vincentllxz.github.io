@@ -11,8 +11,8 @@ language: "zh-TW"
 comment: true
 heroImage: { src: './back.png', color: '#dd9994ff' }
 ---
-import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
-import { LinkPreview } from 'astro-pure/advanced'
+import { Aside } from 'astro-pure/user'
+import ChapterList from '../../../components/ChapterList.astro'
 
 # System Programming 系統程式設計
 
@@ -28,94 +28,16 @@ import { LinkPreview } from 'astro-pure/advanced'
 
 ## Content
 
-<Steps>
-
-1.  **OS Concept**  
-    <Card
-      as='a'
-      href='/notes/sp/ch01-oscon'
-      heading='Ch1. OS Concept'
-      subheading='NTU PJ System Programming: Ch1 OS concept'
-      date='Sep 2025'
-    >
-      The Concept of Operating System (OS), including user mode vs kernel mode, system calls, and resource management.
-    </Card>
-
-2.  **Unbuffered I/O**
-    <Card
-      as='a'
-      href='/notes/sp/ch02-unbufio'
-      heading='Ch2. Unbuffered I/O'
-      subheading='NTU PJ System Programming: Ch2 Unbuffered I/O'
-      date='Sep 2025'
-    >
-      Introduction to unbuffered input/output operations in operating systems, covering file descriptors, system calls for I/O, and basic file operations.
-    </Card>
-
-3.  **Advanced I/O**
-    <Card
-      as='a'
-      href='/notes/sp/ch03-advio'
-      heading='Ch3. Advanced I/O'
-      subheading='NTU PJ System Programming: Ch3 Advanced I/O'
-      date='Sep 2025'
-    >
-      Introduction to unbuffered input/output operations in operating systems, covering file descriptors, system calls for I/O, and basic file operations.
-    </Card>
-
-4. **Buffered I/O**
-    <Card
-      as='a'
-      href='/notes/sp/ch04-bufio'
-      heading='Ch4. Buffered I/O'
-      subheading='NTU PJ System Programming: Ch4 Buffered I/O'
-      date='Sep 2025'
-    >
-      Overview of buffered input/output operations, including standard I/O library functions, buffering strategies, and performance considerations.
-    </Card>
-
-5. **File and Directory**
-    <Card
-      as='a'
-      href='/notes/sp/ch05-file'
-      heading='Ch5. File and Directory'
-      subheading='NTU PJ System Programming: Ch5 File and Directory'
-      date='Sep 2025'
-    >
-      Introduction to file and directory management in operating systems, including file system structure, directory operations, and file metadata.
-    </Card>
-
-6. **Process and IPC**
-    <Card
-      as='a'
-      href='/notes/sp/ch06-process'
-      heading='Ch6. Process and IPC'
-      subheading='NTU PJ System Programming: Ch6 Process and IPC'
-      date='Sep 2025'
-    >
-      Overview of process management and inter-process communication (IPC) mechanisms in operating systems, including process creation, synchronization, and communication techniques.
-    </Card>
-
-7. **Signals**
-    <Card
-      as='a'
-      href='/notes/sp/ch07-signal'
-      heading='Ch7. Signals'
-      subheading='NTU PJ System Programming: Ch7 Signals'
-      date='Sep 2025'
-    >
-      Introduction to signals in operating systems, covering signal handling, signal types, and signal-related system calls.
-    </Card>
-
-8. **Threads**
-    <Card
-      as='a'
-      href='/notes/sp/ch08-thread'
-      heading='Ch8. Threads'
-      subheading='NTU PJ System Programming: Ch8 Threads'
-      date='Sep 2025'
-    >
-      Overview of threads in operating systems, including thread creation, management, synchronization, and related system calls.
-    </Card>
-
-</Steps>
+<ChapterList
+  chapters={[
+    { n: 1, title: 'OS Concept', href: '/notes/sp/ch01-oscon' },
+    { n: 2, title: 'Unbuffered I/O', href: '/notes/sp/ch02-unbufio' },
+    { n: 3, title: 'Advanced I/O', href: '/notes/sp/ch03-advio' },
+    { n: 4, title: 'Buffered I/O', href: '/notes/sp/ch04-bufio' },
+    { n: 5, title: 'File and Directory', href: '/notes/sp/ch05-file' },
+    { n: 6, title: 'Process and IPC', href: '/notes/sp/ch06-process' },
+    { n: 7, title: 'Signals', href: '/notes/sp/ch07-signal' },
+    { n: 8, title: 'Thread Model' },
+    { n: 9, title: 'Process Environment' }
+  ]}
+/>

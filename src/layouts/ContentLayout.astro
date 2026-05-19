@@ -16,6 +16,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
 ---
 
 <PageLayout {meta} {highlightColor} {...props}>
+  <div class='reading-progress' id='reading-progress' aria-hidden='true'></div>
   <Button title='Back' href={back} variant='back' />
   <main class='mt-6 items-start gap-x-10 md:flex'>
     {/* Sidebar */}
@@ -99,8 +100,38 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
   sidebarButton?.addEventListener('click', () => {
     toggleSidebar()
   })
+
+  // Reading progress bar — fills as the page is scrolled.
+  const progressBar = document.getElementById('reading-progress')
+  if (progressBar) {
+    const updateProgress = () => {
+      const el = document.documentElement
+      const max = el.scrollHeight - el.clientHeight
+      progressBar.style.width = (max > 0 ? (el.scrollTop / max) * 100 : 0) + '%'
+    }
+    updateProgress()
+    window.addEventListener('scroll', updateProgress, { passive: true })
+    window.addEventListener('resize', updateProgress)
+  }
 </script>
 <style>
+  .reading-progress {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    height: 3px;
+    width: 0;
+    z-index: 50;
+    background: linear-gradient(90deg, hsl(198 82% 60%), hsl(186 72% 46%));
+    transition: width 0.15s ease-out;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reading-progress {
+      transition: none;
+    }
+  }
+
   @media (min-width: 769px) {
     #sidebar-shade {
       display: none !important;
