@@ -25,11 +25,11 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ## System call v.s Function call
 
-![截圖 2025-11-30 凌晨1.03.27](https://hackmd.io/_uploads/SkluDs_Z-g.png)
+![截圖 2025-11-30 凌晨1.03.27](/images/hackmd/SkluDs_Z-g.png)
 
 ### User mode v.s. Kernel mode
 
-![截圖 2025-11-30 凌晨1.15.38](https://hackmd.io/_uploads/B1KS5su-Zl.png)
+![截圖 2025-11-30 凌晨1.15.38](/images/hackmd/B1KS5su-Zl.png)
 
 - Hardware always in **Kernel Mode**
 
@@ -97,12 +97,12 @@ Only one core of CPU, but want to make **multitasking**.
 
 - **Time Sharing**: the rate is too fast that user won't realize that they are sharing
 
-![截圖 2025-09-11 上午9.55.14](https://hackmd.io/_uploads/BkbGhs1sgx.png)
+![截圖 2025-09-11 上午9.55.14](/images/hackmd/BkbGhs1sgx.png)
 
 - Event can be DISK
 - **(IMPROTANT)** A process want to inline of ready queue, it has to put every data into the memory.
 
-![截圖 2025-09-11 上午10.00.21](https://hackmd.io/_uploads/HJer6okjee.png)
+![截圖 2025-09-11 上午10.00.21](/images/hackmd/HJer6okjee.png)
 
 **Context Switch**
 - **Time Slice** maybe just a nano second
@@ -112,11 +112,11 @@ Only one core of CPU, but want to make **multitasking**.
 - If one process want to ask DISK, CPU will kick out this process into event, but not time slice.
 
  
-![截圖 2025-09-11 上午10.06.48](https://hackmd.io/_uploads/HyVTCiyiex.png)
+![截圖 2025-09-11 上午10.06.48](/images/hackmd/HyVTCiyiex.png)
 
 - Exit have many kind.
 
-![截圖 2025-09-11 上午10.09.00](https://hackmd.io/_uploads/S1x_r121ixg.png)
+![截圖 2025-09-11 上午10.09.00](/images/hackmd/S1x_r121ixg.png)
 
 <Aside type="note" title="About Mode switch and Context switch">
 **Mode switch may not lead to Context switch**
@@ -124,11 +124,11 @@ Only one core of CPU, but want to make **multitasking**.
 </Aside>
 
 ### UNIX Process
-![截圖 2025-09-11 上午10.32.53](https://hackmd.io/_uploads/S1bJr31jgl.png)
+![截圖 2025-09-11 上午10.32.53](/images/hackmd/S1bJr31jgl.png)
 
 From "init" prcess use **fork** to build a process tree.
 
-![截圖 2025-09-11 上午10.42.34](https://hackmd.io/_uploads/HkBmP2kjxl.png)
+![截圖 2025-09-11 上午10.42.34](/images/hackmd/HkBmP2kjxl.png)
 
 
 **Pipe**
@@ -162,7 +162,7 @@ From "init" prcess use **fork** to build a process tree.
 
 ## Memory Management
 
-![截圖 2025-11-22 下午3.33.52](https://hackmd.io/_uploads/rke_vyJWZg.png)
+![截圖 2025-11-22 下午3.33.52](/images/hackmd/rke_vyJWZg.png)
 
 ## File/Directory Management
 
@@ -178,14 +178,14 @@ From "init" prcess use **fork** to build a process tree.
 
 ### File Structure
 
-![截圖 2025-11-18 晚上11.26.31](https://hackmd.io/_uploads/Byp9eM9eWg.png)
+![截圖 2025-11-18 晚上11.26.31](/images/hackmd/Byp9eM9eWg.png)
 
 - **root** `/`: all unix like system's root.
 - **lib**: library, the include path
 - **bin**: binary, in the system genuinly
 - **var**: dynamic file
 
-![截圖 2025-09-11 上午10.58.54](https://hackmd.io/_uploads/S1qgsh1sel.png)
+![截圖 2025-09-11 上午10.58.54](/images/hackmd/S1qgsh1sel.png)
 
 ```bash
 chmod <mode> <file(s)>

@@ -35,6 +35,8 @@ export const { getStaticPaths, GET } = await OGImageRoute({
   getImageOptions: (_path, page): OGImageOptions => ({
     title: page.title,
     description: page.description,
+    format: 'JPEG',
+    quality: 88,
     logo: {
       path: './src/assets/avatar.png',
       size: [104]

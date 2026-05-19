@@ -19,22 +19,22 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - Call `fopen()` 會得到一個 file object pointer 會放在 Virtual Memory
 
 <Aside type="note" title="">
-![截圖 2025-10-17 凌晨12.38.53](https://hackmd.io/_uploads/SJYoko0alg.png)
+![截圖 2025-10-17 凌晨12.38.53](/images/hackmd/SJYoko0alg.png)
 - 依然會透過 Unbuffered I/O 出去，只是在包裝而已
 - `strace` 可以 trace 所有 Buffer I/O
 </Aside>
 
 <Aside type="note" title="">
-![截圖 2025-10-17 凌晨12.44.21](https://hackmd.io/_uploads/H1Mx-i0alg.png)
+![截圖 2025-10-17 凌晨12.44.21](/images/hackmd/H1Mx-i0alg.png)
 - C library 會 allocate 一塊 buffer 去防止直接碰到 Kernel
 - 直接碰到 system call 是 high cost 的
 - 有 Prefetch 的效果
-![截圖 2025-10-17 凌晨12.49.30](https://hackmd.io/_uploads/SyHmfs0Tle.png)
+![截圖 2025-10-17 凌晨12.49.30](/images/hackmd/SyHmfs0Tle.png)
 </Aside>
 
 **`FILE *fopen(const char *pathname, const char *type);`**
 - 可以 support atomic operation
-- ![截圖 2025-10-17 凌晨12.50.30](https://hackmd.io/_uploads/r1xPGjApgg.png)
+- ![截圖 2025-10-17 凌晨12.50.30](/images/hackmd/r1xPGjApgg.png)
 
 **`FILE *freopen(const char *pathname, const char *type, FILE *fp);`**
 - 可以指定某個 fp (通常是常見 e.g. `STDOUT`) 來放這個 file
@@ -186,9 +186,9 @@ int main() {
 <Aside type="caution" title="Binary I/O is not portable">
 - 每個 environment 的參數不一樣，會放在不同地方，排列也不同，寫出來讀出來的東西不一樣
 - 每個 complier alignment 的 method 都不一樣
-![截圖 2025-10-17 上午9.02.54](https://hackmd.io/_uploads/SJ36rGy0gx.png)
+![截圖 2025-10-17 上午9.02.54](/images/hackmd/SJ36rGy0gx.png)
 - 為了 alignment Data Bus 的寬度，減少 CPU clock cycle
-![截圖 2025-10-17 上午9.05.17](https://hackmd.io/_uploads/HJFvIG1Cgl.png)
+![截圖 2025-10-17 上午9.05.17](/images/hackmd/HJFvIG1Cgl.png)
 </Aside>
 
 **Input Functions**:

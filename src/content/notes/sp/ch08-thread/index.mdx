@@ -10,7 +10,7 @@ tags:
 language: "zh-TW"
 comment: true
 heroImage: { src: './back.png', color: '#dd9994ff' }
-draft: true
+draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
 
@@ -18,11 +18,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ## Thread Concept
 
+### Process Model
 - **Resource Grouping (資源分組)**：Process 是作業系統分配資源（記憶體、檔案等）的基本單位。
 - **Single Thread of Execution**：傳統的 Process 中只有一個執行緒（Thread），指令是單一序列執行的。
 
 <Aside type="note" title="Virtual Memory Layout (虛擬記憶體配置)">
-![Virtual Memory Layout](/images/virmem.png)
+
+![截圖 2025-11-22 下午3.33.52](/images/hackmd/rke_vyJWZg.png)
 
 每個 Process 擁有獨立的虛擬記憶體空間，內容包含：
 - **Text / Instruction**：存放程式碼（如 `main()`）、函式庫連結等唯讀資料。
@@ -30,22 +32,22 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 依據「是否已初始化」區分存放區域（例如 `.data` vs `.bss`）。
     - 未初始化的變數通常不佔用實際執行檔空間，載入時會自動設為 0。
 - **Stack**：存放函式呼叫（Function Call）時的區域變數、Return address 等。
- - **Heap**：動態分配的記憶體區域（如使用 `malloc()` 或 `new` 配置的空間）。
+- **Heap**：動態分配的記憶體區域（如使用 `malloc()` 或 `new` 配置的空間）。
 - **Kernel Space (Open file desc. table / Kernel stack)**：
     - 這些資料雖然屬於該 Process（紀錄該 Process 的狀態），但存放在 **Kernel Space**。
-- **權限限制**：User Space 的程式無法直接存取，必須透過 System Call 請求 Kernel 操作。
+    - **權限限制**：User Space 的程式無法直接存取，必須透過 System Call 請求 Kernel 操作。
 </Aside>
 
+---
 
 ### Thread Model
-
-![Thread Model Diagram](/images/sp-thread/pro2thread.png)
+![截圖 2025-11-22 下午2.55.35](/images/hackmd/rJ-FRR0gbe.png)
 
 - **概念**：在同一個 Process 的生命週期內，可以同時執行多個 Thread。
 - **資源共享 (Resource Sharing)**：
     因為屬於同一個 Process，Thread 之間共享大部分的資源：
     - Global Data / Heap Memory
-    - Open Files (檔案描述符)
+    - Open Files Descriptor
     - Code (Text Segment)
     - Child Processes
     - Pending Alarms / Signals
@@ -56,6 +58,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **Program Counter (PC)** (紀錄目前執行到哪一行指令)
     - Scheduling Policy (排程優先級)
     - Signal Mask (對訊號的遮罩設定)
+    - Thread specific data
 
 ---
 
@@ -82,20 +85,18 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 在 Single processor(core) machine 上，Thread model 無法達到真正的「平行運算 (Parallelism)」，只能做到「併發 (Concurrency)」。
     - **但並非沒用**：它依然能透過重疊 I/O 等待時間與 CPU 運算時間，有效減少 Response time 並提升系統整體效率。
 
-![Thread Stack Diagram](/images/sp-thread/aaa.png)
+![截圖 2025-11-22 下午3.20.38](/images/hackmd/BJrI4y1-be.png)
 
-<Aside type="tip" title="Thread Stack Layout">
+<Aside type="note" title="Thread Stack Layout">
 在 virtual memeory 中，不同 Thread 的 Stack 會被配置在同一塊位址空間的不同區段。若 Stack 用量過大，可能會發生重疊（Overflow），通常 OS 或 Thread Library 會有 Guard Page 機制來偵測並處理。
 </Aside>
 
-
 ---
-
 ## Implementing of Thread
 
 ### Implementing of Thread (User Space)
 
-![截圖 2025-11-27 晚上11.02.19](/images/sp-thread/usr.png)
+![截圖 2025-11-27 晚上11.02.19](/images/hackmd/HyoZdkI--e.png)
 
 - **Runtime System**: 一個 Library 去控制所有 thread 出生死亡，用 function call
 - **Thread Table**: Runtime System 內部 maintain TCB
@@ -103,7 +104,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - Kernel 並不知道 Process 裡面到底長什麼樣子，只是 schedule process 們
     - Thread 是用 **Runtime System** 去控制，TCB 也是存在裡面的
 
-<Aside type="danger" title="Problem">
+<Aside type="caution" title="Problem">
 - 必須解決 blocking I/O 的問題，因為 kernel 只知道 process 被 block
     - 自己提供一個 I/O library: I/O Multiplexing, Nonblocking
 - Runtime system 就像是 OS，是一種 non-preemptive 非強制性 OS 必須要 thread 自願放出 resource
@@ -111,17 +112,17 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </Aside>
 
 ### Implementing of Thread (Kernel Space)
-![截圖 2025-11-28 凌晨12.25.08](/images/sp-thread/ker.png)
+![截圖 2025-11-28 凌晨12.25.08](/images/hackmd/BkWOix8-bx.png)
 - Thread table 會在 kernel 內，可以做不同 process 間的交互處理
 - kernel 知道是 thread 被 block 而不是 process 所以可以 schedule 其他 thread
 
-<Aside type="danger" title="Problem">
+<Aside type="caution" title="Problem">
 - Cost 會比較高，因為在 kernel 內是 system call
     - 不會真的 free 掉 TCB，會 mark invalid 去做 recycle
 </Aside>
 
 ### Hybrid Implementation
-![截圖 2025-11-28 凌晨12.39.23](/images/sp-thread/hyb.png)
+![截圖 2025-11-28 凌晨12.39.23](/images/hackmd/B1YpAg8-be.png)
 - 讓 kernel thread 各自做 user thread 的 context switch
 
 ---
@@ -140,10 +141,10 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 任何被 create 跟 create 別人的 thread 會根據 priority 來決定跑的順序，跟 `fork()` 很像
 - 只分成 main thread 跟 spawned thread，而且並非主從關係
-- **Normal function call**
-  ![截圖 2025-11-28 凌晨1.14.10](/images/sp-thread/procall.png)
-- **Threaded function call**
-  ![截圖 2025-11-28 凌晨1.14.24](/images/sp-thread/thrcall.png)
+- Normal function call
+  ![截圖 2025-11-28 凌晨1.14.10](/images/hackmd/H1ggvbU-Wl.png)
+- Threaded function call
+  ![截圖 2025-11-28 凌晨1.14.24](/images/hackmd/rk9xPW8ZZx.png)
 
 
 **`pthread_t pthread_self(void)`**
@@ -177,7 +178,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - `PTHREAD_CREATE_DETACHED`
     - `pthread_join()`，被拿走了
 
-<Aside type="tip" title="Thread Creation">
+<Aside type="tip" title="Creation Example">
 ```c title="thread.c"
 pthread_t ntid;
 
@@ -203,9 +204,9 @@ thr_fn(void *arg)
 int
 main(void)
 {
-    int err;
+    int     err;
 
-    err = pthread_create(&ntid, NULL, thr_fn, NULL); // [!code highlight]
+    err = pthread_create(&ntid, NULL, thr_fn, NULL);
     if (err != 0)
         err_quit("can't create thread: %s\n", strerror(err));
     printids("main thread:");
@@ -327,7 +328,7 @@ $$
 - thread 異常死亡叫做被他人 **cancel**，拿結束碼會拿到 `PTHREAD_CANCELED`
 - thread 被拿走結束碼後就會 detechable
 - **任何出錯都要看 return value 不是一般 fucntion 的 `errno`**
-- non-detechable thread 沒被 join 就是 zombie thread
+- non-detechable thread 死掉沒被 join 就是 zombie thread
 - threadID 發完了就不能繼續 create 了
 - 呼叫 join 的 thread 被打斷了就可以用 `pthread_timedjoin_np()` return `ETIMEDOUT`
 
@@ -393,8 +394,6 @@ thread 2 exit code 2
 **`int pthread_cancel(pthread_t tid)`**
 - 相當於讓要被 cancel 的呼叫 `pthread_exit()` 然後，然後傳參數給 `PTHREAD_CANCELED`
 - 被 cancel 的人可以決定自己要不要被 cancel
-
-**`int pthread_cancel(pthread_t tid)`**
 - `PTHREAD_CANCEL_ENABLE` (default)
 - `PTHREAD_CANCEL_DISABLE` 可以不讓別人 cancel
 - 在 `PTHREAD_CANCEL_ENABLE` 之下 傳來 cancel 也只是 Only makes the request 而已，會運行直到 **cancelation point**
@@ -437,11 +436,12 @@ thr_fn2(void *arg)
 }
 ```
 </Aside>
+
 - 如果呼叫 `return ((void *) 2);` 就不會往後 pop 出所有東西
 - 正常異常死亡都會呼叫出 `rtn` 內的 function 們，用 reverse way
 
 <Aside type="note" title="">
-![截圖 2025-11-28 下午3.41.47](https://hackmd.io/_uploads/SyuSG0Ib-l.png)
+![截圖 2025-11-28 下午3.41.47](/images/hackmd/SyuSG0Ib-l.png)
 - Thread 之間並沒有階層式的架構，任何 thread 都可以去 `join` 其他 thread
 - cancelation point 概念會執行到某些重要節點才會停下
 </Aside>
@@ -449,7 +449,7 @@ thr_fn2(void *arg)
 
 ## Thread Synchronization
 - Share memory 太常出現，所以我們必須要產生同步，不然會出現問題，因為一個高階語言指令可能是四五個低階語言指令
-![截圖 2025-11-29 晚上10.54.56](https://hackmd.io/_uploads/rJaBFYubbe.png)
+![截圖 2025-11-29 晚上10.54.56](/images/hackmd/rJaBFYubbe.png)
 
 - 兩個 thread 要讀/寫入同一個資料是不同的 code 會競爭到同一個 resource
 - 即便有一個 resource 只有一個 function 可以 access，兩個 thread call 同一個 function 還是會有 competition，還是需要 Synchronization
@@ -473,12 +473,7 @@ thr_fn2(void *arg)
         ```
       做靜態宣告
     - 也可以動態宣告，用 `pthread_mutex_init()` + `pthread_mutex_destroy()`
-- **Process-shared** attrubute
-- **type** attribute
 - `NULL` 就是 default
-
-**`int pthread_mutexattr_init (pthread_mutexattr_t *attr)`**
-**`int pthread_mutexattr_destroy (pthread_mutexattr_t *attr)`**
 - attribute 也要做 initialize
 - **Process-share** attribute
     - `PTHREAD_PROCESS_SHARED` 可否接受多個 process share Mutex 的 **memory**（非 file）
@@ -492,7 +487,7 @@ thr_fn2(void *arg)
     - **PTHREAD_MUTEX_DEFAULT**: 會是以上三種的其中一種，每個 system 不一樣
 
 <Aside type="note" title="Error/Deadlock Check">
-![截圖 2025-11-29 晚上11.38.34](https://hackmd.io/_uploads/rJdF7c_bZl.png)
+![截圖 2025-11-29 晚上11.38.34](/images/hackmd/rJdF7c_bZl.png)
 - **Deadlock**: own A lock 的 thread request B lock, own B lock 的 thread request A lock，會產生 Deadlock 因為會產生問題，因為自己被 suspend 了
 - Relock 產生 deadlock
 </Aside>
@@ -546,6 +541,550 @@ int getcount(int *countp) {
 }
 ```
 - 要上 lock
+</Aside>
+
+### Share memory
+
+#### Memory-mapped I/O
+
+- **`void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);`**
+
+![截圖 2025-12-04 上午9.16.38](/images/hackmd/HkeW-v0WZg.png)
+
+- 先把 memory map 到 virtual memory 上，再利用 system call 把它 mapping 回去
+- Virtual 跟 Physical memory 都會切成一個一個 page，兩端 page size 必須相同，必須得 align
+- 對 system call 一個 `malloc()` 會返回一個可以任意轉換 type 的 address，但對於 align 方法有要求
+
+![截圖 2025-12-04 上午9.20.06](/images/hackmd/Hk_yGDCbZx.png)
+
+- 不像一般 IO 需要各種搬移
+    - Unbuffered I/O: Kernel − standard I/O buffer − our buffer
+    - Buffered I/O: Kernel − our buffer
+- 理論上 `len` 要是 page size 整數倍，但 system 有彈性，會幫你把後面的空（亂）資料也一起 mapping 做 align
+- `start_addr` 是 `NULL` 讓系統決定，要知道 heap, stack, page size 才能自己設定
+
+<Aside type="note" title="Dynamic Link">
+可能會執行到一半，把某段 DISK 上的 instruction 檔案 map 到 virtual memeory 讓他可以執行
+</Aside>
+
+- `addr` 對於 system 只是 hint 而已，不是真實值，除非使用 `MAP_FIXED` flag
+- `MAP_SHARED` 會寫回 physical memory，而 `MAP_PRIVATE` 會做 copy on write，延遲讀寫
+- mapping 多大就只能寫多大的檔案，不能動態增生
+
+![截圖 2025-12-04 上午9.41.31](/images/hackmd/BJFGDPRbZl.png)
+
+```c
+int
+main(int argc, char *argv[])
+{
+    int         fdin, fdout;
+    void        *src, *dst;
+    struct stat statbuf;
+
+    if (argc != 3)
+        err_quit("usage: %s <fromfile> <tofile>", argv[0]);
+
+    if ((fdin = open(argv[1], O_RDONLY)) < 0)
+        err_sys("can't open %s for reading", argv[1]);
+
+    if ((fdout = open(argv[2], O_RDWR | O_CREAT | O_TRUNC, FILE_MODE)) < 0)
+        err_sys("can't creat %s for writing", argv[2]);
+
+    if (fstat(fdin, &statbuf) < 0)   /* need size of input file */
+        err_sys("fstat error");
+
+    /* set size of output file */
+    if (lseek(fdout, statbuf.st_size - 1, SEEK_SET) == -1)
+        err_sys("lseek error");
+    if (write(fdout, "", 1) != 1)
+        err_sys("write error");
+
+    if ((src = mmap(0, statbuf.st_size, PROT_READ, MAP_SHARED, fdin, 0)) == MAP_FAILED)
+        err_sys("mmap error for input");
+
+    if ((dst = mmap(0, statbuf.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fdout, 0)) == MAP_FAILED)
+        err_sys("mmap error for output");
+
+    memcpy(dst, src, statbuf.st_size); /* does the file copy */
+    exit(0);
+}
+```
+- 理論上這樣不對，因為做了 mapping 就得做 msycn, unmapping，所以應該要在 `exit()` 前做這些事情（不寫等於給系統做）
+- 權限會繼承，因此檔案本身要有對的的讀寫權限
+
+```c
+typedef struct {
+    pthread_mutex_t mlock;
+    char buf[ BUFSIZE ];
+} buftype;
+
+int main() {
+    int fd;
+    buftype *bufptr;
+    pthread_mutexattr_t mattr;
+
+    fd = open("/dev/zero", O_RDWR);
+    bufptr = (buftype *) mmap(NULL, sizeof(buftype), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // bufptr = (buftype *) mmap(NULL, sizeof(buftype), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+    pthread_mutexattr_init(&mattr);
+    pthread_mutexattr_setpshared(&mattr, PTHREAD_PROCESS_SHARED);
+    pthread_mutex_init(&bufptr->mlock, &mattr);
+
+    if (fork() == 0) {
+        pthread_mutex_lock(&bufptr->mlock);
+        // ...
+        pthread_mutex_unlock(&bufptr->mlock);
+        // call munmap(), pthread_attr_destroy(), close()
+    } else {
+        pthread_mutex_lock(&bufptr->mlock);
+        // ...
+        pthread_mutex_unlock(&bufptr->mlock);
+        // call wait(), munmap(), pthread_attr_destroy(), close()
+    }
+    return 0;
+}
+```
+- 用 `MAP_ANONYMOUS` 創造出一個 virtual file 來創造 share memory 的感覺
+
+![截圖 2025-12-04 上午9.53.32](/images/hackmd/H1_sFPA--e.png)
+
+- 兩個 share 到同一份 resource 同時要改，可以上 mutex lock，並且 lock 也要放在 share memory
+    - init 要在 `fork()` 前就上好
+    - 在 process 裡面才去爭 lock
+
+![截圖 2025-12-04 上午10.01.44](/images/hackmd/ryQciPA-Zg.png)
+
+#### Deadlock
+
+**Resource Order**
+- 上各種 lock 都可能會發生 deadlock
+- 解決方法是對 resource 排 order
+    || A | B | C | D |
+    |---| -------- | -------- | -------- | ---|
+    |$T_1$|   ✔️   |   ✔️   |      | |
+    |$T_2$|      |   ✔️   |   ✔️   | |
+    |$T_3$|      |      |      | ✔️ |
+    - 比如說在這個情況下我可以排 order 是要拿 B 必須先拿 A
+    - $T_2$ 要拿 **B** 必須先拿 **A** lock 這樣 $T_1$,$T_2$ 就不會 cycle deadlock
+- 如果上的 lock granular 好管理，但並不平行化
+
+<Aside type="caution" title="Unlock order">
+我們應該用 reverse order 去 unlock 所有的 lock，如果 A, B thread 有 dependend 關係，就會出現問題。
+</Aside>
+
+**`pthread_mutex_trylock()`**
+- 也可用 `pthread_mutex_trylock()` non-blocking mode
+
+### ReaderWriter Locks
+- 照理來說 read lock 可以 share 但 mutex 是全部鎖死
+
+**`int pthread_rwlock_init(pthread_rwlock_t *restrict rwlock, const pthread_rwlockattr_t *restrict attr)`**
+**`int pthread_rwlock_destroy(pthread_rwlock_t *rwlock)`**
+- 跟 mutex 一樣需要 destroy 因為會動到 heap
+
+**`int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)`**
+**`int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock)`**
+**`int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)`**
+**`int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock)`**
+**`int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock)`**
+
+#### Thread Pool
+- A master thread: 負責排工作，給 ID，把工作分配好後排進 link list
+- A pool of worker threads: 真正做事的 thread，定期去 link list 上看一下有沒有自己的工作，然後改一下 list，自己去做事
+![截圖 2025-12-04 上午10.21.50](/images/hackmd/r1YHxORbbx.png)
+
+```c
+void
+job_append(struct queue *qp, struct job *jp)
+{
+    pthread_rwlock_wrlock(&qp->q_lock);
+    jp->j_next = NULL;
+    jp->j_prev = qp->q_tail;
+    if (qp->q_tail != NULL)
+        qp->q_tail->j_next = jp;
+    else
+        qp->q_head = jp;    /* list was empty */
+    qp->q_tail = jp;
+    pthread_rwlock_unlock(&qp->q_lock);
+}
+```
+
+```c
+struct job *
+job_find(struct queue *qp, pthread_t id)
+{
+    struct job *jp;
+
+    if (pthread_rwlock_rdlock(&qp->q_lock) != 0)
+        return(NULL);
+
+    for (jp = qp->q_head; jp != NULL; jp = jp->j_next)
+        if (pthread_equal(jp->j_id, id))
+            break;
+
+    pthread_rwlock_unlock(&qp->q_lock);
+    return(jp);
+}
+```
+- 有可能有 busy waiting
+
+### Condition Variable
+
+**`int pthread_cond_init(pthread_cond_t *restrict cond, pthread_condattr_t *restrict attr)`**
+**`int pthread_cond_destroy(pthread_cond_t *cond)`**
+- 一定會帶優個 mutex 的 lock
+- 會有兩個 operation
+    - wait
+    - signal: 發送告訴 thread 你有事了（並非 ch7 的 signal）
+
+**`int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex);`**
+- 先拿到 mutex lock
+- Check condition，看看是否為 true
+- 不是的話 Wait until a condition become true.
+    - Sleep until signaled
+    - Release the mutex just before sleep
+    - **直到這裡都會是 atomic operation**
+    - 醒過來前要拿到 mutex 的 lock 不然要繼續回去睡
+- 因此有兩種情形，有可能 signal 沒來的睡，跟 signal 來了的睡
+
+<Aside type="tip" title="Example 1">
+1. 第一個 thread 拿來鎖住 condition `x == y`
+```c
+pthread_mutex_lock(&m);
+while (x != y)
+    pthread_cond_wait(&v, &m);
+// do something here if necessary
+pthread_mutex_unlock(&m);
+```
+- 這裡的 mutex 是用來保護 condition 的
+2. 第二個 thread 去改動值
+```c
+pthread_mutex_lock(&m);
+x++;
+pthread_mutex_unlock(&m);
+pthread_cond_signal(&v);
+```
+- 最後要通知原始 thread 改好了
+</Aside>
+
+
+<Aside type="tip" title="Example 2">
+```c
+struct msg {
+    struct msg *m_next;
+    /* ... more stuff here ... */
+};
+struct msg *workq;
+pthread_cond_t qready = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t qlock = PTHREAD_MUTEX_INITIALIZER;
+
+void
+process_msg(void)
+{
+    struct msg *mp;
+
+    for (;;) {
+        pthread_mutex_lock(&qlock);
+        while (workq == NULL)
+            pthread_cond_wait(&qready, &qlock);
+        mp = workq;
+        workq = mp->m_next;
+        pthread_mutex_unlock(&qlock);
+        /* now process the message mp */
+    }
+}
+
+void
+enqueue_msg(struct msg *mp)
+{
+    pthread_mutex_lock(&qlock);
+    mp->m_next = workq;
+    workq = mp;
+    pthread_mutex_unlock(&qlock);
+    pthread_cond_signal(&qready);
+}
+```
+- 防止 busy waiting 發生
+- 有兩種 suspend 情況 
+    1. `pthread_cond_wait(&qready, &qlock)` sleep 的等待 
+    2. `pthread_mutex_lock(&qlock)` lock 住的等待
+</Aside>
+
+**`int pthread_cond_signal(pthread_cond_t *cond)`**
+- 多個人等的話，讓 system 去選一個人去叫醒
+
+**`int pthread_cond_broadcast(pthread_cond_t *cond)`**
+- 直接把所有 wait 的人全都叫醒
+
+```c
+int done = 0;
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t c = PTHREAD_COND_INITIALIZER;
+void *spawned(void *arg) {
+    // spawned thread goes first
+    pthread_mutex_lock(&m);
+    done = 1;
+    pthread_cond_signal(&c);
+    pthread_mutex_unlock(&m);
+    return NULL;
+}
+int main(int argc, char *argv[]) {
+    pthread_t p;
+    pthread_create(&p, NULL, spawned, NULL);
+    pthread_mutex_lock(&m);
+    while (done == 0)
+        pthread_cond_wait(&c, &m);
+    pthread_mutex_unlock(&m);
+    // main thread continues
+}
+```
+- 對 main thread：要確認 condition 所以要上 mutex
+- 發現 false 所以要進去等
+- 等到 spawned thread 說 `done = 1`
+- main thread 回來發現自己還沒拿到 mutex
+- 會去跑 spawned thread unlock mutex
+- 最後 main 才會跑
+
+<Aside type="note" title="">
+比較常先看到 signal 才去 unlock
+- signal 會叫醒 main
+- unlock 也會叫醒
+- system 會去選最高 priority 的 thread 去 own lock
+
+以 ex.2 為例子
+1. 假設高 priority 的 A thread 做完事情，看到 job queue 為空，所以開始等，在等待期間有 job 進來，但 B thread 先 unlock 正要去要求下一輪的 lock，master thread 會拿到 lock 去放 job 進去，所以 B thread 會等在 `pthread_mutex_lock(&qlock);` A 則會等在 `pthread_cond_wait(&qready, &qlock);` 此時，本來應該先讓 A 去拿工作，但因為我們先 unlock 而不做 signal，會導致只有 B 是醒著的，也就是說 B 會拿到工作，而 A 被叫醒又會發現沒工作回去 sleep
+2. 若是先呼叫 signal，A 的狀態就會從 sleep suspend 變成 lock suspend 就可以跟 B 一樣，此時 master 呼叫 unlock 就可以讓所有人一起搶 lock，system 就可以根據 priority 來做分配
+</Aside>
+
+<Aside type="caution" title="Remove `done`">
+可能在 lock 之前就先跑 spawned thead 了，done 被 remove 就可以 bypass 調那個 wait 的狀態，發生 race condition
+</Aside>
+
+<Aside type="caution" title="Remove mutex">
+可能會讓有 context switch 發生在 `done == 0` check 跟你真正 wait 時間不一樣，沒有 mutex 保護就會產生 infinite loop
+</Aside>
+
+## Thread and fork()
+
+**如果只是一個 process 擁有很多個 thread，`fork()` 出來的 process 只會有一個 thread，就是呼叫 `fork()` 的那個**
+- Child 會繼承 Parent 的 virtual memory
+- 假設有一個 B thread own 一個 mutex lock，parent 不會出事，B thread 會在結束的時候 unlock
+- 但是若 A thread 在 unlock 前 `fork()`，那 child 會看到一個被 lock 住的 process，並且沒有任何一個 thread 知道要把 lock 放掉，產生 deadlock
+
+**Sloution**:
+- call `exec()` in child（替換掉所有環境變數）
+- 先呼叫一個 fork handler
+
+<Aside type="note" title="繼承 lock">
+- memeory lock 可以繼承
+- file lock 不能繼承
+</Aside>
+
+**`int pthread_atfork(void (*prepare)(void), void (*parent)(void), void (*child)(void))`**
+- 只是註冊 function
+- 可以多次註冊，執行順序：
+    - `prepare`: reverse order
+    - `parent`, `child`: correct order
+- 在呼叫 `fork()` 後
+    - 先幫你 call `prpare` function 通常把 parent 的 lock 全部上上去
+    - 生 child process
+    - parent return 前 call `parent` function
+    - child return 前 call `child` function，通常把所有 lock 都 unlock
+
+
+<Aside type="tip" title="Example">
+```c
+pthread_mutex_t lock1 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lock2 = PTHREAD_MUTEX_INITIALIZER;
+
+void
+prepare(void)
+{
+    printf("preparing locks...\n");
+    pthread_mutex_lock(&lock1);
+    pthread_mutex_lock(&lock2);
+}
+void
+parent(void)
+{
+    printf("parent unlocking locks...\n");
+    pthread_mutex_unlock(&lock1);
+    pthread_mutex_unlock(&lock2);
+}
+
+void
+child(void)
+{
+    printf("child unlocking locks...\n");
+    pthread_mutex_unlock(&lock1);
+    pthread_mutex_unlock(&lock2);
+}
+```
+
+```c
+void *
+thr_fn(void *arg)
+{
+    printf("thread started...\n");
+    pause();
+    return(0);
+}
+
+int
+main(void)
+{
+    int         err;
+    pid_t       pid;
+    pthread_t   tid;
+
+#if defined(BSD) || defined(MACOS)
+    printf("pthread_atfork is unsupported\n");
+#else
+    if ((err = pthread_atfork(prepare, parent, child)) != 0)
+        err_exit(err, "can't install fork handlers");
+    err = pthread_create(&tid, NULL, thr_fn, 0);
+    if (err != 0)
+        err_exit(err, "can't create thread");
+    sleep(2);
+    printf("parent about to fork...\n");
+    if ((pid = fork()) < 0)
+        err_quit("fork failed");
+    else if (pid == 0) /* child */
+        printf("child returned from fork\n");
+    else        /* parent */
+        printf("parent returned from fork\n");
+#endif
+    exit(0);
+}
+```
+</Aside>
+
+## Thread and Signals
+
+每個 thread 也可以有自己的 signal mask
+- signal disposition 是 process share 的
+- 如果動到了 process level 的 signal 所有 thread 都會受影響
+- 可能可以把一個 thread unblock 其他全都 block，這樣就會在這個 thread deliver
+
+### Synchronous & Asynchronous
+
+| How the signal was generated | What generated the signal | Effective target of the signal | How the signal-processing thread is selected |
+| :--- | :--- | :--- | :--- |
+| Synchronously | The system, because of an exception | A specific thread | Always the offended thread |
+| Synchronously | An internal thread using `pthread_kill` | A specific thread | Always the targeted thread |
+| Asynchronously | An external process using `kill` | The process as a whole | Per-thread signal masks of all threads in the process |
+
+- 有些 Sychronous 的 signal 擁有非常明顯的 target 可以直接送往
+- 但 Asychronous 的 signal 我們必須檢查 per-thread 的 signal mask 去看誰 unblock
+
+### Dedicate signal handling threads
+
+- 某些 thread 專門用來執行 signal handler
+- 利用 signal mask 來指定那個 thread 要 handle 哪些 signal
+- 通常會設計成一個 loop，一次執行一個 signal，同一個 handler 可以 handle 多個 signal
+
+### Inherent of signal mask
+- 一個新生的 child process 的第一個 thread 的 signal mask 會繼承 parent process 中 call `fork()` 的 thread 的 signal mask
+- 若 A thread 要 create B thread，B 會 inherit A create 他的時間點的那個 signal mask
+
+**`int pthread_sigmask(int how, const sigset_t *restrict set, sigset_t *restrict oset)`**
+- 用這個 system call 去做 `sigpromask()` 的動作
+
+**`int sigwait(const sigset_t *restrict set, int *restrict signop)`**
+- 跟 `sigsuspend()` 一樣，製作出 critical region
+- 雖然一樣，但是裡面的參數，你要等誰你就要在 `set` 裡放誰，signal 來的時候我們就把它 unblock
+- 這個 function 被 return 就代表 signal 被 deliver 了
+
+### Sychronous handling signal
+- Signal 在 process 處理的時候是 asychronous，因為你不知道他何時來，有可能產生 re-entrance function 等一系列問題
+- 在 thread 的情況，有很多 dedicate signal handling，先天就是平行的 model，本來就會保護，沒有在任意地方被中斷的問題，所以可以 sychronous 的處理，自己會獨立出去執行一個 thread
+- 如果同時註冊了 process handler 跟 thread handler，system 會根據自己的 implementation 去做選擇（不建議這樣寫）
+
+
+```c
+pthread_t stats_thread;
+pthread_mutex_t stats_lock = PTHREAD_MUTEX_INITIALIZER;
+extern int
+main(void)
+{
+    ...
+    sigset_t sigs_to_block;
+    ...
+    /* Set main thread's signal mask to block SIGUSR1.
+       All other threads will inherit mask and have it blocked too
+    */
+    sigemptyset(&sigs_to_block);
+    sigaddset(&sigs_to_block, SIGUSR1);
+    // block first in here
+    pthread_sigmask(SIG_BLOCK, &sigs_to_block, NULL);
+    ...
+    pthread_create(&stats_thread, NULL, report_stats, NULL);
+    ...
+}
+```
+```c
+void * report_stats(void *p)
+{
+    sigset_t sigs_to_catch;
+    int caught;
+    sigemptyset(&sigs_to_catch);
+    sigaddset(&sigs_to_catch, SIGUSR1);
+    for (;;) {
+        sigwait(&sigs_to_catch, &caught);
+        /* Proceed to lock mutex and display statistics */
+        pthread_mutex_lock(&stats_lock);
+        display_stats();
+        pthread_mutex_unlock(&stats_lock);
+    }
+    return NULL;
+}
+```
+- 上面那個區間，也就是 `thread_create()` 到 `sigwait()` 之間要做成 critical region，不然 signal 來的話會 get lost，並且 block 的動作要在 create 以前就先做了，不然會有 race condition
+- 在 `sigwait()` unblock 完畢又 block 住後，會把直到下一次 `sigwait()` unblock 前，又會形成下一次的 critical region
+
+## Thread-safe / Atomic IO
+- 在 thread 裡面，所有 file descriptor 跟 file stream 都是 share entry 的，所以必須要是 atomic operation 不然 offset 會跑掉
+- `pread()`/`pwrite()` 用這兩個 system call 來做改動
+
+**`ssize_t pread(int filedes, void *buf, size_t
+nbytes, off_t offset);`**
+**`ssize_t pwrite(int filedes, const void *buf,
+size_t nbytes, off_t offset);`**
+- 讀寫完畢並不會改變 open fd table 裡面的 current file `offset` (`lseek()` 的值)
+
+### Thread safe
+有些 function 在 thread 裡面呼叫是被禁止的
+
+- **Async-signal safe**: 在傳統的 signal handler 裡面做 reentrant 是沒問題的 system call 或是 function call
+- **Thread-safe**: 可以同時被很多 thread 呼叫，multiple threads reentrant
+- 用 `_POSIX_THREAD_SAFE_FUNCTIONS`, `_SC_THREAD_SAFE_FUNCTIONS` 去 check
+- 一個 function thread safe 不一定 Async-signal safe，但在大部分情況下（不惡搞）Async-signal safe implies 
+- 以下這些 function 並不保證是 thread-safe（但其實也可以找到 thread safe 的版本）
+
+![截圖 2025-12-08 中午12.27.11](/images/hackmd/r19jXAmf-x.png)
+
+<Aside type="note" title="">
+![截圖 2025-12-08 中午12.29.12](/images/hackmd/ByNQERmz-x.png)
+- 在 `malloc()` 前後都先做 lock 就可以保證 thread-safe
+- 但如果在進去後，signal handler 重新要 reentrence 就會 double lock 會產生 deadlock
+</Aside>
+
+### Thread-Safe FILE Objects
+
+**`void flockfile(FILE *fp)`**
+**`int ftrylockfile(FILE *fp)`**
+**`void funlockfile(FILE *fp)`**
+- call `flockfile()` 就會用 block mode 做 lock
+- `ftrylockfile()` 是 non-block mode
+- 最後要`funlockfile()` 做 unlock
+- 是一個 recussive lock（lock again without deadlocking）
+- 所有 Standard I/O 都會隱性幫你做 lock，雖然安全，但有時候做一些小的 I/O 會有效率問題（lock 上的太頻繁 granularity）
+    - 可以用 Unlocked version 的 character-based buffer I/O 做一次的 lock，兼具效率跟安全
+    - 用 `getchar_unlocked()`, `getc_unlocked()` 做最後的 unlock
+
+<Aside type="caution" title="">
+pthread Liibrary 是外部的 library 不是 default，在 compile gcc 的時候要另外做 link 的動作
 </Aside>
 
 ---
