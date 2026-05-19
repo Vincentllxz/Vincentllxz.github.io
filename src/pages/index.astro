@@ -24,6 +24,30 @@ const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 const noteSeries = ((await getBlogCollection('notes')) as CollectionEntry<'notes'>[])
   .filter((note) => !note.id.includes('/'))
   .sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf())
+
+// JSON-LD: identify the site + author as schema.org entities (knowledge-graph).
+const siteHref = Astro.site?.href ?? 'https://vinsong.csie.org/'
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': siteHref + '#website',
+      url: siteHref,
+      name: config.title,
+      description: config.description,
+      inLanguage: config.locale.lang,
+      publisher: { '@id': siteHref + '#person' }
+    },
+    {
+      '@type': 'Person',
+      '@id': siteHref + '#person',
+      name: config.author,
+      url: siteHref,
+      sameAs: ['https://github.com/Vincentllxz', 'https://www.instagram.com/vincent_hu313_/']
+    }
+  ]
+}
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#5BBCD6'>
@@ -39,6 +63,10 @@ const noteSeries = ((await getBlogCollection('notes')) as CollectionEntry<'notes
   <link
     rel='stylesheet'
     href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'
+  />
+  <script
+    type='application/ld+json'
+    set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')}
   />
 
   <main class='home-main flex w-full flex-col items-center'>
