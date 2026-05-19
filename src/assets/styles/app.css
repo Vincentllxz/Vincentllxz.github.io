@@ -244,3 +244,18 @@ html.reveal-on [data-reveal] > *:nth-child(4) {
     transition: none;
   }
 }
+
+/* === Mermaid diagrams + pseudocode algorithm blocks (rendered client-side by RichBlocks.astro) === */
+.mermaid-diagram {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+.pseudocode-figure {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}

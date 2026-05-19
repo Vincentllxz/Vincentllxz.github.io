@@ -1,0 +1,155 @@
+---
+title: "NTU-CN 計算機網路 Ch5 Network Layer Control Plane"
+description: "NTU Computer Networking 計算機網路:Ch5 Network Layer Control Plane"
+publishDate: "2025-11-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CN"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Network Layer: Control Plane
+
+ 如何系統系的去管理網路，Control Plane 的設計概念，這章節講的就是所謂的 Routing 的動作，大致分為
+ - distributed per router
+ - SDN center control
+
+![截圖 2025-12-11 下午3.34.56](/images/hackmd/S1q7Nguz-l.png)
+
+
+## Routing protocols
+
+通常可能有 cost, path, congestion 為指標來做判斷，在 P2P 的問題上課能會抽象化成一個 Graph shotest distance 的問題
+
+可能會有以下幾個可以選擇的效果
+- **Global**: 要知道所有的 router topology 資料
+    - **Link State** algorithm
+- **Decentralized**: 只需要知道跟自己 physical connected 的 router 資料
+    - **Distance Vector** algorithm
+- **Static**: 不太變動
+- **Dynamic**: 隨時根據情況變動，週期性的改動
+
+### Link State Algorithm (Dijkstra)
+
+**Notation**
+- `c(x, y)`: cost of walking directly from `x` to `y`
+- `D(v)`: the least cost    from some source to `v`
+- `p(v)`: the predecessor of the path to `v` with distance `D(v)`
+- `N'`: the set of node that `D(v)` has been decided
+
+**Algorithm**
+```pseudocode
+\begin{algorithm}
+\caption{Dijkstra's Algorithm}
+\begin{algorithmic}
+\STATE \textbf{Initialization:}
+\STATE $N' = \{u\}$ \COMMENT{compute least cost path from u to all other nodes}
+\FOR{all nodes $v$}
+    \IF{$v$ adjacent to $u$} \COMMENT{u initially knows direct-path-cost only to direct neighbors}
+        \STATE $D(v) = c_{u,v}$ \COMMENT{but may not be minimum cost!}
+    \ELSE
+        \STATE $D(v) = \infty$
+    \ENDIF
+\ENDFOR
+\STATE
+\REPEAT
+    \STATE find $w$ not in $N'$ such that $D(w)$ is a minimum
+    \STATE add $w$ to $N'$
+    \FOR{all $v$ adjacent to $w$ and not in $N'$}
+        \STATE $D(v) = \min( D(v), D(w) + c_{w,v} )$
+    \ENDFOR
+    \STATE \COMMENT{new least-path-cost to v is either old least-cost-path to v or known least-cost-path to w plus direct-cost from w to v}
+\UNTIL{all nodes in $N'$}
+\end{algorithmic}
+\end{algorithm}
+```
+
+- 這個演算法 total time complexity 在良好的 implementation 下會是 $O(n \log n)$
+
+**Oscillations possible**：在注意到這裡的所有 link cost 如果都是考慮 congestion 的部分，代表這裡的 link cost 其實有時候是 dynamic 的，可能會導致出現兩條路線都覺得 A path 比較好，那 A path 反而會出現 congestion，會產生震盪
+
+![截圖 2025-12-11 下午4.15.08](/images/hackmd/rywqagOf-g.png)
+
+- 這個問題可以用中央統一的 controller 其實就可以做 load balancing
+
+### Distance vector algorithm (Bellman-Ford)
+根據 Dynamic programming 的方法去實作
+$$
+    D_x(y) = \min_v \{ c(x,v) + D_v(y) \}
+$$  
+- $D_x(y) :=$ 從 x 走到 y 的最小 cost
+- 在所有 x 的 neighbor v 加上 $D_v(y)$ 找到那個最小的值填進去
+
+#### Diffusion Information
+![截圖 2025-12-11 下午4.42.34](/images/hackmd/HysZVWdG-x.png)
+
+每個 router 都要跟其他人做 distance vector 做交換，如果網路狀況穩定，那就會收斂到最佳解，但如我是不停變動，那就會需要一段時間才能慢慢交換完成，需要擴散的時間
+$$
+    D_x(y) \to d_x(y)
+$$
+
+每個 node 都會
+1. **wait** for the 
+    - change of local cost
+    - msg from other router
+2. **recompute**
+3. **notify** the neighbor
+4. back to 1.
+
+<Aside type="caution" title="">
+每個 router 其實不知道自己是怎麼被送過來的，只知道是從哪來，要往哪裡去，所有資訊都是用 diffusion 的方式傳輸的
+</Aside>
+
+#### link cost exchange
+![截圖 2025-12-11 下午4.44.47](/images/hackmd/SylKYE-dGbe.png)
+
+以這個圖為例子，我們只需要兩輪次就可以更新完成
+1. $t_0$: $y$ detects link-cost change, update DV 然後通知他的 neighbor 
+2. $t_1$: $z$ 收到更改，update DV，重新計算 $x z$ 的最小 cost 然後送給 $x$
+3. $t_2$: $y$ receives $z$’s update, updates its DV，發現沒有更動，停止這次的發送
+
+$t_2$ 這個步驟其實最主要是想確認一下別的 router 還活著
+
+![截圖 2025-12-11 下午4.50.05](/images/hackmd/Skd6SWOf-x.png)
+
+但是以這個圖為例子，我們總共需要 44 個 iteration 才能夠真正更新成一個 stable 的狀態，因為在還沒更新的時候，其實 y 根據 z 給的 DV 會覺得 x to y 可以透過 z 因為 z 覺得自己到 x 的 distance 是 (4+1)，因為根本還沒更新到 z
+$$
+(4+1) + 1 < 60
+$$
+因為 z to x 是 $(4+1)$、y to z 是 $1$，更新完 DV (y to x 變成 6）通知他的 neighbor，接下來 $z$ 拿到訊息，發現根據 DV z to x 最小可以是 z to y to x
+$$
+1+(5 + 1)
+$$
+持續這樣的過程，$y$, $z$ 分別更新每次都 + 1 直到最後變成 stable 狀態是 51 才是正確的 DV，直到 z 發現 $$(51+1) + 1 > 50 + 1$$ 才會停下來。
+
+<Aside type="note" title="">
+這樣的 packet TTL 可能會監測到出現了 loop 會直接被丟掉或是 routing 捨棄，$O(n|E|)$ msg complexity 會變得很差 
+</Aside>
+
+## Intra-ISP Routing: OSPF
+
+通常在一個真實的場景中，所有 router 的數量是 scale（極大）的，因此我們必須要採用其他的 Protocol 而非純粹計算 DV 或是 link-state
+
+我們因此把同一個 ISP 或是同個 location 的 router 聚集起來稱為一個 **"Autonomous Systems (AS)"** 也就是俗稱的 **domain**，在這樣的前提下，我們把 protocol 分成兩種
+
+- **Intra-AS** (domain): 在同一個 AS 中，決定 routing 的 protocol
+- **Inter-AS** (domain): 在 AS 之間，決定 routing 的 protocol
+
+---
+
+<Card
+  as='a'
+  href='/notes/cn'
+  heading='Back to the content'
+  subheading='NTU Computer Networking'
+  date='2025 Fall'
+>
+  ← Back to the content
+</Card>
+
+---

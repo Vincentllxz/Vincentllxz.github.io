@@ -1,0 +1,92 @@
+---
+// Client-side rendering for `mermaid` diagrams and `algorithm` pseudocode blocks.
+// Both libraries load from a CDN only when such a block exists on the page, and
+// every render is wrapped in try/catch — on any failure the original code block
+// stays, so the page never breaks.
+---
+
+<script is:inline>
+  ;(() => {
+    const sourceOf = (el) =>
+      Array.from(el.querySelectorAll('.line'))
+        .map((l) => l.textContent)
+        .join('\n')
+
+    const loadScript = (src) =>
+      new Promise((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = src
+        s.onload = resolve
+        s.onerror = reject
+        document.head.appendChild(s)
+      })
+
+    const loadCss = (href) => {
+      const l = document.createElement('link')
+      l.rel = 'stylesheet'
+      l.href = href
+      document.head.appendChild(l)
+    }
+
+    async function renderMermaid() {
+      const blocks = document.querySelectorAll('[data-language="mermaid"]')
+      if (!blocks.length) return
+      try {
+        const { default: mermaid } = await import(
+          'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+        )
+        const dark = document.documentElement.classList.contains('dark')
+        mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' })
+        let i = 0
+        for (const block of blocks) {
+          const src = sourceOf(block).trim()
+          if (!src) continue
+          try {
+            const { svg } = await mermaid.render('mermaid-' + i++, src)
+            const fig = document.createElement('figure')
+            fig.className = 'mermaid-diagram'
+            fig.innerHTML = svg
+            block.replaceWith(fig)
+          } catch (e) {
+            console.error('[mermaid] render failed', e)
+          }
+        }
+      } catch (e) {
+        console.error('[mermaid] load failed', e)
+      }
+    }
+
+    async function renderPseudocode() {
+      const blocks = Array.from(document.querySelectorAll('.astro-code')).filter((el) =>
+        sourceOf(el).trim().startsWith('\\begin{algorithm}')
+      )
+      if (!blocks.length) return
+      try {
+        loadCss('https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css')
+        if (!window.katex)
+          await loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js')
+        await loadScript('https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js')
+        for (const block of blocks) {
+          try {
+            const html = window.pseudocode.renderToString(sourceOf(block), { lineNumber: true })
+            const fig = document.createElement('figure')
+            fig.className = 'pseudocode-figure'
+            fig.innerHTML = html
+            block.replaceWith(fig)
+          } catch (e) {
+            console.error('[pseudocode] render failed', e)
+          }
+        }
+      } catch (e) {
+        console.error('[pseudocode] load failed', e)
+      }
+    }
+
+    const run = () => {
+      renderMermaid()
+      renderPseudocode()
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run)
+    else run()
+  })()
+</script>

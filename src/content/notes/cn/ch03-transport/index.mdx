@@ -1,0 +1,521 @@
+---
+title: "NTU-CN 計算機網路 Ch3 Transport Layer"
+description: "NTU Computer Networking 計算機網路:Ch3 Transport Layer"
+publishDate: "2025-10-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CN"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Transport Layer
+## Transport Layer Service
+**Process 之間的 Communication** (Host 之間 communication 是 network layer 的工作)
+- Multiplexing & Demultiplexing
+- Reliable transfer
+- Flow control
+- Congestion control
+- **UDP** or **TCP**
+
+### Transport Layer action
+- **Sender**: 把 Application Layer message 封裝，加上 Transport layer header，往下送到 IP
+![截圖 2025-10-22 上午10.07.10](/images/hackmd/BkoL23B0eg.png)
+- **Receiver**: Check header value，然後 Demultiplex message 到正確的 process
+![截圖 2025-10-22 上午10.10.26](/images/hackmd/HkkmTnr0xx.png)
+- **TCP**: Transmission Control Protocol
+- **UDP**: User Datagram Protocol
+- 不提供 Delay guarantee, Bandwidth guarantee
+
+## Multiplexing & Demultiplexing
+- 一台主機可能要接收很多 request，為了分別他們，將 response send 到正確的 client process 上，我們的可以使用 Multiplexing & Demultiplexing
+- **Multiplexing**: 加上 header 幫助辨認傳送的地方
+![截圖 2025-10-22 上午11.21.03](/images/hackmd/Hkho6prAgg.png)
+- **demultiplexing**: 解讀 header 傳送到正確的 socket
+![截圖 2025-10-22 上午11.21.24](/images/hackmd/Hy166aBCxl.png)
+
+
+### Multiplexing & Demultiplexing for UDP
+- header 的架構必須有這些東西
+![截圖 2025-10-22 上午11.23.24](/images/hackmd/SyzFRaHRxl.png =50%x)
+
+<Aside type="caution" title="">
+UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因此不同 source 的 data 會被送到同一個 socket 裡面
+</Aside>
+
+- 機制如下
+    - Request 跟 Response 只需要交換 Source port, Destination port 就好了
+![截圖 2025-10-22 上午11.27.53](/images/hackmd/BkBry0H0xx.png)
+
+### Multiplexing & Demultiplexing for TCP
+- 稱為 Connection-oriented demultiplexing
+- 用一個 4-tuple 紀錄 demultiplexing 資訊
+    - Source IP address
+    - Source port number
+    - Destination IP address
+    - Destination port number
+- 即便是同一個 port 還是會被開到不同的 socket 裡面
+- 一樣交換兩端資訊即可送回
+![截圖 2025-10-22 上午11.36.26](/images/hackmd/S1IHbABCxx.png)
+
+## UDP (User Datagrams Protocol)
+- Connectionless 不需要 handshake
+
+<Aside type="note" title="Why UDP">
+- No Congestion control (UDP 送出就幾乎等於送達)
+- Small header size
+- No connection (不需要 RTT)
+</Aside>
+
+### Use of UDP
+發現其實 Reliable transfer 不一定要建立在 Transport Layer 也可以放在 Application Layer
+- DNS
+- HTTP/3
+- streaming multimedia (loss tolerent)
+- SNMP
+ 
+<Aside type="tip" title="Example">
+![截圖 2025-10-22 上午11.50.42](/images/hackmd/B1ZiNASCee.png)
+   ![截圖 2025-10-22 上午11.50.26](/images/hackmd/SykqECrAgl.png)
+</Aside>
+
+
+### UDP structure
+- Source port, Dest. port
+- Length: include header
+- **Checksum**
+![截圖 2025-10-22 上午11.51.39](/images/hackmd/rydCVASAxg.png =50%x)
+
+### UDP Check Sum
+- 檢查錯誤：像是 flipped bits，加起來不一樣就知道有 error
+- Sender 會  把 `header + message` 變成一串 16-bits 的 integer
+    - 用 one's complement 計算 Checksum
+- Receiver 要計算 Checksum 看看是否有相悖。 
+    - 不一樣：必定 error
+    - 一樣：還是可能有錯
+
+<Aside type="note" title="One's complement">
+- 加起來後把第一位 wraparound 加到尾巴，在算一次
+- 做 complement 
+![截圖 2025-10-22 上午11.57.55](/images/hackmd/SyyLUCrCgl.png)
+</Aside>
+
+<Aside type="caution" title="Checksum is a WEAK PROTECTION">
+- 在這個例子裡 Checksum 沒變但裡面被 flip 了
+![截圖 2025-10-22 上午11.59.57](/images/hackmd/B12a8RHRgg.png)
+</Aside>
+
+## Reliable Data Transfer (RDT)
+我們想像中是左圖，但實際上是右邊，並沒有真正的 reliable channel  
+![截圖 2025-10-22 中午12.13.14](/images/hackmd/S1BkcRr0xg.png)
+- 要考慮非常複雜的狀況，要站在另外一端的角度思考會發生什麼事情
+    - 要設計出一對這樣的 protocol 而且要可以雙向溝通
+- 實際上的 interface 其實長這樣
+![截圖 2025-10-22 中午12.18.22](/images/hackmd/BkvEsASCgx.png)
+- 我們後面都用這種形式來表示狀態轉移
+![截圖 2025-10-22 中午12.21.29](/images/hackmd/S1VRoCBAel.png)
+
+### rdt 1.0: Reliable transfer with Reliable channel
+- No bits error
+- No loss packet. 
+- **Sender** 只要寄出，就回到原始狀態
+- **Receiver** 只要接收後讀取，就回到原始狀態
+![截圖 2025-10-22 中午12.29.16](/images/hackmd/SJOipCBAex.png)
+
+### rdt 2.0: Channel with bits error
+- Maybe flipped bits
+- To recover error 我們引入
+    - Acknowledgements(**ACKs**): 告訴 sender packet 可以
+    - Negative Acknowledgements(**NAKs**): 告訴 sender packet 不過
+    - Sender 收到 NAKs 後 retransmit
+- 上述過程可以畫成這個 FSM 
+![截圖 2025-10-22 中午12.35.41](/images/hackmd/HkhXyJ80lx.png)
+ 
+### rdt 2.1: Handling Garble ACKs/NAKs
+- 如果 Receiver 送出的 ACKs/NAKs 是亂碼，那 Sender 就必須重複送一次資料我們稱為 duplicate
+- 但 Receiver 並不知道自己寄出的是亂碼，所以需要讓 Sender 做一些事情讓 Receiver 知道這個 packet 是不是 duplicated 的
+- 此時 Sender 必須 handle 一份 sequence of number 來讓對方知道這是不是 duplicated 的
+- **Sender**:
+    - 在送出 packet 後，跟前者一樣，但當 `corrupt()` 時要在原地等待
+    - 在 `make_pkt()` 的時候要送 sequence 進去（0, 1）
+![截圖 2025-10-22 中午12.41.08](/images/hackmd/HygOekU0xe.png)
+- **Receiver**:
+    - 當收到並非自己 sequence number 的時候，也要在原地等待，並且送出 `ACKs` 的資訊
+    - 要檢查是否是自己的 sequence number
+![截圖 2025-10-22 中午12.41.36](/images/hackmd/r1nFe18Ceg.png)
+
+### rdt 2.2: Free NAKs Protocol
+- 其實 `NAK` 可以用 `udt_send()` 非自己 sequence number 來取代
+- 可以簡化 FSM 成
+![截圖 2025-10-22 下午1.01.33](/images/hackmd/HkdVSk8Axe.png)
+
+### rdt 3.0 channels with errors and loss
+- 需要 resend 丟失的 packet
+- pkt 可能會 delay (不是 lost)
+    - retransmission 可能會導致 duplicate packet 但是 sequence number 就可以 handle 了
+- 要有 timeout checker 來檢查是否超過時間，超過則重新發送 pkt
+   ![截圖 2025-11-12 凌晨1.58.29](/images/hackmd/Sy-UteWg-e.png)
+   - `star_timer` 於發送 pkt 開始計算
+   - `stop_timer` 於 `is_ACK()` 發送 
+
+#### Action of rdt 3.0
+![截圖 2025-11-12 下午3.51.09](/images/hackmd/HyDPa3-lbl.png)
+![截圖 2025-11-12 下午3.51.23](/images/hackmd/rkHD62-g-g.png)
+- **Case (a)**: No loss
+- **Case (b)**: `pkt` loss 
+    - 根據 FSM， `timeout` 後才會 resend pkt
+- **Case \(c)**: `ACK` loss
+    - 根據 FSM， `timeout` 後才會 resend pkt
+    - detect 到 duplicate 情況，就只發送 `ACK` 不發送 data 
+- **Case (d)**: premature `timeout`
+    - 若 `timeout` 太短，但其實 `ACK` 有正常發送
+    - 在 FSM 中會被直接 ignore (Wait for `ACK` 1 state 的 loop)
+
+### Performance of rdt 3.0
+- 我們用 $U_{\text{sender}}$ 來衡量 (utilization, fraction of time sender busy sending)
+- **rdt 3.0** 的大部分時間都在 busy waiting 因此 $U_{\text{sender}}$ 非常低。
+
+<Aside type="tip" title="Example">
+- $1$ Gbps link
+- $15$ ms prop. delay
+- $8000$ bit packet
+$$ D_{trans} = \frac{L}{R} = \frac{8000 \text{ bits}}{10^9 \ \text{bits/sec}} = 8 \text{ ms } $$
+![截圖 2025-11-12 下午5.25.46](/images/hackmd/S1Esf0bx-l.png)
+- 這張圖裡面 first, last 之間藍色片段是 $D_{trans}$，我們可以得出
+$$U_{\text{sender}} = \frac{D_{trans}}{\text{RTT} + D_{trans}} = \frac{L/R}{\text{RTT} + L/R} = \frac{.008}{30.008} = 0.00027$$
+</Aside>
+
+#### Pipeline
+- 允許一次多個 sequence number 的同時傳送
+    - 需要更多 sequence number
+    - 需要更多 buffer space
+![截圖 2025-11-12 下午5.37.32](/images/hackmd/B1KwB0ZgWe.png)
+
+<Aside type="tip" title="Example">
+![截圖 2025-11-12 下午5.54.20](/images/hackmd/rJdIKR-eZx.png)
+$$U_{\text{sender}} = \frac{3L/R}{\text{RTT} + 3L/R} = \frac{.008}{30.008} = 0.00081   $$
+- 整體數值提升 **3 倍**
+</Aside>
+
+### Go-Back-N sender/receiver (GBN)
+**Sender**
+![截圖 2025-11-12 下午6.30.15](/images/hackmd/SJV6WJGlWe.png)
+上圖是一整串 `pkt`
+- 名詞
+    - 綠：已經被 `ACK`
+    - 黃：送出但尚未 `ACK`
+    - 藍：尚未送出但可以送出了
+    - 白：無法送出（可能是為確認 or 超過 $N$ 限制）
+    - `send_base`：目前尚未 `ACK` 最老 `pkt`
+    - `window_size`：可以一次送出的最大數量
+    - `nextseqnum`：尚未送出的最老 `pkt`
+- **Cumulative `ACK`**：`ACK(n)`
+    - 運送成功就會讓 `sned_base = n+1`
+    - 不成功則看誰不成功，將 `ACK` 調整至 `fail - 1`，重新送 `fail` 起始到 `window_size` 大小
+    > [!Note]
+    > `ACK(7)` 代表 7 號以前的所有 `pkt` 都已 `ACK`
+- **Timer** 會設定在 `send_base` 上
+    - `timeout` sender 會從 send_base 直到最後的未確認封包都重 $N$ 送（`window_size` 大小），最壞情況就是重新送 $N$ 個
+    > [!Note]
+    > 假設 sender 一直收到 `ACK(7)` 即便 8, 9, 10 是好的，他也會重新運送整個 `window_size` 裡的 `pkt`
+- FSM of Sender
+    ![截圖 2025-11-12 晚上7.04.46](/images/hackmd/Syh0Yyzlbe.png)
+
+**Receiver**
+![截圖 2025-11-13 凌晨1.30.04](/images/hackmd/S1L4ESfx-e.png)
+- 需要紀錄 `recv_base`，也就是下一個要收到的 **in-order** `pkt`
+- 必須接收 in-order `pkt`，若遇到不是 `in-order` 就 discard，不停發送 `ACK(recv_base - 1)`
+
+<Aside type="tip" title="Example">
+![截圖 2025-11-12 晚上7.05.27](/images/hackmd/BJM-qJMlWg.png)
+- `pkt` 2 運送失敗，因此寄出的是 `ACK(1)`
+    - `recv_base = 2`
+- receiver 必須接收 **in-order** `pkt` 因此會丟掉 3, 4, 5
+- 若 `pkt 2 timeout` 就會重新運送 2~5
+</Aside>
+
+### Selective Repeat (SR)
+Receiver 會 individually `ACK`
+![截圖 2025-11-13 下午1.51.12](/images/hackmd/HJJ1fg7eZx.png)
+- 雙方都有 `window buffer` 機制，為了要讓最後往上傳的 `pkt` **in-order**
+- 每個 `pkt` 都要有 timer
+
+**Sender**
+- 只要 `pkt seq #` 在 window 裡面就直接 send
+- `timeout(n)`：`pkt seq n` 的 timeout 就把它重新發送
+- $ACK(n) \in [\text{send_base}, \text{send_base} + N]$：
+    - 標記 `n` 個為 receive
+    - 把 `send_base` 挪到最小的 `unACK pkt`
+
+**Receiver**
+- `pkt` $\in [\text{recv_base},\ \text{recv_base} + N -1]$：
+    - send `ACK(n)`
+    - out-of-order：要 buffer 起來
+    - in-order：deliver 給上層
+    - 把 `recv_base` 挪到
+- `pkt n` $\in [\text{recv_base} - N,\ \text{recv_base} - 1]$
+    - send `ACK(n)`
+- otherwise：ignore
+
+<Aside type="tip" title="Example">
+![截圖 2025-11-13 下午3.19.21](/images/hackmd/ry4tIWXx-x.png)
+</Aside>
+
+<Aside type="note" title="Dilemma of SR">
+![截圖 2025-11-13 下午4.22.08](/images/hackmd/SJiLHMQxWg.png)
+- 由於左右對對方而言都是黑盒子，sequence number 太小了就不行了
+</Aside>
+
+## TCP (Connection-oriented transport)
+- **point-to-point** (sender to receiver)
+- **reliable** **in-order** byte stream
+    - 沒有 `message boundary` 所有 sender send 的 data 都是連續的，所以會混再一起送
+- **pipelined**
+    - TCP congestion, flow control 可以改 `window_size`
+- **full duplex**
+    - 雙向傳輸，sender receiver 不一定只能收獲只能送
+    - 每個 `pkt` 有自己的 `MSS`: maximum segment size
+- **connection-oriented**
+    - 為了達到這件事需要做三次 handshake
+- **flow control**
+
+### TCP segment structure
+
+<Aside type="note" title="TCP segment structure">
+![截圖 2025-11-13 晚上11.48.33](/images/hackmd/HyhC6OQgWx.png)
+- 有 `seq #` 是 counting by bytes of data
+    - 每 100 個 byte 變成一個 segment，要送出去 300 個 bytes 就會出現 1~100 為 `seq 1`，101~200 為 `seq 101` 以此類推 
+</Aside>
+
+#### TCP seq \#
+- 每個 bytes 都當成 `seq #`
+- 記錄每個 segment 開始的 bytes
+- 使用 cumulative `ACK`：雙方下一個想收收的的下一個 `seq #`
+    - 若遇到 out-of-order 每個 TCP 不一定做什麼
+- sender/receiver view
+![截圖 2025-11-14 凌晨12.02.09](/images/hackmd/HJnWWFXlZg.png)
+
+<Aside type="tip" title="Example">
+![截圖 2025-11-14 凌晨12.03.52](/images/hackmd/S1zdZtQeWe.png)
+- 因為他只送了一個 byte 所以 `seq #` 一次只加了一
+</Aside>
+
+#### Timer
+- $\text{timeout} >> RTT$：premature timeout
+- $\text{timeout} << RTT$：太慢會導致 segment loss 風險大
+- 通常用 `SampleRTT` 是送出去到 $RTT$ 回來接收到 `ACK`
+    - 忽略重新傳送
+- 通常會用 average（加權平均）：**exponential weighted moving average (EWMA)**
+$$\text{EstimatedRTT} = (1-\alpha)*\text{EstimatedRTT} + \alpha \times \text{SampleRTT}$$
+    - $\alpha \approx 0.125$ 通常為最佳
+    - ![截圖 2025-11-14 凌晨12.12.41](/images/hackmd/HkNYmFme-e.png)
+    - 但我們無法直接使用 $\text{EstimatedRTT}$ 當作 timeout 不然會一直 premature
+- 要加上一個 **safety margin** 通常會跟 variation 有關（實際值, 預測值）
+$$
+\begin{align}
+&\text{TimeoutInterval} = \text{EstimatedRTT} + \underset{\text{safety margin}}{\underbrace{4 \times \text{DevRTT}}} \\
+& \text{DevRTT} = (1-\beta)\times \text{DevRTT} + \beta \times |\text{SampleRTT}-\text{EstimatedRTT}|
+\end{align}
+$$
+    - $\beta \approx 0.25$ 通常最佳
+    
+### Reliable data transfer
+- 在 unreliable 的 IP service 上建立 rdt 服務
+- **pipeline segment** + **cumulative ACK** + **single timer**
+- 若需要 retransmission 會使用 **duplicate ACK**
+
+#### Sender event
+- 把從上層解包的資料標上 `seq #`
+- Start timer 為 $\text{TimeoutInterval}$
+- **timeout**
+    - 只把最老重新的送出
+- **recv ACK**
+    - 更新 `window`
+    - 有尚未被 ack 的 `pkt` 要重新 set timer
+
+<Aside type="tip" title="Example">
+![截圖 2025-11-14 凌晨12.49.36](/images/hackmd/rJamhYXlZg.png)
+- 此處雖然 premature timeout，但對於 receiver 來說他的 `ACK` 紀錄的是他自己接收到已確認的 `seq #`
+</Aside>
+
+#### ACK generation
+
+|  Receiver event | TCP receiver action |
+| -------- | -------- |
+| receiver 接收到 **in-order** segment，所有 `seq #` 正確，已被 `ACK`| **delay** 回覆 `ACK`，最多等 500ms，看看下個 segment 是不是來了 |
+| receiver 接收到 **in-order** segment，所有 `seq #` 正確，但有一個 pending ACK | **immediately** 回覆 `ACK`，可以一次解決兩個 |
+| receiver 接收到 **out-of-order** segment，有 `seq #` 缺失 | **immediately** 回覆 **`duplicate ACK`**，表示需要接收缺失的資料 |      
+| receiver 接收到用來補 **out-of-order** gap 的。  segment | **immediately** 回覆 `ACK`，表示需要接收缺失的資料，但必須是 lower end 的 gap 才會進行動作。   |   
+
+#### fast retransmit
+- `timeout` 通常會長一點，要設計彌補機制
+- 用 **duplicate ACK** 來得知要趕快 retransmit
+- 發現出現 **triple duplicate ACK**，必定有前位 segment 沒收到，要重新發送
+![截圖 2025-11-14 凌晨1.36.48](/images/hackmd/r1qEP5XgZx.png)
+
+### TCP Flow Control
+- TCP 要把自己出裡過的 segment deliver 到 app. layer
+    - 寫進 TCP socket buffer 然後 app layer 去讀
+- 寫入 buffer 速度過快會產生資料丟失，要根據剩餘 avalible space 來決定 control
+- 有一個 `rwnd` 參數，就是剩下的 free，不設定 `RcvBuffer` 的話 default 是 4096
+![截圖 2025-11-14 凌晨1.43.49](/images/hackmd/BygJKqXxWl.png)
+
+### TCP connection managment
+- **"handshake"** 要讓兩邊的 data sync 一下
+    - initial, `rwnd`, 是否 accept, `seq #`
+![截圖 2025-11-14 凌晨1.49.31](/images/hackmd/H1LV597e-g.png)
+
+#### 3-way handshake
+
+<Aside type="caution" title="2-way 不行">
+雙方都看不到對方，現實中可以看到對方，等於是 reliable 的，但 Internet 中大家都看不到，所以會產生問題（rdt 是建立在 data 都 sync 完畢，但此處是討論連線建立）
+![截圖 2025-11-14 凌晨1.56.01](/images/hackmd/B10ns5QxWl.png)
+1. server 關閉，但又建立了連線
+2. dup data 的調整
+</Aside>
+
+
+![截圖 2025-11-14 凌晨1.57.26](/images/hackmd/BJlM29ml-e.png)
+- 可以避免 server 認為你的 request 是一個新 request
+    - **SYN** server to client
+    - **SYN** client to server
+    - **ACK** server to client
+- 要 close connection
+    - **FIN** fin bit 設定成 1（兩端都要）
+    - **ACK**
+    
+## Congestion Control
+- **Congestion**：一次送太多，卡住了，是再講 network 本身內部發生的問題（router）
+    - lost `pkt` (buffer overflow in router)
+    - long delay (queueing in router buffers)
+
+### Cost of Congestion
+
+#### Senario 1
+> - $\lambda_{\text{in}}$：原始資料
+> - $\lambda_{\text{out}}$：throughput
+> - $R$：output link capacity
+- 一個 router, infinite buffer
+- no-retransmission
+![截圖 2025-11-14 凌晨2.09.07](/images/hackmd/SkLRCcQxZx.png)
+![截圖 2025-11-14 凌晨2.13.12](/images/hackmd/SyDakoQlWe.png)
+- $\lambda_\text{in}$, $\lambda_\text{out}$ 成正比，但當 $\lambda_\text{in} \to R/2$ 時，就停下來了。 
+- $\lambda_\text{in} \to R/2$ 會暴增
+    - 越多人在等，queue 越長，越有 delay (exponential 增加)
+
+
+#### Senario 2
+> - $\lambda_{\text{in}}$：原始資料
+> - $\lambda'_{\text{in}}$：原始資料加上 retransmit
+> - $\lambda_{\text{out}}$：throughput
+> - $R$：output link capacity
+- 一個 router, **finite** buffer
+- 假設 sender 有 perfect knowledge，知道啥時 overflow 就不送
+- 假設 sender 知道 pkt loss.  
+![截圖 2025-11-14 凌晨2.25.51](/images/hackmd/Bk2hzjXgbx.png)
+![截圖 2025-11-14 凌晨2.28.36](/images/hackmd/H1gDXime-l.png)
+- $\lambda'_\text{in}$ 傳送 $R/2$ 的資料但裡面有一些是重複無效資料，因此 $\lambda_\text{out}$ 達不到 $R/2$
+![截圖 2025-11-14 凌晨2.33.26](/images/hackmd/H1HFEimeZx.png)
+- 重傳會不停收到一樣的資訊，會導致無效資料又增加
+- goodput 代表真正有效的 throghput.   
+
+#### Senario 3
+> - $\lambda_{\text{in}}$：原始資料
+> - $\lambda'_{\text{in}}$：原始資料加上 retransmit
+> - $\lambda_{\text{out}}$：throughput
+> - $R$：output link capacity
+- 四者互為對方的 sender/receiver
+![截圖 2025-11-14 凌晨2.38.01](/images/hackmd/ryZsBjmgWe.png)
+![截圖 2025-11-14 凌晨2.39.49](/images/hackmd/BJMbIsmebg.png)
+- $\lambda'_\text{in} \to \infty$ 兩條共用 router 的人，若在這個情況下，一方的速度受限於他走的第一個 router $R$ 而非無限大，但另一方無上限。在這個情況就可以發現，所有 connection 都會佔據大優勢在第一個 router 但在第二個 router 會完全卡死（搶輸），$\lambda'_\text{out} \to 0$
+- 下游 router queue 滿了，產生 downstream transmission `pkt` loss 導致上游無論有多快速的 transmission rate，upstream transmission 一樣是 0
+
+#### Congestion Control type
+- **End-end congestion control**:
+    - TCP 使用的
+    - 無法直接從 router 得知是否產生 congestion
+    - 從 `loss`, `delay` 來做 inference
+- **Networ-assisted congestion control**
+    - Router 會有 direct feedback 告訴你是否產生 congestion
+    - TCP ENC, ATM, DECbit protocol
+    
+## TCP Congestion Control
+### AIMD (Additive Increase Multiplicative Decrease)
+- 是一個 distribute, asynchronous algorithm
+- 增加 sending rate 直到出現 `loss`
+    - 每輪次 $\text{RTT}$ 最多增加 1 segment 的速度
+- 出現 `loss` 後減少 sending rate 一半
+    - 砍一半
+![截圖 2025-11-14 下午3.42.52](/images/hackmd/ryKtaLNgWx.png)
+
+#### Multiplicative decrease
+- **TCP Reno**：收到 **triple duplicate ACK** 表示有 `loss` 發生，sending rate 砍一半
+- **TCP Tahoe**：如果產生 `time-out` 就把 MSS (Maximum Segment Size) 設定為 1
+
+###   TCP congetion window
+![截圖 2025-11-14 下午3.53.00](/images/hackmd/Bk5ygDExbl.png)
+- $\text{LastByteSent}- \text{LastByteAcked} \leq \text{cwnd}$
+$$
+\text{TCP rate} = \frac{\text{cwnd}}{RTT} \ \ \ \text{(bytes/sec)}
+$$
+- $\text{cwnd}$ 是一個動態調整的「同時在網路上未被 **ACK** 的資料量」（一次傳多少）
+
+#### TCP slow start
+- 初始化 $\text{cwnd} = 1\ \text{MSS}$
+- 每輪次 $\text{RTT}$ double $\text{cwnd}$，直到 `loss` 發生
+![截圖 2025-11-14 下午4.07.33](/images/hackmd/SkG8XPNlWe.png)
+- $\text{ssthresh}$ 用來記錄每次 exponential transition to linear 的點
+    - 在 $\text{ssthresh}$ 以下用 **exponential** 增加 $\text{cwnd}$
+    - 在 $\text{ssthresh}$ 以下用 **linear** 增加 $\text{cwnd}$
+    - $\text{ssthresh}$ 每次 `loss` event 前更新
+### FSM of TCP congestion control
+![截圖 2025-11-14 下午4.15.33](/images/hackmd/SkTVrPEe-g.png)
+- 產生 **dupACK** 或是 `timeout` 都有可能產生問題，但其實不一定，所以有以下方法
+
+### Explicit Congestion Notification (ECN)
+- 是一種 network-assisted 的 Congestion control
+- Router 發現 congestion 會在 IP header (ToS 欄位) 放入 `11` 原始為 `10`
+- Destination 收到這個 header 後會 sets ECE 為 `1`（在 Transport Layer）
+![截圖 2025-11-19 下午2.35.40](/images/hackmd/r18HrJjgZe.png)
+- 只有某些 TCP 才能做這件事
+
+### TCP Fairness
+- TCP 是完全分散式的系統，因此會根據各種情況去做 Congestion Control
+- 因此我們要考慮每一台 edge 遵循 Congestion Control 是否會是公平的獲得 
+
+<Aside type="note" title="">
+$K$ TCP sessions share same bottleneck link of bandwidth $R$
+是否每個機器都可以獲得 $$\frac{R}{K}$$ 的 average sending rate
+</Aside>
+
+- 在宏觀的角度下來看，我們會維持在一個平均之上，但微觀來看會有不斷地調整，在 congestion avoidance state 之下，就會有這樣線性的情況
+![截圖 2025-11-19 下午2.43.25](/images/hackmd/HkdMDysgbl.png)
+- 沒有 central 的中控，所以還是微觀下不穩定是無可畢免的
+
+<Aside type="caution" title="Fairness and UDP">
+若出現 UDP 跟 TCP 去搶 TCP 的資源時，TCP 會偵測 Congestion Control 但最後會出現 TCP 流量歸零 UDP 完全搶走的情況
+</Aside>
+
+<Aside type="caution" title="Fairness of parallel TCP">
+若已經存在 9 個 TCP connection
+- new app asks for $1$ TCP, gets rate $R/10$
+- new app asks for $11$ TCPs, gets $R/2$
+</Aside>
+
+---
+
+<Card
+  as='a'
+  href='/notes/cn'
+  heading='Back to the content'
+  subheading='NTU Computer Networking'
+  date='2025 Fall'
+>
+  ← Back to the content
+</Card>
+
+---

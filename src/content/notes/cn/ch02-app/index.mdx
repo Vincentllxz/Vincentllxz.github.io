@@ -1,0 +1,396 @@
+---
+title: "NTU-CN 計算機網路 Ch2 Application Layer"
+description: "NTU Computer Networking 計算機網路:Ch2 Application Layer"
+publishDate: "2025-10-01 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CN"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Application Layer
+- 通常只需要跟 **Transport Layer** 互動就好
+- 提供各種我們現實真的看得到的服務
+
+<Aside type="note" title="">
+做出一個 app 我們只需要知道 API (Application layer Interface) 如何操作，以及他與 Transport Layer 的溝通關係就好了
+![截圖 2025-10-22 凌晨1.56.54](/images/hackmd/Hk4_trBAxl.png =60%x)
+</Aside>
+
+## Principle of Application layer
+
+### Client-Server paradigm (model)
+- **Server**: 有個固定 IP，要提供服務
+- **Client**: 不固定，要要求服務，可能要 communicate, contact 『 **Through Server** 』
+
+### P2P architecture
+- 只有節點不需要 Server
+- Self scalability: New peer bring new service capacity
+
+### Process communication
+- 在同一台 Host 的話會使用 IPC 進行溝通
+- 不同台 host 就要使用 message 傳送
+
+<Aside type="note" title="Client, Server">
+- Client process: the one initiates communication
+- Server process: wait to be contacted
+
+P2P 會交換
+</Aside>
+
+#### Socket
+- Socket 會把資料從一個 host 接收或是傳送
+- 傳送端、接收端都要有個 Socket
+- 可以拿到 **IP Address** 和 **Port number**
+
+<Aside type="note" title="What does application layer define">
+- Type of messages
+    - **Request**, **Response**
+- Syntax
+- Semantic
+- Rules of sending/response
+
+有的 protocol 是公開的（open），有的是有所有權的 (proprietary)
+</Aside>
+
+### Available in Transport Layer
+- Data Integrity: **Reliable** Data Transfer
+- **Timing**
+- **Throughput**
+- **Security**
+- 以下是常見服務隊各種屬性的要求
+![截圖 2025-10-22 凌晨2.34.49](/images/hackmd/B1SLfLHAeg.png)
+
+### Transport Layer
+- **TCP** service: 
+    - **reliable**
+    - flow control
+    - congestion control
+    - connection-oriented
+- **UDP** service
+    - unreliable
+    - 可以自己建立其他檢查，不需使用 TCP 必帶
+
+## Web, HTTP
+- **HTTP**: hypertext transfer protocol
+    - Client: browser
+    - Server: Web servers
+    - 用的是 **TCP** protocol
+    - **Stateless**: 並不會記錄前面的訊息，只有現在的狀態
+        - 不紀錄是因為太複雜了
+```
+http://www.someSchool.edu/someDepartment/home.index
+```
+- `www.someSchool.edu` 是 host name
+- `/someDepartment`, `/home.index` 是 path
+
+### HTTP connection
+- **Non-persistent**: 一次開一個 TCP 只用來傳送一個 object
+
+$$
+\text{Non-persistent HTTP response time} = 2 RTT + \text{file transmission time}
+$$
+    - 要花兩個 RTT 時間，太久了
+- **Persistent**: 一個 TCP 可以送很多個 object (HTTP/1.1 就是用這個)
+    - 讓 response time 變成一個 RTT 而已
+
+<Aside type="note" title="RTT (Run-Trip-Time)">
+一個 packet 從 client 到 server 再回來 client 的時間
+</Aside>
+
+### HTTP Request message
+```http
+GET /somedir/page.html HTTP/1.1
+Host: www.someschool.edu
+Connection: close
+User-agent: Mozilla/5.0
+Accept-language: fr
+```
+- 每行結尾都有 `\r\n`
+- 大致結構如下
+    - request 下面是 header 資訊
+  ![截圖 2025-10-22 凌晨2.53.10](/images/hackmd/Bk7oILSCgx.png)
+
+### Types of HTTP Request message
+- **POST**: 上傳 form 資料（用 body）
+- **GET**: 接收資料
+- **HEAD**: for debugging
+- **PUT**: 上傳資料（用 URL）
+
+### HTTP Response message
+```http
+HTTP/1.1 200 OK
+Connection: close
+Date: Tue, 18 Aug 2015 15:44:04 GMT
+Server: Apache/2.2.3 (CentOS)
+Last-Modified: Tue, 18 Aug 2015 15:11:03 GMT
+Content-Length: 6821
+Content-Type: text/html
+
+(data data data data data ...)
+```
+- 最重要的是 Status code 表示 request 的回應狀態
+    - `200 OK`: 請求成功執行了，並且資訊也在回應中正常地回傳了
+    - `301 Moved Permanently`: 所請求的物件已經被永久的移動到另一個地方了，新的 URL 會寫在標頭行中的 Location:  欄位中，客戶端會自動往這個新的 URL 做請求
+    - `400 Bad Request`: 這是當伺服器看不懂請求訊息時會用的一個通用的錯誤碼
+    - `404 Not Found`: 所請求的檔案不存在於這個伺服器上
+    - `505 HTTP Version Not Supported`: 請求所使用的 HTTP 協定版本該伺服器不支援
+
+### Cookie
+- 因為 HTTP stateless，所以會在 browser 紀錄於本地端，包含四個 component
+    1. **cookie header**: 在 response 中
+    2. 被設定後，會被放在 request 裡
+    3. 會被記錄在 user's host
+    4. 向 Back-end database 請求資料
+
+<Aside type="tip" title="Example">
+![截圖 2025-10-22 凌晨3.03.24](/images/hackmd/BJdWtUBAee.png)
+- Backend create entry 之後就會回傳 cookie ID
+- Request 用這個 ID 去請求
+</Aside>
+
+<Aside type="caution" title="GDPR">
+Cookie 會涉及隱私問題，必須嚴格遵守 GDPR (General Data Protection Regulation)
+</Aside>
+
+有了 cookie 我們就可以紀錄
+- authorization
+- shopping cart
+- recommendations
+
+### Web Caches
+**GOAL**: 創造出一塊 buffer 以減少大家使用真正 server 的次數，減低負擔，如果有 request 來
+- 資料有在 cache 裡面就不用走到 server 直接回傳
+- 沒有的話 cache 會向 server 要
+
+Server 可以用 Control header 對 Cache 下指令
+- 可以減少 server 收到的 request 
+- 可以減少 access link 的 traffic
+
+<Aside type="tip" title="">
+![截圖 2025-10-22 凌晨3.23.53](/images/hackmd/BkUR6LSClx.png)
+觀察一下 Access link 使用率，真的非常高
+$$
+\text{Access link 使用率} = \frac{1.50 \text{ (Mbps)}}{1.54\text{ (Mbps)}} = 0.97
+$$
+但看一下 LAN 使用率，非常低
+$$
+\text{LAN 使用率} = \frac{1.50 \text{ (Mbps)}}{1\text{ (G
+bps)}} = 0.0015
+$$
+分析一下 $D_{e2e}$
+$$
+\begin{aligned}
+D_{e2e} &= D_{\text{Internet}} + D_{\text{Access link}} + D_{\text{LAN}} \\
+&= 2 \text{ sec} + \underset{\text{Queuing delay 會指數增加}}{\text{minute}} + \text{usec}
+\end{aligned}
+$$
+</Aside>
+
+<Aside type="caution" title="Solution 1：Faster access link: 非常昂貴">
+</Aside>
+
+<Aside type="caution" title="Solution 2：Buy a **Web Cache**">
+![截圖 2025-10-22 凌晨3.32.33](/images/hackmd/rkxkxPSRxl.png)
+假定 **hit rate** 是 **0.4**，表示四成資料會不需要經過 Access link，只需要 msec delay，剩餘 60％ 維持原樣
+$$
+\text{Hit rate} = 0.4
+$$
+觀察 Access link 使用率
+$$
+\text{Access link 使用率} = \frac{1.50 \times 0.6 \text{ (Mbps)}}{1.54\text{ (Mbps)}} = 0.58
+$$
+這樣就只需要 (msec) 等級的 delay 就好，因為指數性減少
+$$
+\begin{aligned}
+\bar{D}_{e2e} &= 0.6 \cdot ( \text{delay from origin server}) + 0.6 \cdot (2.01 \text{delay with cache}) \\
+&= 0.6 \cdot (2.01 \text{ seconds}) + 0.4 \cdot (0.01 \text{ seconds})
+\end{aligned}
+$$
+</Aside>
+
+### Conditional GET
+- Check if cache is up-to-date
+- 會進行以下機制，自動排除寄送 `304 Not Modified`
+    - 加入一行 header `If-modified-since: <date>`
+  ![截圖 2025-10-22 凌晨3.41.49](/images/hackmd/ByY-MvS0ee.png)
+
+
+### HTTP/2
+- 把資料分解成 frame 去做 HOL Blocking
+- 如果 $O_1$ 必須一起送出，那 $O_2 \to O_4$ 會 delay 非常嚴重，但分段就可以讓 delay 只存在 $O_1$
+- ![截圖 2025-10-22 凌晨3.47.00](/images/hackmd/S1bHQwHCxx.png)
+
+
+## Email, SMTP
+Email 分為三個部分
+- **Mail server**: 存有 message queue
+- **User Agent**
+- **SMTP protocol**: 推送信件到另一個 Server
+
+![截圖 2025-10-22 凌晨3.49.37](/images/hackmd/rkCCmPSAgg.png)
+
+- SMTP 用的是 Direct Transfer
+- ```
+  S:  220 hamburger.edu
+  C:  HELO crepes.fr
+  S:  250 Hello crepes.fr, pleased to meet you
+  C:  MAIL FROM: <alice@crepes.fr>
+  S:  250 alice@crepes.fr ... Sender ok
+  C:  RCPT TO: <bob@hamburger.edu>
+  S:  250 bob@hamburger.edu ... Recipient ok
+  C:  DATA
+  S:  354 Enter mail, end with ”.” on a line by itself
+  C:  Do you like ketchup?
+  C:  How about pickles?
+  C:  .
+  S:  250 Message accepted for delivery
+  C:  QUIT
+  S:  221 hamburger.edu closing connection
+  ```
+
+![截圖 2025-10-22 凌晨3.53.01](/images/hackmd/Hk_oVPSRge.png)
+
+### Compare to HTTP
+- HTTP: client PULL, single object
+- SMTP: client PUSH, multi object
+- 都用 Status code, ASCII
+- IMAP: Can organize
+
+## DNS (Domain name system)
+- 我們已知網域起碼就有兩種表示
+    - **hostname**
+    - **IP**
+- DNS 是一種 distributed database，由很多 name server 組成
+- 用 application layer protocol implement 避免使用 core 而是使用在 edge 上的 server
+
+### DNS Services
+- **Hostname-to-IP-address translation**
+- host aliasing
+    - canonical
+    - alias names
+- Mail server aliasing
+- 分散 loading 因為要經由 DNS
+
+<Aside type="caution" title="不可以 centralize">
+- 一個壞掉就沒了
+- traffic 會很龐大
+</Aside>
+
+
+### A Distributed, Hierarchical Database
+![截圖 2025-10-22 凌晨4.07.57](/images/hackmd/rJtX_DHCex.png)
+- 根域名 DNS 伺服器 (**root** DNS servers)
+    - 具有非常重要的功能
+    - ICANN 定義的
+- 頂級域名 DNS 伺服器 (**top-level domain** (TLD) DNS servers)
+    - `.com`, `.edu`, `.org`
+    - 註冊新網域要在此申請
+- 權威域名 DNS 伺服器 (**authoritative** DNS servers)
+    - 組織名註冊
+
+### Iterated Query
+- 要一層一層訪問才能獲得真正的網域，可能會造成 congestion
+![截圖 2025-10-22 凌晨4.14.35](/images/hackmd/SJdhYvHAll.png)
+
+### Recursive Query
+- 同樣一層一層訪問，但不用每次都回到 local DNS server
+![截圖 2025-10-22 凌晨4.15.54](/images/hackmd/Sk8W5vSCeg.png)
+
+### DNS Caching
+- 會設定 TTL
+- 減少獲取網域時間
+- 若有 hostname 改了 IP，Cache 不會管現在對不對，他只會固定時間去取，你很可能在這段時間裡拿到了錯誤的資料，進不去網域
+
+## DNS Record
+- Format `(Name, Value, Type, TTL)`
+    - **Type A**: `name = hostname`, `value = IPv4`
+    - **Type AAA**: `name = hostname`, `value = IPv6`
+    - **Type CNAME** `name = alias`, `value = canonical name`
+    - **Type NS**: `name = domain`, `value = hostname of nameserver`
+    - **Type MX**: for mail
+
+### DNS protocol message
+![截圖 2025-10-22 凌晨4.26.18](/images/hackmd/BJU_2vHRlg.png)
+![截圖 2025-10-22 凌晨4.26.01](/images/hackmd/BJBw3wSCel.png)
+
+## P2P
+![截圖 2025-10-22 凌晨4.34.08](/images/hackmd/SJCS0PrAxe.png)
+- 在 client-server 架構裡，只有 server 在上傳，所以若有 $N$ 份大小為 $F$ 的資料，則 delay 為
+$$
+D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}} \right\}
+$$
+- 在 P2P 的架構裡由於每個 peer 都可以作爲上傳端，因此 delay 為
+$$
+D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}}, \frac{NF}{u_s + \sum u_i} \right\}
+$$
+這兩個公式在人數多的時候會體現出非常大的差異
+![截圖 2025-10-22 凌晨4.39.08](/images/hackmd/H19u1_BRel.png)
+
+### BitTorrent
+- 在某一個 torrent 裡面的 peer 們會從其他的 peer 那邊下載該檔案的等大的 chunks
+-通常 256Kb 為一個 chunks
+- 運作方法如下
+    - 每個節點（例如 Alice）會持續測量鄰居傳送資料給她的傳輸速率，並挑選前四快的鄰居進行回應，這四個鄰居被稱為 **unchoked**。
+    - 作為回報，Alice 也會傳送 chunks 給這四個鄰居。
+    - 每隔 **10 秒**，Alice 會重新測量速率並可能更換這四個對象。
+    - 每隔 **30 秒**，Alice 會 **隨機選擇一個鄰居**（例如 Bob），並傳送一個 chunk 給他。這個鄰居被稱為 **optimistically unchoked**。
+    - 如果 Bob 的回傳速率夠快，他可能進入 Alice 的前四快提供者名單，雙方便會進行互利的資料交換。
+
+> 這樣的設計讓快速上傳的 peer 彼此更容易連結，也讓新加入的 peer 有機會取得資料進行交易。除了這五個（前四快 + 隨機挑選的一位）之外的其他 peer，則被稱為 **choked**，不會收到任何 chunk。
+
+這套演算法的獎勵機制被稱為 **「tit-for-tat」** 策略。雖然研究指出該機制可能被規避，但整個生態系仍非常成功，擁有上百萬個同時在線的 peer 與數十萬個 torrents 進行分享。如果沒有這種機制，多數使用者可能會成為 **freerider**，BitTorrent 甚至可能無法存活。
+
+## Video Stream & CDN (Content Distribution Network)
+- 80% 的 congestion 都是 video 的
+- 會使用 coding technique 來壓縮佔用空間
+    - CBR (Constant Bit Rate)
+    - VBR (Variable Bit Rate): 根據時間, 空間決定 encoding rate
+
+<Aside type="note" title="Streaming">
+![截圖 2025-10-22 上午8.50.49](/images/hackmd/rk4O5irAxx.png)
+- 並不是下載整個影片檔，而是 server 邊送我邊看，因此稱作 streaming
+</Aside>
+
+<Aside type="note" title="Playout Buffering">
+![截圖 2025-10-22 上午8.55.06](/images/hackmd/BkI_oiBCeg.png)
+- 可以根據情況調整 buffer video 大小
+</Aside>
+
+### DASH (Dynamic Adaptive Streaming over HTTP)
+- **Server**:
+    - 把影片分成多個 chunk
+    - 每個 chunk 用不同 rate encode 存在不同檔案裡
+    - 使用 **manifest file** 來提供不同 chunk 的 URL
+- **Client**:
+    - 隨時間判對 decoding 速度
+    - Consult manifest file, Get one chuck at a time
+
+### CDN (Content Distribution Network)
+- mega server 不可行，跟 DNS 同一個原因
+- 因此我們採用分散式系統
+    - **Enter deep**: server cluster 佈署到世界各地的存取網路供應商當中，深入 ISP
+    - **Bring home**: section 1.5，放在 IXP 裡面
+- 這是一種 OTT (over the top) 服務 
+    - content 並不是 internet 但是使用了 Internet
+- 運作原理是可以讓 Server 根據 Congestion 情況判斷應該從哪個 CDN 拿取資料。
+![截圖 2025-10-22 上午9.48.46](/images/hackmd/Bkcf_3BAex.png)
+
+---
+
+<Card
+  as='a'
+  href='/notes/cn'
+  heading='Back to the content'
+  subheading='NTU Computer Networking'
+  date='2025 Fall'
+>
+  ← Back to the content
+</Card>
+
+---

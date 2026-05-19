@@ -1,0 +1,37 @@
+---
+title: "NTU-CN 計算機網路"
+description: "NTU Computer Networking 計算機網路 課程筆記"
+publishDate: "2026-02-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CN"
+  - "note"
+language: "zh-TW"
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+import ChapterList from '../../../components/ChapterList.astro'
+
+# 計算機網路 筆記 Computer Networking
+
+<Aside type="note" title="Computer Networking">
+
+- 計算機網路
+- 2025 Fall 逄愛君 老師
+
+![9780135429334](/images/hackmd/HkF8CMWJ-e.jpg)
+</Aside>
+
+
+## Content
+
+<ChapterList
+  chapters={[
+    { n: 1, title: 'Introduction', href: '/notes/cn/ch01-intro' },
+    { n: 2, title: 'Application Layer', href: '/notes/cn/ch02-app' },
+    { n: 3, title: 'Transport Layer', href: '/notes/cn/ch03-transport' },
+    { n: 4, title: 'Network Layer: Data Plane', href: '/notes/cn/ch04-data-plane' },
+    { n: 5, title: 'Network Layer: Control Plane', href: '/notes/cn/ch05-control-plane' }
+  ]}
+/>
