@@ -1,0 +1,354 @@
+---
+title: "NTU-OS 作業系統 Ch8 I/O Systems"
+description: "NTU Operating System 作業系統:Ch8 I/O Systems"
+publishDate: "2026-05-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# I/O Systems
+
+## Overview
+
+是一個很雜的章節，一個電腦的 I/O 有千千百百種，真的去考慮所有 I/O 根本沒辦法討論完
+
+因為太雜亂了，所以我們需要一個 **I/O subsystem** 來做到 Virtualization 讓我們好控制，**Device driver** 能讓 device 更好控制
+
+## I/O Hardware
+
+- Storage devices (e.g., disks, tapes)
+- Transmission devices (e.g., network connections, Bluetooth)
+-  Human-interface devices (e.g., screen, keyboard, mouse, audio)
+- More specialized devices (e.g., steering of a jet)
+
+我們先定義幾個名詞
+- **Port**: Device 跟裝置對接的口
+- **Bus**：連接、傳輸 signal 用的
+- **Daisy Chain**: 有些裝置沒對接，但可以透過間接連接上
+    - A, B 有 bus, B, C 有 bus，所以 A, C 有 Daisy Chain
+
+### Typical PC Bus Structure
+
+- **PCI Bus** 連接所有 Device, Memory
+- **Expansion Bus** 可以讓慢速裝置傳輸稍微加速
+- **Aerial-attached SCSI (SAS)** bus 串接 DISK
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/typical-pc-bus-structure.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Typical PC Bus Structure
+  </span>
+</div>
+
+**Controller**: 解讀、Construct 要溝通的訊息，是在 Device 方的
+- **Serial-port controller**
+    - 負責 Control serial port，按照順序控制
+- **Fibre channel (FC)** bus controller
+    - 更加複雜，可能用 **Host Bus Adapter (HBA)** 來 implement
+
+### Memory-Mapped I/O
+
+我們通常比較關心：**如何把指令傳給一個 Controller**，Controller 裡面會有一個 device 的 register，我們要去控制這個 register，有兩種做法
+- Special (Direct) I/O: 直接傳輸
+- **Memory-Mapped I/O**: 採用 Share memory
+
+站在 Process 的角度，我就不用關心要怎麼把資訊放在 Bus 上傳，只需要關心寫入指定位置，並且 Memory 讀寫肯定比 I/O transfer 快
+
+我們可以把 Device 的 Register 分成四類
+1. **Status register**
+    - current command has completed
+    - available to be read
+    - device error
+2. **Control register**
+    - Start a command
+    - Change the mode
+3. **Data-in register**
+4. **Data-out register**
+
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/memory-device.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     到對應的 Memory 讀寫等於完成對 Device 的控制
+  </span>
+</div>
+
+### Polling
+
+#### Handshaking
+
+一個 Host 跟 Controller 如何溝通完成一個任務的過程
+1. `Status Register` 裡面的 `busy` bit 被 `clear` 了
+2. Host srt 一個 `write` bit 在 `command(control) register` 並且把資料放到 `data-out register` 
+3. `command(control) register` 發現 `command-ready` bit 被 set
+4. set `busy` bit
+5. Controller 讀取 `command(control) register` 看到 `write`，去讀取 `data-out register` (**此處才是真正的 I/O**)
+6. Controller clear
+    - `command-ready` bit
+    - `error` bit
+    - `busy` bit
+
+這個過程中的第一步驟就叫做 **busy-waiting** 或是 **polling**，所以我們才需要引入 **interrupt** 的概念，由 Device 去做通知
+
+### Interrupt
+
+- Interrupt-request line
+- Interrupt vector
+- Interrupt-handker routine
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/interrupt-driven-i-o-cycle.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Interrupt-Driven I/O Cycle
+  </span>
+</div>
+
+Interrupt Routine 後才會把東西 CPU 使用權交回去給原本的 Process
+
+![Interrupt vector](/images/os/ch08-io-systems/interrupt-vector.png)
+
+Interrupt 有以下的 features
+- **Nonmaskable** or **Maskable**，處理上更方便
+- **Interrupt vector** or **Interrupt chaining**，應對不夠用的空間
+- **Interrupt priority level**，interrupt 也應該分等級
+- **Trap**，也就是 Software interrupt，system call 有時候會報錯，也需要有 Interrupt
+
+### Direct Memory access
+
+我們希望大量的 I/O 傳輸 **不要牽扯到 CPU** 也就是避免 **programmed I/O**（one byte by a time）
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/dma-progress.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     DMA Progress
+  </span>
+</div>
+
+1. 我們想把 Disk 2 上的一段 data 寫到 memory 裡面
+2. Device driver 會告訴 Controller 要傳輸 "`c`" bytes 到 "x" 上
+3. Controller 開始進行 DMA
+4. DMA controller 直接傳輸，直到 "`c`" 降低到 0
+5. `c == 0` DMA 會 interrupt CPU
+
+整個過程中 **CPU 只參與了第一個步驟**，其他都不會碰到
+
+
+以下是幾個 DMA 的 method
+- **Scatter-gather** method：一次指令先把所有分段的 memory 要送到哪裡就先設定好，DMA 慢慢去做就好
+- **Double buffering** (inefficient)：先把東西搬到 kernel space 再搬到 user space
+- **DMA-request** and **DMA-acknowledge** wires：handskaking 時候的 DMA controller 跟 device 之間的 communication
+- **Cycle straling**：在 DMA 正在對 Memory bus 做事的時候，CPU 會被禁止 access 到 main memory
+- **DVMA**：用 virtual addresses
+
+## Application I/O Interface
+
+在時代的演進之下，有各種 Interface，我們做一些分類
+
+![Application I/O Interface 1](/images/os/ch08-io-systems/application-i-o-interface-1.png)
+
+可以用以下的分類方法，有各種不同的限制
+
+![Application I/O Interface 2](/images/os/ch08-io-systems/application-i-o-interface-2.png)
+
+通常我們都還是會分成
+- Block I/O
+- Character-stream I/O
+- Memory-mapped file access
+- Network sockets
+
+OS 會有一些 **Backdoor** 或叫 **Escape**，可以直接對 I/O 控制( e.g., `ioctl()`)
+
+### Block and Character Devices
+
+**Block-device interface**，通常用在 disk 上，一次就是讀取所有 block 裡面的資料，通常會有 `read()`, `write()`, and `seek()` 去做操作，都有不同的 parameter
+- **Raw I/O**：不通過 OS 去控制，直接去控制 I/O device
+- **Direct I/O**：中間有 OS 去做 buffer 或 locking
+
+在這些操作上，可以有額外的 library 去做額外的變化，像是 memory-mapped file 的 access
+
+**Character-stream interface** 則是一次讀取一個字元，像是 `get()` or `put()`，通常用於鍵盤，也可以做變化，像是讀一行
+
+### Network Devices
+
+通常是用 **socket** interface，當 system 用 network 連接才會需要用到
+
+### Clocks and Timers
+
+有很多程式或演算法需要透過時間去做 control，需要給出
+- current time
+- elapsed time
+- 設定 timer 來 trigger operation X at time T
+
+因此我們需要
+- **Programmable interval timer**
+- **High-performance event timer** (HPET)
+- **Network time protocol**，透過網路 protocol 做到對時這件事
+
+### Nonblocking and Asynchronous I/O
+
+假設我們都有 system call 叫做 `read()`
+- **Non-blocking**: 不管狀態如何，一定會回傳，無論狀態到底是啥，可能會沒讀到任何東西
+- **Asynchronous**: 會去執行 read 直到所有要讀的資訊都接收到，不會 suspend 住原來的 process
+
+以上兩種都不會 suspend 原始 process，但 **blocking** system call 就是會去讀，suspend 原始 process 直到讀取完畢
+
+### Vectored I/O
+
+DMA 可以一個指令就多件事情都完成，而 **vector I/O** 也是一樣的概念，算是一種 **scatter-gather** 的方法，但我們需要額外做一些 property 的保證，不然可能會失敗
+
+## Kernel I/O Subsystem
+
+為了要做到 Abstractio，我們希望可以設計出一系列的 subsystem，所以我們需要知道以下的 property
+
+### I/O Scheduling
+
+可能一次會有很多個 process 都需要用同一個 I/O device，所以我們需要留存 I/O device 的資訊
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/example-of-i-o-scheduling.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Example of I/O Scheduling
+  </span>
+</div>
+
+有必要的話，可以做一些 scheduling，改變 request 處理的順序，我們可以 maintain 一個 waiting queue
+
+### Buffering
+
+可以存在於一個 device、device 之間，或是 device、application 之間，因為 Producer 跟 Consumer 之間的讀寫 **speed** 差太多了，可能會產生 lost
+- 如果速度真的差太多也可以用 double buffering，多重 buffer 可以存著一些資訊
+
+第二種情況是 **size** 差太多了，一個大檔案應該會存成很多個小檔案，我們需要一個地方讓他先存起來，等接收到所有資訊後，在做組合，也就是 packet(封包) 的概念
+
+第三個理由是 **copy semantics**，也就是在傳輸的過程中，後半段的資訊遭到改變，我們可以用 buffer 儲存下指令時的狀態
+
+### Caching
+
+在 hardware 裡面會有 cache 因為比較靠近 memory，所以可以解決速度、效率的問題，另外 Cache 不同的地方是我們通常會把他視作一種 copy，不像 buffer 是用來儲存舊版本的
+
+### Spooling and Device Reservation
+
+**Spool** 是一種不能被中斷的 memory 空間，不能再中間插入 data stream，可以用在某些 device 上（e.g., printer）
+
+也可以做 **Device Reservation**，但要小心遇到 deadlock，非常容易發生
+
+### Error Handling
+
+Device、I/O 失敗的方法有千千百百種，一定要有機制去分辨錯誤的方式，也要有機制去 handle 他們，去閱讀 `read()`, `send()` 通常裡面都會搭配一個 `rev` 也就是 return value，讓我們可以很好的去 handle 哪些錯誤要做哪些操作，以 Disk 為例子
+- **sense key**
+- **additional sense code**
+- **additional sense-code qualifier**
+
+### I/O Protection
+
+我們希望所有 I/O 操作 User 都沒辦法直接碰到 device，希望藉由 OS 提供的 system call interface 去做使用
+1. Trap to kernel
+2. Perform I/O
+3. Return to calling thread
+
+不要讓 user 自己亂搞，或是在 memory-mapped I/O 要確保不會有奇怪的操作亂指亂寫
+
+### Kernel Data Structures
+
+為了記錄 I/O 的所有狀況，我們需要記錄
+- Open files
+- Network connections
+-  Character-device communications
+- Other I/O activities
+
+我們會用 Object-Oriented 的方法去做 maintain，例如
+- Windows 把所有資訊當作 message，每個傳送的 Object 裡面就可以在對應的欄位紀錄對應資訊
+
+但這樣也是有些 data structure 的 overhead，也是一種 trade-off
+
+### Power Management
+
+近年來才產生的問題，因為移動設備、資料中心等高耗能裝置興起
+- Greenhouse gas reduction
+- Cooling：非常重要的問題，現在的運算設備工作一定會非常熱
+
+OS, kernel 也需要對這件事情有一定的控制權，**Power Collapse** 是一種新的處理方法，也就是睡眠模式
+
+> Android 會用一個 data structure 紀錄所有 device 上的運作情況，如果 tree 上裝置全關了就會 Power Collapse
+
+**Advanced configuration and power interface** (ACPI) 是一種專門拿來管理 Power 的 subsystem，這在近年來是非常重要的事情
+
+## Transforming I/O Requests to Hardware Operations
+
+<Aside type="tip" title="Example: reading a file from disk">
+
+-  Refer to the data by a file name
+- Map from the file name through the file-system directories
+    - To obtain the space allocation of the file
+- Physically read data from the disk into a buffer
+- Make the data available to the requesting process
+- Return control to the process
+</Aside>
+ 
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/life-cycle-of-blocking-read-request-1.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Life Cycle of Blocking Read Request
+  </span>
+</div>
+
+## STREAMS
+
+這是在 Unix 系統中特有的結構，本質上就跟 Network 一樣，是用 Moduler 的結構化設計，User 跟 Device 之間有各自的 format 互相不會侵犯，是 layer 化設計的代表
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/life-cycle-of-blocking-read-request-2.png" style="width: 40%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Life Cycle of Blocking Read Request
+  </span>
+</div>
+
+可以拆開來設計，新加一層也很方便
+
+## Performance
+
+I/O 的設計其實對 system performance 來講是影響最大的一個部分，因為會產生大量的 **Interrupt**
+
+
+以下這張圖是如何用網路來對電腦之間的傳輸做控制
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/intercomputer-communications.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Intercomputer Communications
+  </span>
+</div>
+
+### Improving I/O Performance
+- 減少 context switches
+- 減少 copied time
+- 減少大量資料運輸的 interrupts 次數
+- 用 DMA 增加 concurrency
+- 提早把 processing primitives 到 hardware
+- Balance CPU, memory subsystem, bus, and I/O performance
+
+
+越上層越有 Flexibility，越下層越快，但功能越少
+
+<div style="text-align: center;">
+  <img src="/images/os/ch08-io-systems/device-functionality-progression.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 14px;">
+     Device Functionality Progression
+  </span>
+</div>
