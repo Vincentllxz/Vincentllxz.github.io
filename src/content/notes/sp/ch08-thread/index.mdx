@@ -24,7 +24,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 <Aside type="note" title="Virtual Memory Layout (虛擬記憶體配置)">
 
-![截圖 2025-11-22 下午3.33.52](/images/hackmd/rke_vyJWZg.png)
+![Process Model](/images/sp/ch08-thread/process-model.png)
 
 每個 Process 擁有獨立的虛擬記憶體空間，內容包含：
 - **Text / Instruction**：存放程式碼（如 `main()`）、函式庫連結等唯讀資料。
@@ -41,7 +41,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ---
 
 ### Thread Model
-![截圖 2025-11-22 下午2.55.35](/images/hackmd/rJ-FRR0gbe.png)
+![Thread Model](/images/sp/ch08-thread/thread-model.png)
 
 - **概念**：在同一個 Process 的生命週期內，可以同時執行多個 Thread。
 - **資源共享 (Resource Sharing)**：
@@ -85,7 +85,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 在 Single processor(core) machine 上，Thread model 無法達到真正的「平行運算 (Parallelism)」，只能做到「併發 (Concurrency)」。
     - **但並非沒用**：它依然能透過重疊 I/O 等待時間與 CPU 運算時間，有效減少 Response time 並提升系統整體效率。
 
-![截圖 2025-11-22 下午3.20.38](/images/hackmd/BJrI4y1-be.png)
+![Thread](/images/sp/ch08-thread/thread.png)
 
 <Aside type="note" title="Thread Stack Layout">
 在 virtual memeory 中，不同 Thread 的 Stack 會被配置在同一塊位址空間的不同區段。若 Stack 用量過大，可能會發生重疊（Overflow），通常 OS 或 Thread Library 會有 Guard Page 機制來偵測並處理。
@@ -96,7 +96,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Implementing of Thread (User Space)
 
-![截圖 2025-11-27 晚上11.02.19](/images/hackmd/HyoZdkI--e.png)
+![Implementing of Thread 1](/images/sp/ch08-thread/implementing-of-thread-1.png)
 
 - **Runtime System**: 一個 Library 去控制所有 thread 出生死亡，用 function call
 - **Thread Table**: Runtime System 內部 maintain TCB
@@ -112,7 +112,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </Aside>
 
 ### Implementing of Thread (Kernel Space)
-![截圖 2025-11-28 凌晨12.25.08](/images/hackmd/BkWOix8-bx.png)
+![Implementing of Thread 2](/images/sp/ch08-thread/implementing-of-thread-2.png)
 - Thread table 會在 kernel 內，可以做不同 process 間的交互處理
 - kernel 知道是 thread 被 block 而不是 process 所以可以 schedule 其他 thread
 
@@ -122,7 +122,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </Aside>
 
 ### Hybrid Implementation
-![截圖 2025-11-28 凌晨12.39.23](/images/hackmd/B1YpAg8-be.png)
+![Hybrid Implementation](/images/sp/ch08-thread/hybrid-implementation.png)
 - 讓 kernel thread 各自做 user thread 的 context switch
 
 ---
@@ -142,9 +142,9 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 任何被 create 跟 create 別人的 thread 會根據 priority 來決定跑的順序，跟 `fork()` 很像
 - 只分成 main thread 跟 spawned thread，而且並非主從關係
 - Normal function call
-  ![截圖 2025-11-28 凌晨1.14.10](/images/hackmd/H1ggvbU-Wl.png)
+  ![Thread creation 1](/images/sp/ch08-thread/thread-creation-1.png)
 - Threaded function call
-  ![截圖 2025-11-28 凌晨1.14.24](/images/hackmd/rk9xPW8ZZx.png)
+  ![Thread creation 2](/images/sp/ch08-thread/thread-creation-2.png)
 
 
 **`pthread_t pthread_self(void)`**
@@ -441,7 +441,7 @@ thr_fn2(void *arg)
 - 正常異常死亡都會呼叫出 `rtn` 內的 function 們，用 reverse way
 
 <Aside type="note" title="">
-![截圖 2025-11-28 下午3.41.47](/images/hackmd/SyuSG0Ib-l.png)
+![Thread Cancel](/images/sp/ch08-thread/thread-cancel.png)
 - Thread 之間並沒有階層式的架構，任何 thread 都可以去 `join` 其他 thread
 - cancelation point 概念會執行到某些重要節點才會停下
 </Aside>
@@ -449,7 +449,7 @@ thr_fn2(void *arg)
 
 ## Thread Synchronization
 - Share memory 太常出現，所以我們必須要產生同步，不然會出現問題，因為一個高階語言指令可能是四五個低階語言指令
-![截圖 2025-11-29 晚上10.54.56](/images/hackmd/rJaBFYubbe.png)
+![Thread Synchronization](/images/sp/ch08-thread/thread-synchronization.png)
 
 - 兩個 thread 要讀/寫入同一個資料是不同的 code 會競爭到同一個 resource
 - 即便有一個 resource 只有一個 function 可以 access，兩個 thread call 同一個 function 還是會有 competition，還是需要 Synchronization
@@ -487,7 +487,7 @@ thr_fn2(void *arg)
     - **PTHREAD_MUTEX_DEFAULT**: 會是以上三種的其中一種，每個 system 不一樣
 
 <Aside type="note" title="Error/Deadlock Check">
-![截圖 2025-11-29 晚上11.38.34](/images/hackmd/rJdF7c_bZl.png)
+![Mutexes](/images/sp/ch08-thread/mutexes.png)
 - **Deadlock**: own A lock 的 thread request B lock, own B lock 的 thread request A lock，會產生 Deadlock 因為會產生問題，因為自己被 suspend 了
 - Relock 產生 deadlock
 </Aside>
@@ -549,13 +549,13 @@ int getcount(int *countp) {
 
 - **`void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);`**
 
-![截圖 2025-12-04 上午9.16.38](/images/hackmd/HkeW-v0WZg.png)
+![Memory-mapped I/O 1](/images/sp/ch08-thread/memory-mapped-i-o-1.png)
 
 - 先把 memory map 到 virtual memory 上，再利用 system call 把它 mapping 回去
 - Virtual 跟 Physical memory 都會切成一個一個 page，兩端 page size 必須相同，必須得 align
 - 對 system call 一個 `malloc()` 會返回一個可以任意轉換 type 的 address，但對於 align 方法有要求
 
-![截圖 2025-12-04 上午9.20.06](/images/hackmd/Hk_yGDCbZx.png)
+![Memory-mapped I/O 2](/images/sp/ch08-thread/memory-mapped-i-o-2.png)
 
 - 不像一般 IO 需要各種搬移
     - Unbuffered I/O: Kernel − standard I/O buffer − our buffer
@@ -571,7 +571,7 @@ int getcount(int *countp) {
 - `MAP_SHARED` 會寫回 physical memory，而 `MAP_PRIVATE` 會做 copy on write，延遲讀寫
 - mapping 多大就只能寫多大的檔案，不能動態增生
 
-![截圖 2025-12-04 上午9.41.31](/images/hackmd/BJFGDPRbZl.png)
+![Memory-mapped I/O 3](/images/sp/ch08-thread/memory-mapped-i-o-3.png)
 
 ```c
 int
@@ -647,13 +647,13 @@ int main() {
 ```
 - 用 `MAP_ANONYMOUS` 創造出一個 virtual file 來創造 share memory 的感覺
 
-![截圖 2025-12-04 上午9.53.32](/images/hackmd/H1_sFPA--e.png)
+![Memory-mapped I/O 4](/images/sp/ch08-thread/memory-mapped-i-o-4.png)
 
 - 兩個 share 到同一份 resource 同時要改，可以上 mutex lock，並且 lock 也要放在 share memory
     - init 要在 `fork()` 前就上好
     - 在 process 裡面才去爭 lock
 
-![截圖 2025-12-04 上午10.01.44](/images/hackmd/ryQciPA-Zg.png)
+![Memory-mapped I/O 5](/images/sp/ch08-thread/memory-mapped-i-o-5.png)
 
 #### Deadlock
 
@@ -692,7 +692,7 @@ int main() {
 #### Thread Pool
 - A master thread: 負責排工作，給 ID，把工作分配好後排進 link list
 - A pool of worker threads: 真正做事的 thread，定期去 link list 上看一下有沒有自己的工作，然後改一下 list，自己去做事
-![截圖 2025-12-04 上午10.21.50](/images/hackmd/r1YHxORbbx.png)
+![Thread Pool](/images/sp/ch08-thread/thread-pool.png)
 
 ```c
 void
@@ -1062,10 +1062,10 @@ size_t nbytes, off_t offset);`**
 - 一個 function thread safe 不一定 Async-signal safe，但在大部分情況下（不惡搞）Async-signal safe implies 
 - 以下這些 function 並不保證是 thread-safe（但其實也可以找到 thread safe 的版本）
 
-![截圖 2025-12-08 中午12.27.11](/images/hackmd/r19jXAmf-x.png)
+![Thread safe 1](/images/sp/ch08-thread/thread-safe-1.png)
 
 <Aside type="note" title="">
-![截圖 2025-12-08 中午12.29.12](/images/hackmd/ByNQERmz-x.png)
+![Thread safe 2](/images/sp/ch08-thread/thread-safe-2.png)
 - 在 `malloc()` 前後都先做 lock 就可以保證 thread-safe
 - 但如果在進去後，signal handler 重新要 reentrence 就會 double lock 會產生 deadlock
 </Aside>
