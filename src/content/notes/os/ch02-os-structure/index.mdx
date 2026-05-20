@@ -1,0 +1,186 @@
+---
+title: "NTU-OS 作業系統 Ch2 OS Structure"
+description: "NTU Operating System 作業系統:Ch2 OS Structure"
+publishDate: "2026-05-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Operating System Structure
+
+## Operating-System Services
+
+![Operating-System Services](/images/os/ch02-os-structure/operating-system-services.png)
+
+- **User interface (UI)**: 給 User 下指令
+    - Graphic user interface (GUI): 圖形化介面
+- **Program Execution**: 
+    - Process 的 normal/abnormal interrupt
+    - load program to memory 
+- **I/O Operation**
+- **File-System Manipulation**
+    - 包含 access management
+- **Communication**
+    - Maybe in share memeory or bus
+- **Error Detection**
+- **Resource Allocation**
+- **Accounting (Logging)**
+    - 紀錄
+- **Protection and Security**
+
+## User and Operating-System Interface
+- **Command interpreters**:
+    - **Shell** 就是一種直譯器
+    - Shell script 就是 command 的組合
+- GUI
+- Application Programming Interface (API)
+
+## System call
+- **System call** 也是一種 OS 提供的 Interface
+<Aside type="tip" title="Example">
+
+- command
+```sh
+cp in.txt out.txt
+```
+- sequence of system call
+```text
+Acquire input file name
+    Write prompt to screen
+    Accept input
+Acquire output file name
+    Write prompt to screen
+    Accept input
+Open the input file
+    if file doesn't exist, abort
+Create output file
+    if file exists, abort
+Loop
+    Read from input file
+    Write to output file
+Until read fails
+Close output file
+Write completion message to screen
+Terminate normally
+```
+</Aside>
+
+### Application Programming Interface (API)
+- 為了 portability，通常不直接 call system call，不然有可能出問題
+    - Windows 裡用 `CreateProcess()` 創建，但其實他不是 System call 他會呼叫 `NTCreateProcess`
+
+### System-Call Interface
+
+<div style="text-align: center;">
+  <img src="/images/os/ch02-os-structure/system-call-interface.png" style="width: 70%;" />
+</div>
+- 用查表的方法最快，在 kernel 裡有個 table 去到指定 system call 位置，執行後，透過 interface 回傳
+- Caller 不需要知道底層在做啥，不然效率太低了
+
+#### Parameter Passing
+1. In register
+2. In memory
+    - address 當作
+- Linux 用 1&2 combine (5 個以上用 approach 2)
+3. In stack (資料量更大)
+
+#### Type of System call
+1. Process Control
+    - create process, terminate process
+    - load, execute
+    - get process attributes, set process attributes
+    - wait event, signal event
+    - allocate and free memory
+    - end, abort
+    - **Debugger**
+    - **Lock** shared data
+2. File management
+    - create file, delete file
+    - open, close
+    - read, write, reposition
+    - get file attributes, set file attributes
+4. Device management
+    - request device, release device
+    - read, write, reposition
+    - get device attributes, set device attributes
+    - logically attach or detach devices
+5. Information maintenance
+    - get time or date, set time or date
+    - get system data, set system data
+    - get process, file, or device attributes
+    - set process, file, or device attributes
+6. Communications
+    - create, delete communication connection
+    - send, receive messages
+    - transfer status information
+    - attach or detach remote devices
+    - **Message-passing model** and **shared-memory model**
+7. Protection
+    - get file permissions, set file permissi
+![Type of System call](/images/os/ch02-os-structure/type-of-system-call.png)
+
+## Linkers & Loaders
+- **Compiler** 會把 program complie 成一個 **Relocatable Object File**
+- **Linker** 會把 Object File 跟其他 Obj file 去 combie 成一個 **executable file**
+- 最後真正執行的是 **Loader** 會把其他 DLL (Dynamic Link Library) 合併進來，load 到 memory 裡
+> DLL 的出現是希望 executable file 不要太大
+- 中間會有 Relocation 這個重新分配記憶體位置的步驟
+
+<div style="text-align: center;">
+  <img src="/images/os/ch02-os-structure/linkers-and-loaders.png" style="width: 50%;" />
+</div>
+
+<Aside type="note" title="Design and Implementation">
+
+是一個很大的 engineering 問題
+- Design goals
+- Policies and mechanisms
+- Implementation
+</Aside>
+
+## Operating-System Structure
+### Monolithic Structure
+- Simple (單純) but not nessesarily easy
+    - 所有功能都是同地位，System call 跟 hardware 都包在一起
+    - Traditional Unix System Structure
+    ![Monolithic Structure 2](/images/os/ch02-os-structure/monolithic-structure-2.png)
+    - Linux Structure
+    
+    <div style="text-align: center;">
+      <img src="/images/os/ch02-os-structure/monolithic-structure-1.png" style="width: 50%;" />
+    </div>
+   
+### Layered Approach
+- **Network**
+- 只能碰到自己的上層跟下層，越界碰不到
+
+<div style="text-align: center;">
+  <img src="/images/os/ch02-os-structure/layered-approach.png" style="width: 50%;" />
+</div>
+
+### Microkernels
+- Kernel 要極小，除了最基本的其他都給 User mode 實現
+- 安全，extentable 但 not efficient
+- 用 Messege Passing 傳資料
+![Microkernels](/images/os/ch02-os-structure/microkernels.png)
+
+### Modules
+- **Loadable kernel modules (LKMs)**
+    - Kernel 有基本功能
+    - Dynamic 的去加入一些東西
+- 現在的系統通常都有實現這件事
+
+### Hybrid System
+
+<Aside type="note">
+
+- **Crash**: kernel 內部 failure
+- **Core dump**: process 壞了
+</Aside>

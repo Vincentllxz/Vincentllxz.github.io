@@ -1,0 +1,732 @@
+---
+title: "NTU-OS 作業系統 Ch3 Process"
+description: "NTU Operating System 作業系統:Ch3 Process"
+publishDate: "2026-05-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Process
+
+## Process Concept
+
+**Process** 就是一個 execution 的 Program
+- Program 是 **passive** entity
+    - 一個躺在 memory disk 裡面的 file
+- Process 是 **active** entity 
+    - 有 Program Counter
+    - 有 a set of associate resources
+- Loader 執行會讓 Program 變 Process
+
+### Memory Layout
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/memory-layout-1.png" style="width: 50%;" />
+</div>
+
+- Text section
+    - Execution Code
+    - 無論是硬體上的電壓訊號，還是真實的 code 都可以
+- Data section
+    - Global Variable
+- Heap section
+    - 動態 allocate 的 memory
+- Stack section
+    - function call 使用的 memory
+
+
+<Aside type="note" title="Virtual Memory Layout">
+
+
+![Memory Layout 2](/images/os/ch03-process/memory-layout-2.png)
+
+每個 Process 擁有獨立的虛擬記憶體空間，內容包含：
+- **Text / Instruction**：存放程式碼（如 `main()`）、函式庫連結等唯讀資料。
+- **Global / Static Data**：
+    - 依據「是否已初始化」區分存放區域（例如 `.data` vs `.bss`）。
+    - 未初始化的變數通常不佔用實際執行檔空間，載入時會自動設為 0。
+- **Stack**：存放函式呼叫（Function Call）時的區域變數、Return address 等。
+- **Heap**：動態分配的記憶體區域（如使用 `malloc()` 或 `new` 配置的空間）。
+- **Kernel Space (Open file desc. table / Kernel stack)**：
+    - 這些資料雖然屬於該 Process（紀錄該 Process 的狀態），但存放在 **Kernel Space**。
+    - **權限限制**：User Space 的程式無法直接存取，必須透過 System Call 請求 Kernel 操作。
+</Aside>
+
+<Aside type="tip" title="Example">
+
+![Memory Layout 3](/images/os/ch03-process/memory-layout-3.png)
+- main function 的 variable 也是 function call 的東西，因此在 Stack
+- 不把 dynamic allocate 的 memory 存在 Stack 是防止 stack close 後會寄需需要取用，不能被 close 掉
+</Aside>
+
+
+### Process State
+![Process State](/images/os/ch03-process/process-state.png)
+
+大部分 OS 都分成這樣，但通常會分得更加精細
+
+- **New**: 被 created 出來的 process
+- **Ready**: 已經可以去 assign 了
+- **Running**: 被 Scheduler 拿出了，正在跑
+    - 一次只有一個 process 可以執行在一個 core 上
+    - 被 interrupt 可能有三種情況
+        1. 被打斷，但沒有任合 memory allocate 所以可以直接回 **Ready**
+        2. 被打斷，但是是要等其他 I/O Request/Child Process 等各種 Event 結束後才 Ready，走到 **Waiting**
+        3. 完全結束 **Terminated**
+- **Waiting**: 不可被執行，是等待 Event 而不是 Scheduler
+- **Terminated**: 結束
+
+### Process Control Block (PCB)
+會叫做 Process Control Block (PCB) 或是 Task Control Block，必須要維持以下 attribute
+- Process state
+- Process number
+- Program counter
+- CPU registers
+    - 紀錄當前狀態
+- CPU-scheduling information
+- Memory-management information
+- Accounting information
+- I/O status information
+
+```c
+pid                  t_pid; /* process identifier */
+long                 state; /* state of the process */
+unsigned int         time_slice /* scheduling information */
+struct task_struct   *parent; /* this process's parent */
+struct list_head     children; /* this process's children */
+struct files_struct  *files; /* list of open files */
+struct mm_struct     *mm; /* address space of this process */
+```
+
+Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
+- 會用 `current` pointer 來處理現在 executing 的 process
+
+![Process Control Block](/images/os/ch03-process/process-control-block.png)
+
+### Thread
+
+只有一個 Program Counter
+- 一個 Process 通常只有一個 Thread of Execution
+- 多數 OS 現在都支援 Multi-Thread
+- 需要更多 TCB 來記錄狀態
+- 需要 Multi-core 的 machine 才能真正的 parellel 執行
+
+## Process Scheduling
+- 目標是要 Maximize the utilization of CPU
+- 從 Ready State 選 Process 的 Strategy
+- **Degree of Multiprogramming**: 現在正在 Memory 的 process 數量
+
+可以分成
+- I/O-Bound Process
+    - I/O 時間 > Computation 時間
+- CPU-   Bound Process
+    - I/O 時間 < Computation 時間
+
+### Scheduling Queue
+分成
+- Wait Queue
+    - 還在等待 Computation or I/O
+- Ready Queue
+    - 可以被執行的 Process
+
+![Scheduling Queue](/images/os/ch03-process/scheduling-queue.png)
+
+### Queuing Diagram
+
+等待的狀態不一樣，應該放在不同的 Wait Queue
+- 假設是 I/O 結束，我要抓 Process 出來就會找的比較快
+
+![Queuing Diagram](/images/os/ch03-process/queuing-diagram.png)
+
+正常的 **CPU Scheduler** 可能每 100ms 就要做一次 Scheduling
+
+**Swapping**
+- 有時候 memory 有限，有些 Process 可能會被放到 Disk 上，OS 也會提供這個功能
+
+### Context Switch
+把 CPU 從一個 Process 換到另一個 Process
+- Process 視角： 
+    - **State Save**
+    - **State Restore**
+- System 視角：
+    - Context Switch
+
+這些 Context Switch 需要的資訊都在 PCB 內
+ - **Context**: Value of CPU register, Process State, Memory Management information
+
+![Context Switch](/images/os/ch03-process/context-switch.png)
+
+Context Switch 的時候是 Pure overhead，所以必須要很快完成，和 Context Switch Speed 有關的是
+- Memory Speed
+- 要複製的 Resgister 數量
+- Hardware support（幾個 Cycle），跟 ISA 有關
+
+> OS 在這件事上設計的越多越快，設計就會相對來說變得複雜
+
+### Multitasking in Mobile Systems
+- iOS 4 後可以支援 single foreground with multiple background
+    - Split-screen
+- Android runs foreground and background with fewer limits
+
+## Operations on Processes
+
+### Process Creation
+
+通常是一個 **Parent Process** 去 create **children processes**
+- **process identifier**（`pid`） 可以去分辨他們
+
+Linux System 的 Tree of Process
+![Process Creation](/images/os/ch03-process/process-creation.png)
+
+- **Resource** options: Memory, File
+    - Child 可以共享 all Parent's resources
+    - Child 共享的是 Parent 的 subset
+    - Child 不能跟 Parent 共享
+- **Execution** options:
+    - Concurrently with Child
+    - Terminated 後再繼續
+- **Address-space** options:
+    - Duplicate Parent 的所有
+    - 有新的 Program to load
+
+#### Process Creation Using UNIX `fork()`
+
+```c
+#include <sys/types.h>
+#include <stdio.h>
+#include <unistd.h>
+int main() {
+    pid t pid;
+    /* fork a child process */
+    pid = fork();
+    if (pid < 0) { /* error occurred */
+        fprintf(stderr, "Fork Failed");
+        return 1;
+    }
+    else if (pid == 0) { /* child process */
+        execlp("/bin/ls","ls",NULL);
+    }
+    else { /* parent process */
+        /* parent will wait for the child to complete */
+        wait(NULL);
+        printf("Child Complete");
+    }
+    return 0;
+}
+```
+
+- `fork()` 
+    - 對 Parent 回傳值是 `pid` of the child
+    - 對 Child 回傳值是 zero
+- `exec()`
+    - 重新執行一個新的 Bianary File
+- `wait()`
+    - 等待 Child Process 結束
+    - 等到 Child Process explicitly call `exit()` 或 implicitly 預設結束
+
+上面的程式執行大概是這樣
+![Process Creation Using UNIX fork](/images/os/ch03-process/process-creation-using-unix-fork.png)
+
+#### Process Creation Using Windows API
+Windows 在 Create 的時候就要先寫清楚要 load 什麼 Program
+- `CreateProcess()`
+- `WaitForSingleObject()`
+
+> Unix like system `fork()` 不會 pass any parameter
+
+```c
+int main(VOID){
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    /* allocate memory */
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+    /* create child process */
+    if (!CreateProcess(NULL, /* use command line */
+        "C:∖∖WINDOWS∖∖system32∖∖mspaint.exe", /* command */
+        NULL, /* don't inherit process handle */
+        NULL, /* don't inherit thread handle */
+        FALSE, /* disable handle inheritance */
+        0, /* no creation flags */
+        NULL, /* use parent's environment block */
+        NULL, /* use parent's existing directory */
+        &si, &pi))   {
+        fprintf(stderr, "Create Process Failed");
+        return -1;
+    }
+    /* parent will wait for the child to complete */
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    printf("Child Complete");
+    /* close handles */
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+}
+```
+
+### Process Termination
+Process 執行完或想結束就會 call `exit()`
+- `exit()` 可以回傳一個 status code
+
+    ```c
+    exit(1)
+    ```
+- `wait()` 可以 returns 結束的 process 的 `pid` 也可以接收 status code
+
+    ```c
+    pid_t pid;
+    int status;
+    pid = wait(&status);
+    ```
+Process 也可能會 terminate 掉自己的 Child
+- 使用太多 Resource
+    - Parent 要有方法可以拿到 Child 的狀態
+- Parent assign 的 task 不需要了
+- Parent 自己先 Terminate 了
+    - **Cascading termination**: OS 把死掉的 Parent 底下的 Process 全砍掉
+
+<Aside type="note">
+
+**Zombie Process**
+- 已經 Terminate 了，但是他還沒被 `wait()` 掉，entry 還在
+
+**Orphan Process**
+- Parent 已經先死了，Linux 的 `systemd`(`init`) 會變成那個 Child 的 Parent
+    - Systemd 會 periodically 的 call `wait()`
+</Aside>
+
+
+#### Android Process Hierarchy
+Process 有分成
+- Foreground process
+- Visible process
+- Service process
+- Background process
+- Empty process
+
+如果有個 Visible process 同時也是 Service process，System 必須要決定被 terminate 的時候他應該當哪個（Visible 比較重要）
+
+#### Chrome Browser
+有階級式的方法，可以讓每個組件故障的時候不要全部都壞掉
+- **browser** process：user interface, disk and network I/O
+- **Renderer** processes：讀網路上的資料
+- **plug-in**
+
+## Interprocess Communication
+每個 Process 之謙需要 Cooperation，或是他們之間有 Parent-Child 的關係，可能會需要做 Communication
+
+**Interprocess Communication (IPC)** 根據 mechanism 可以分成
+- **Share memory Modle**
+    - 一般來說比較快
+- **Message Passing Modle**
+    - 常用在 distributed system
+
+![Interprocess Communication](/images/os/ch03-process/interprocess-communication.png)
+
+> 其實 message passing 最後的做法也是用 Shared Memory（圖解）
+
+## IPC in Shared-Memory Systems
+通常是由 Process 建立一個 Share memory segment 然後其他 Process 自己 attach 進去，通常 OS 會去防止兩個 Process access 到別的 process 的 address space，Share memory 就需要兩個或以上的 Process 去 ignore 這個 restriction
+
+### Producer-Consumer Problem
+**Producer** process 一直生產資訊到 buffer 內，**consumer** process 會去接收，buffer 就會在 Share memory 裡面
+- **unbounded buffer**: 無限制
+- **bounded buffer**
+
+<Aside type="tip" title="Example">
+
+```c
+#define BUFFER_SIZE 10
+typedef struct {
+    ...
+} item;
+item buffer[BUFFER_SIZE];
+int in = 0;
+int out = 0;
+```
+- `in` 是下一個空的 slot
+- `out` 是第一個有 information 的 position
+- `in == out` 就是 empty 了
+- `((in + 1) % BUFFER_SIZE) == out` 就是滿了
+- 這個 scheme 只能允許 `(BUFFER_SIZE − 1)` 個 data 同時存在
+</Aside>
+
+- **Producer**
+```c
+item next_produced;
+while (true) {
+    /* produce an item in next produced */
+    while (((in + 1) % BUFFER_SIZE) == out)
+        ; /* do nothing */
+    buffer[in] = next_produced;
+    in = (in + 1) % BUFFER_SIZE;
+}
+```
+滿了就等待，空了就繼續放
+
+- **Consumer**
+```c
+item next_consumed;
+while (true) {
+    while (in == out)
+        ; /* do nothing */
+    next_consumed = buffer[out];
+    out = (out + 1) % BUFFER_SIZE;
+    /* consume the item in next consumed */
+}
+```
+沒東西就等，有東西就做事情，然後往下讀
+
+## IPC in Message-Passing Systems
+**Message-Passing Systems** 一定有兩個功能
+- `send(message)`
+- `receive(message)`
+
+OS 可以選 fixed or variable in size
+
+必須設計出一個 Logical 的 Message passing Link，重點是在 **Logical implementation**
+- Direct or indirect communication
+- Synchronous or asynchronous communication
+- Automatic or explicit buffering
+
+### Naming
+
+#### Direct Commnication
+每個 Process 要送訊息都必須要「指名道姓」
+- **Symmetry** in addressing
+    - `send(P, message)`: send a message to process `P`
+    - `receive(Q, message)`: receive a message from process `Q`
+    - 每兩個 Process 都有一個 Link，不會有其他 Process share 他們
+- **Asymmetry** in addressing
+    - `send(P, message)`
+    - `receive(id, message)`: 指名道姓，但是可以接收其他 Process 的，但是不寫死是某個 Process（User 可以更改）
+
+#### Indirect Commnication
+Mailbox 的概念，把某個 message 放在一個指定位置，但要給誰不確定
+- `send(A, message)`: send a message to mailbox A
+- `receive(A, message)`: receive a message from mailbox A
+
+這個情況下的 Communication Link 不需要更改，固定在那就好
+- 多 Process Share 的 Link
+- 可以兩個 Process 有很多 Link（Priority）
+- 自己一個也可以
+
+<Aside type="caution" title="Problem">
+
+Processes `P1`, `P2`, and `P3` share mailbox `A`
+- Process `P1` sends a message to `A`
+- Both `P2` and `P3` execute a `receive()` from `A`
+- Which process will receive the message sent by `P1`?
+
+1. 只讓一個 Process 在一個時間 `receive()`
+2. 讓 System 做出一個 Scheme 來指定
+</Aside>
+
+Termination 的時候 OS 有兩種選擇
+- Mailbox owned by Process
+    - Mailbox 在 Process 結束的時候會消失
+    - 那個 Process 需要通知大家
+- Mailbox owned by OS
+    - OS 讓某個 Process 可以 Create, Send and receive, Delete 那個 Mailbox
+    - 當 Owner (Create mailbox 的 Process) terminate 後，OS 可以換掉 Ownership
+
+> Middleware 還會有人來做管理，訊息傳送管理
+
+### Synchronization
+
+分成
+- **blocking (synchronous)**：會被擋下來，直到另一邊收到或寄出才能繼續進行
+- **nonblocking (asynchronous)**：只 access 一次，沒收到也繼續進行
+
+> 可以跟 `send()`, `receive()` 做排列組合
+
+當 both 都是 blocking 就會是 **rendezvous**
+
+```c
+message next_produced;
+while (true) {
+    /* produce an item in next_produced */
+    send(next_produced);
+}
+```
+```c
+message next_consumed;
+while (true) {
+    receive(next_consumed);
+    /* consume the item in next_consumed */
+}
+```
+
+兩邊都 Blocking 就可以協作，就會變的很 trivial
+
+### Buffering
+Message 傳輸的時候需要的 temporary queue
+
+- Zero capacity
+    - The sender must **block**，一定要 receiver 收到，sender 才能走（其實是 one capacity）
+- Bounded capacity
+    - 沒滿就繼續
+- Unbounded capacity
+    - 無限制
+
+## Examples of IPC Systems
+
+### POSIX Shared Memory
+POSIX 全稱是 Portable Operating System Interface，是一個 IEEE 定出來的系列系統 standard
+
+#### POSIX API for shared memory
+- Creation of shm object: `shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);`
+- Configure the size: `ftruncate(shm_fd, 4096);`
+- Establish: `mmap()`
+
+<Aside type="tip" title="Example of Producer/Consumer">
+
+Producer
+```c
+int main() {
+    /* the size (in bytes) of shared memory object */
+    const int SIZE = 4096;
+    /* name of the shared memory object */
+    const char *name = "OS";
+    /* strings written to shared memory */
+    const char *message_0 = "Hello";
+    const char *message_1 = "World!";
+    /* shared memory file descriptor */
+    int fd;
+    /* pointer to shared memory obect */
+    char *ptr;
+    /* create the shared memory object */
+    fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+    /* configure the size of the shared memory object */
+    ftruncate(fd, SIZE);
+    /* memory map the shared memory object */
+    ptr = (char *) mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    /* write to the shared memory object */
+    sprintf(ptr,"%s",message 0);
+    ptr += strlen(message 0);
+    sprintf(ptr,"%s",message 1);
+    ptr += strlen(message 1);
+    return 0;
+}
+```
+Consumer
+```c
+int main() {
+    /* the size (in bytes) of shared memory object */
+    const int SIZE = 4096;
+    /* name of the shared memory object */
+    const char *name = "OS";
+    /* shared memory file descriptor */
+    int fd;
+    /* pointer to shared memory obect */
+    char *ptr;
+    /* open the shared memory object */
+    fd = shm_open(name, O_RDONLY, 0666);
+    /* memory map the shared memory object */
+    ptr = (char *) mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    /* read from the shared memory object */
+    printf("%s", (char *)ptr);
+    /* remove the shared memory object */
+    shm_unlink(name);
+    return 0;
+}
+```
+</Aside>
+
+### Mach Message Passing
+CMU 設計的一個 OS，MacOS, iOS 有採用一部分，原始是設計給 Distributed System 的
+
+- Create a new **port**: `mach_port_allocate()`
+- Send and receive: `mach_msg()`
+    - Kernel 有對 **Task Self port** 的 receive 權力，可以讓 task(process) 傳訊息
+    - Task 則是有 **Notify port** 接收 kernel 訊息
+- 有提供一個 header
+    ```c=
+    struct message {
+        mach_msg_header_t header;
+        int data;
+    };
+    ```
+
+當 queue full 的時候，`mach_msg()` 可以有以下彈性操作
+- Wait indefinitely
+- Wait at most n milliseconds
+- Return immediately
+- Temporarily cache
+
+<Aside type="tip" title="Example">
+
+```c
+mach_port_t client;
+mach_port_t server;
+/* Client Code */
+struct message message;
+// construct the header
+message.header.msgh_size = sizeof(message);
+message.header.msgh_remote_port = server;
+message.header.msgh_local_port = client;
+// send the message
+mach_msg(&message.header, // message header
+    MACH_SEND_MSG, // sending a message
+    sizeof(message), // size of message sent
+    0, // maximum size of received message - unnecessary
+    MACH_PORT_NULL, // name of receive port - unnecessary
+    MACH_MSG_TIMEOUT_NONE, // no time outs
+    MACH_PORT_NULL // no notify port
+);
+/* Server Code */
+struct message message;
+// receive the message
+mach_msg(&message.header, // message header
+    MACH_RCV_MSG, // sending a message --> receiving a message
+    0, // size of message sent
+    sizeof(message), // maximum size of received message
+    server, // name of receive port
+    MACH_MSG_TIMEOUT_NONE, // no time outs
+    MACH_PORT_NULL // no notify port
+);
+```
+</Aside>
+
+### Windows
+有 define 一些 sybsystem，各自有各自的 port，可以用 port 做連接
+
+![Windows](/images/os/ch03-process/windows.png)
+
+### Pipe
+一種 Unix 就有的古老 IPC，可以是單向也可以雙向，簡單但有很多需要考慮的問題
+- half duplex / full duplex
+- over a network / reside on the same machine
+
+#### Ordinary Pipes
+應該是 uni-directional 的，又稱 **anonymous pipes** (Windows)
+- **write end**
+- **read end**
+
+<Aside type="tip" title="Example">
+
+```c
+#define BUFFER_SIZE 25
+#define READ_END 0
+#define WRITE_END 1
+int main(void) {
+    char write_msg[BUFFER_SIZE] = "Greetings";
+    char read_msg[BUFFER_SIZE];
+    int fd[2];
+    pid_t pid;
+    pipe(fd); /* create the pipe */
+    /* omit codes if pipe failed */
+    pid = fork(); /* fork a child process */
+    /* omit codes if fork failed */
+    if (pid > 0) { /* parent process */
+        close(fd[READ_END]); /* close the unused end of the pipe */
+        write(fd[WRITE_END], write_msg, strlen(write_msg)+1); /* write to the pipe */
+        close(fd[WRITE_END]); /* close the write end of the pipe */
+    }
+    else { /* child process */
+        close(fd[WRITE_END]); /* close the unused end of the pipe */
+        read(fd[READ_END], read_msg, BUFFER_SIZE); /* read from the pipe */
+        printf("read %s",read_msg);
+        close(fd[READ_END]); /* close the read end of the pipe */
+    }
+    return 0;
+}
+```
+</Aside>
+
+#### Named Pipes
+
+可以留下來的 Pipe，通常是一種 file 的形式
+- Half-duplex in UNIX
+- Full-duplex in Windows
+
+## Communication in Client-Server Systems
+
+### Socket
+socket 是一種被定義好的 port，在 1024 以前的 port 通常被當作 **well-known** 也就是被定義好的
+
+#### Socket in Java
+- **Connection-oriented** (TCP) sockets
+    - `Socket` class
+- **Connectionless** (UDP) sockets
+    - `DatagramSocket` class
+- Multicast sockets: 可以用 broadcast 的方法
+    - `MulticastSocket` class 是 `DatagramSocket` 的 subset
+
+<Aside type="tip" title="Example">
+
+**Server**
+```java
+import java.net.*;
+import java.io.*;
+public class DateServer
+{
+    public static void main(String[] args) {
+        try {
+            ServerSocket sock = new ServerSocket(6013);
+            /* now listen for connections */
+            while (true) {
+                Socket client = sock.accept();
+                PrintWriter pout = new
+                PrintWriter(client.getOutputStream(), true);
+                /* write the Date to the socket */
+                pout.println(new java.util.Date().toString());
+                /* close the socket and resume */
+                /* listening for connections */
+                client.close();
+            }
+            catch (IOException ioe) {
+                System.err.println(ioe);
+            }
+        }
+    }
+}
+```
+- Server 會在第 10 行的 `accept()` 去做等待
+
+**Client**
+```java
+import java.net.*;
+import java.io.*;
+public class DateClient
+{
+    public static void main(String[] args) {
+        try {
+        /* make connection to server socket */
+            Socket sock = new Socket("127.0.0.1",6013);
+            InputStream in = sock.getInputStream();
+            BufferedReader bin = new
+            BufferedReader(new InputStreamReader(in));
+            /* read the date from the socket */
+            String line;
+            while ( (line = bin.readLine()) != null)
+                System.out.println(line);
+            /* close the socket connection*/
+            sock.close();
+        }
+        catch (IOException ioe) {
+            System.err.println(ioe);
+        }
+    }
+}
+```
+</Aside>
+
+### Remote Procedure Calls
+
+**RPC** 是一種 **abstracts** 的行為，實際上是別的機器在完成這件事，但看起來像自己完成的
+
+- RPC 會提供一個 **stub**，stub 會找到正確的 port，把這些資料弄成一個 msg，把 parameter 都傳過去
+    - 在 windows 叫做 Microsoft Interface Definition Language (MIDL)
+- 因為會有機器問題 RPC 通常都有 machine-independent representation 先轉成 external data representation (XDR)
+- 可以設定成 **exactly once** 或 **at most once**
+- **Binding**：對 port 的定義
+    - Predetermined
+    - Dynamic
+![Remote Procedure Calls](/images/os/ch03-process/remote-procedure-calls.png)

@@ -23,7 +23,7 @@ html {
   --card-foreground: 15 25% 12%;
   --popover: 25 45% 100%;
   --popover-foreground: 15 25% 12%;
-  --primary: 25 85% 52%;
+  --primary: 199 42% 49%;
   --primary-foreground: 25 45% 98%;
   --secondary: 20 35% 94%;
   --secondary-foreground: 15 25% 18%;
@@ -47,7 +47,7 @@ html {
   --card-foreground: 30 35% 96%;
   --popover: 275 20% 10%;
   --popover-foreground: 30 35% 96%;
-  --primary: 28 92% 70%;
+  --primary: 199 55% 65%;
   --primary-foreground: 275 25% 14%;
   --secondary: 275 14% 17%;
   --secondary-foreground: 30 35% 96%;
@@ -59,7 +59,7 @@ html {
   --destructive-foreground: 0 0% 98%;
   --border: 275 14% 22%;
   --input: 275 14% 17%;
-  --ring: 28 85% 70%;
+  --ring: 199 55% 65%;
   --info: 200 75% 65%;
   --warning: 285 70% 75%;
 }
@@ -213,6 +213,26 @@ figcaption {
   font-weight: 600;
   color: hsl(var(--foreground) / 0.85);
 } */
+
+/* === Reading rhythm — bump line-height for all prose content (blog + notes)
+   and add generous breathing room around images. === */
+.prose :where(p, li, blockquote, dd, dt, td, th):not(:where([class~='not-prose'] *)) {
+  line-height: 1.85;
+}
+/* Use Tailwind's prose `:not(:where([class~="not-prose"] *))` pattern so
+   `.not-prose` descendants (e.g. PDFCard) opt out of the bumped margins. */
+.prose :where(img):not(:where([class~='not-prose'] *)) {
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+}
+.prose :where(div[style*='text-align: center'], div[style*='text-align:center']):not(:where([class~='not-prose'] *)) {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+.prose :where(div[style*='text-align: center'] img, div[style*='text-align:center'] img):not(:where([class~='not-prose'] *)) {
+  margin-top: 0;
+  margin-bottom: 0;
+}
 
 /* === Scroll reveal — children of [data-reveal] fade up as they enter the viewport.
    The hidden state only applies once JS adds `.reveal-on` to <html>, so the page

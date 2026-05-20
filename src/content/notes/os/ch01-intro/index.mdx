@@ -1,0 +1,214 @@
+---
+title: "NTU-OS 作業系統 Ch1 Introduction"
+description: "NTU Operating System 作業系統:Ch1 Introduction"
+publishDate: "2026-05-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+
+# Overview
+
+![Overview](/images/os/ch01-intro/overview.png)
+
+## What OS do?
+
+### User View & System View
+**User view**
+- Resource Utilization
+- Ease of Use
+- Security
+- Interface
+
+**System View**
+- Control Program
+- Resource Allocator
+
+### Definition of OS
+- 很難定義
+- **Kernel**: All time running program on the computer
+- **System Program**: By system, but not all time
+- **Allication Program**
+- **Middleware**: 軟體衍生結果，有一些 service 可以讓 developer called，更方便點
+
+## Computer-System Organization
+
+![Computer-System Organization](/images/os/ch01-intro/computer-system-organization.png)
+
+通常一台電腦都會有
+- **Bus**: 連接 CPU, devvice controllers, share memory
+- OS 通常有 Device **Driver**，是一種 protocol
+
+### Interrupt
+
+<Aside type="note" title="Message">
+
+所有資料傳輸在 hardware 層面上全都是電壓高低，這裡講的所有傳輸 signal 全都是 bus 上的電壓變化。
+</Aside>
+
+- **Device Controller**: 在 device 方接收 Driver 指令
+    - **負責通知 Driver 資料傳輸完成**
+    - 把 Device 要傳送的資料 Buffer 起來（有一塊小小的 local buffer）
+- Driver 先把 control 給 OS 的其他部分
+    - read: return data/pointer
+    - return status
+- **Hardware** 會 trigger interrupt by sending **signal** to CPU (By bus)
+    - 這裡的 signal 是硬體上的「電壓變化」而不是 Unix kernel signal
+- **Interrupt vector**: 紀錄要跳到哪裡
+![Interrupt 1](/images/os/ch01-intro/interrupt-1.png)
+
+**Step**
+1. CPU 收到後，會馬上轉換執行某個動作（存在某個 fixed location）
+2. 存下剛剛停下的地方
+3. 執行 ISP (Interrupt service routine)
+4. CPU 回覆原始狀態
+
+![Interrupt 2](/images/os/ch01-intro/interrupt-2.png)
+
+![Interrupt 3](/images/os/ch01-intro/interrupt-3.png)
+- I/O request 後控制權到 I/O Device 上
+- I/O 結束後發送 CPU 被 Interrupt 後會先打斷 User Program 去執行 ISR
+- 執行結束後回覆 User Program 
+
+**Interrupt-handler routine**
+- CPU 會有 **Interrupt Request line**，分成 **Non-maskable** 跟 **maskable**
+    - CPU 做重要的事情不可被打斷
+- **Interrupt Chaining** (link list) 可以串連 interrupt vector，可以做搜尋
+- 會有 **Interrupt Priority level**
+
+### Storage Structure
+
+#### Main memory
+- 也叫做 **Randomly access memory (RAM)**
+- 最常見的是 **DRAM (dynamic)**
+- RAM 是有揮發性（易變）所以有另一種不揮發（nonvoltile）的硬體來存一些重要、且不用寫入操作的記憶體
+    - 用來啟動 OS 的 **bootstrap program** 會存在 Electrically Erasable Programmable Read-Only Memory (EEP**ROM**) 
+
+> By **von Neumann architecture**
+
+#### Secondary and Tertiary Storage
+- Main memory 通常比較小而且 voltile
+- **Secondary Storage**
+    - **Hard Disk Drive (HDD)**
+    - **Non-voltiile Memory (NVM) Device**
+- Tertiary Storage
+    - CD, Blu-ray, 磁碟
+   
+<Aside type="note">
+
+- 通常一個 Storage 讀寫速度越快就越小，而且 **Voltile**
+- 會有成本問題
+![Secondary and Tertiary Storage](/images/os/ch01-intro/secondary-and-tertiary-storage.png) 
+</Aside>
+
+#### Direct Memory Access
+- **I/O Management** 是 OS 一個很重要的問題
+    - I/O Interrupt 在小的 device 上可以運行的很好，但當 data 體量變大就會產生 overhead
+- **Direct Memory Access (DMA)**
+    - Controller 先做 buffer 等到累積一個 block 之後再給 CPU 去 Interrupt
+    - 在此期間 CPU 可以做自己的事
+    - 不需要 CPU 參與，可以讓 Device 自己去 access
+    > [!Tip]
+    > 有些 high-end system 會用 switch 而不是 bus architecture，DMA 在此情況更有效率
+
+![Direct Memory Access](/images/os/ch01-intro/direct-memory-access.png)
+
+### Comuter-System Architecture
+- Single Processor Systems
+- Multiprocessor Systems
+    - 在現今的系統內比較重要
+![Comuter-System Architecture](/images/os/ch01-intro/comuter-system-architecture.png)
+    - 可以用不同 CPU 控制也可以用不同 core 控制
+- Cluster Systems
+
+### Operating System Operation
+- Bootstrap program
+    - 找到 kernel 的位置
+- **System daemons**
+    - 不算在 kernel 裡面
+    - 一種 service，幫助 Application program 使用 OS service
+- Interruption
+    - Hardware interrupt (電壓)
+    - Software interrupt (**Exception** or **Trap**)
+        - Software error: Division by zero (自己寫特判)
+        - **System Call**
+
+#### Multiprogramming & Multitasking
+- Program 執行中叫做 **Process**（Program 只是 pattern）
+- Multitasking 只是一種 logical 的概念
+    - CPU switch 的非常快
+
+<Aside type="caution">
+
+整門 OS 大部分都 Base on Multitasking & Multiprogramming
+</Aside>
+
+#### Dual-Mode & Multimode Operation
+- OS defined code & User defined code
+    - **Kernel mode** & **User mode**
+- **Mode bit**
+    - 用 system call 做到更改
+![Dual-Mode & Multimode Operation](/images/os/ch01-intro/dual-mode-and-multimode-operation.png)
+- **Privileged instruction**: 有些指令 hardware 只讓在 kernel mode 的 process 執行
+
+#### Timer
+- 以時間來控制 interrupt
+
+## Resource Management
+- Process management
+- Memory management
+- File-system management
+- Mass-storage management
+- Cache management
+- I/O system management
+
+## Protection and Security
+- **Protection**: 不讓別人 access 某些地方
+- **Security**: Malicious 的 attcktion protect
+
+## Virtualization
+![Virtualization](/images/os/ch01-intro/virtualization.png)
+- Virtual machine 可以有多個，各自擁有 Kernel
+
+## Distributed System
+- Network:
+    - **TCP/IP**
+- Locol area network 
+
+![Distributed System](/images/os/ch01-intro/distributed-system.png)
+- Distributed OS 是只有一個 OS，可以用很多 kernel
+- Network OS 是在 Application 上用 Network 連接
+- Middkeware OS 是用 Middkeware 連接，通常用 subscribe 的方法連接
+
+## Kernel Data Structures
+- Lists, stacks, and queues
+- Trees
+- Hash functions and maps
+- Bitmaps
+
+## Computing Environments
+- Traditional computing
+- Mobile computing
+- Client-server computing
+- Peer-to-peer computing
+    - Not distinguish clients and servers
+- Cloud computing
+    - A logical extension of virtualization
+- Real-time embedded systems
+    - Schdueling
+
+### Computing Modes
+
+要想好 System 要做什麼，因為不能兼顧  
+
+| **Mode** | **Description** | **Metrics** | **Key Focus** |
+|---|---|---|---|
+| **Batch mode** | 執行後與外界無互動，如：編譯器、ML | CPU utilization、Turnaround time、Throughput，所以不用公平，把資源都集中給正在做的任務。 | Efficiency |
+| **Online mode** | **反應快**，有互動，最常見，如：遊戲、  瀏覽器 | Waiting Time、Response Time，避免資源都給最花時間的任務，要讓同一個長度的時間內完成的任務數量差不多，所以才要公平分配資源。 | Responsiveness |
+| **Real-time mode** | 有互動以外，還有時間限制，**要準確**，如：機器人控制、自駕車 | Tardiness（任務超時時間），要盡量避免任務超時。未必要把所有資源給任務，而是需要恰好使需要的資源都準備好。 | Predictability |

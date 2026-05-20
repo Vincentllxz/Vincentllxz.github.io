@@ -1,0 +1,46 @@
+---
+title: "NTU-OS 作業系統"
+description: "NTU Operating System 作業系統 課程筆記"
+publishDate: "2026-05-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+import ChapterList from '../../../components/ChapterList.astro'
+
+# 作業系統 筆記 Operating System
+
+<Aside type="note" title="Operating System">
+
+- 作業系統
+- 2021 Spring 林忠緯 老師
+
+![Operating System textbook cover](/images/os.png)
+</Aside>
+
+
+## Content
+
+<ChapterList
+  chapters={[
+    { n: 1, title: 'Introduction', href: '/notes/os/ch01-intro' },
+    { n: 2, title: 'OS Structure', href: '/notes/os/ch02-os-structure' },
+    { n: 3, title: 'Process', href: '/notes/os/ch03-process' },
+    { n: 4, title: 'Threads & Concurrency', href: '/notes/os/ch04-threads' },
+    { n: 5, title: 'Main Memory', href: '/notes/os/ch05-main-memory' },
+    { n: 6, title: 'Virtual Memory', href: '/notes/os/ch06-virtual-memory' },
+    { n: 7, title: 'CPU Scheduling', href: '/notes/os/ch07-cpu-scheduling' },
+    { n: 8, title: 'I/O Systems' },
+    { n: 9, title: 'Mass Storage System' },
+    { n: 10, title: 'File-System Interface' },
+    { n: 11, title: 'File-System Implementation' },
+    { n: 12, title: 'File-System Internals' },
+    { n: 13, title: 'Synchronization Tools' },
+    { n: 14, title: 'Synchronization Examples' }
+  ]}
+/>
