@@ -134,7 +134,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - `02000` 表示有外借 GID
     
     <Aside type="tip" title="">
-    ![GID, UID 1](/images/sp/ch05-file/gid-uid-1.png)
+    <div style="text-align: center;">
+      <img src="/images/sp/ch05-file/gid-uid-1.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         GID, UID 1
+      </span>
+    </div>
     - Real-id: B
     - Effective-id: **B**
     - B **可執行** A1 因為現在是 `0755`，B 被歸在 other user
@@ -142,7 +148,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     </Aside>
   
     <Aside type="tip" title="">
-    ![GID, UID 2](/images/sp/ch05-file/gid-uid-2.png)
+    <div style="text-align: center;">
+      <img src="/images/sp/ch05-file/gid-uid-2.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         GID, UID 2
+      </span>
+    </div>
     - Real-id: B
     - Effective-id: **A**
     - B **可執行** A1 因為現在是 `4755`，B Process 借到了 owner permission 是 `7` 權限
@@ -224,31 +236,67 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
         - **i-nodes map**
         - **Data blocks**
         - **Data blocks map**
-    - ![Structure 1](/images/sp/ch05-file/structure-1.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch05-file/structure-1.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Structure 1
+        </span>
+      </div>
 - **i-node list** (fix list)
-    - ![Structure 2](/images/sp/ch05-file/structure-2.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch05-file/structure-2.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Structure 2
+        </span>
+      </div>
     - 記錄**佔用哪些 DISK block**
     - open 某個 file 就會被 mirror 到 buffer cache 裡面
     - owner, type, file size
     - **Per file**，不同的 filename 用 **hard link** 連接
         - 裡面有一個 `st_nlink` 紀錄 link count 類似於 Reference count
-    - ![Structure 3](/images/sp/ch05-file/structure-3.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch05-file/structure-3.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Structure 3
+        </span>
+      </div>
 - File operation
     - move 檔案只需要改一改 i-node 的值就好了
     - delete 就是 link count -1 
 - Example: 4.4BSD i-node
-    - ![Structure 4](/images/sp/ch05-file/structure-4.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch05-file/structure-4.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Structure 4
+        </span>
+      </div>
     - direct block: 每個指向一個 block
     - single indirect: 指向一個 block，其中都是 direct blocks (direct block 會用完)，single indirect 的第一層 pointer 也可以存在 buffer cache
     - double indirect，指向一個blcok，其中都是 single indirect blocks
     - triple indirect，指向一個blcok，其中都是 double indirect blocks
     - **lock**: 會在 i-node table 底下串 lock 對 process 的資料
-![Structure 5](/images/sp/ch05-file/structure-5.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch05-file/structure-5.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Structure 5
+  </span>
+</div>
 ### Hard link & Soft link 
 - Hard link
     - 只有 SU 可以對一個 directory create 一個 hard link
     - 不能 Cross file system
-    - ![Hard link & Soft link 1](/images/sp/ch05-file/hard-link-and-soft-link-1.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch05-file/hard-link-and-soft-link-1.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Hard link &amp; Soft link 1
+        </span>
+      </div>
 - Soft link (Symbolic link)
     - 紀錄路徑 
     - 能 Cross file system
@@ -256,7 +304,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 還可能出現 traverse infinite loop: 
         - 紀錄 i-node number 解決
         - 紀錄 走過幾次 soft-link 解決  
-    - ![Hard link & Soft link 2](/images/sp/ch05-file/hard-link-and-soft-link-2.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch05-file/hard-link-and-soft-link-2.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Hard link &amp; Soft link 2
+        </span>
+      </div>
 - **`int link(char *existingpath, char *newpath)`**
     - hard link
     - 必須 atomic

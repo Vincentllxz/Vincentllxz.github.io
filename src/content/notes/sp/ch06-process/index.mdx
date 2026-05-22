@@ -31,7 +31,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 把系統的 service 叫起來
     - `inetd`: 管理 remote login 會 fork surface process 出來像是 `telnetdaemon`
 - **`PID 2`**: `pagedaemon`
-![Bootstrapping](/images/sp/ch06-process/bootstrapping.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/bootstrapping.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Bootstrapping
+  </span>
+</div>
 
 ### Process Control Block (PCB)
 - Process 的 metadate
@@ -41,7 +47,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - Waiting
     - Ready
     - Terminated
-- ![Process Control Block 1](/images/sp/ch06-process/process-control-block-1.png)
+- <div style="text-align: center;">
+    <img src="/images/sp/ch06-process/process-control-block-1.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       Process Control Block 1
+    </span>
+  </div>
 - Program Counter (IP: Instruction Pointer)
 - CPU registers
     - context switch 回來要 restore
@@ -51,27 +63,51 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - Accounting information
     - 紀錄任何時間參數
 - I/O status information
-![Process Control Block 2](/images/sp/ch06-process/process-control-block-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/process-control-block-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process Control Block 2
+  </span>
+</div>
 
 ### Process table
 - 每個 entry 都是 PCB，記錄當前所有 process
 - run 一次看看誰的 `ppid` 是自己就知道自己有多少 child 了
 
 ### Context switch
-![Context switch 1](/images/sp/ch06-process/context-switch-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/context-switch-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Context switch 1
+  </span>
+</div>
 
 <Aside type="note" title="">
 **Process Scheduling Queue**
 - **Job queue**: 所有 process
 - **Ready queue**: 準備好在 main memory 的 process
 - **Device queues**: 準備 I/O 的
-![Context switch 2](/images/sp/ch06-process/context-switch-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/context-switch-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Context switch 2
+  </span>
+</div>
 </Aside>
 
 
 ### Process Content & Metadata
 - **Content**: Virtual memory 
-- ![Process Content & Metadata](/images/sp/ch06-process/process-content-and-metadata.png)
+- <div style="text-align: center;">
+    <img src="/images/sp/ch06-process/process-content-and-metadata.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       Process Content &amp; Metadata
+    </span>
+  </div>
 - text: instruction
 - un-initialized data, initialized data: global variable
 - stack: local variable
@@ -79,7 +115,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Process Creation & Termination
 
-![Process Creation & Termination 1](/images/sp/ch06-process/process-creation-and-termination-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/process-creation-and-termination-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process Creation &amp; Termination 1
+  </span>
+</div>
 - `fork()` 開始，會出現很多狀況: parent 先死, 直接 `exec()`
 - 兩個 process 的關聯性只有 `ppid`
 
@@ -92,7 +134,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - 在 bootstrapping 後唯一可以創建 process 的 system call
 - **只 call fork 是不會執行 process**
 
-![Process Creation & Termination 2](/images/sp/ch06-process/process-creation-and-termination-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/process-creation-and-termination-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process Creation &amp; Termination 2
+  </span>
+</div>
 </Aside>
 
 **Virtual Memory 的運作**
@@ -100,9 +148,21 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - 把 virtual memory map 到 physical memory 上
     - 對應在 `p_ldt` 上的 table
     - Virtual Memory 用不完的，所以會有洞，但這樣浪費空間
-    - ![Process Creation & Termination 3](/images/sp/ch06-process/process-creation-and-termination-3.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch06-process/process-creation-and-termination-3.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Process Creation &amp; Termination 3
+        </span>
+      </div>
 - **Copy-on-write**
-    - ![Process Creation & Termination 4](/images/sp/ch06-process/process-creation-and-termination-4.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch06-process/process-creation-and-termination-4.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Process Creation &amp; Termination 4
+        </span>
+      </div>
     - 當發現出現 share memory 要更改的時候再 copy
     - 第一次開始寫入才真正複製
 
@@ -197,7 +257,13 @@ void forkfunc() {
 
 
 
-![Normal cases in fork](/images/sp/ch06-process/normal-cases-in-fork.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/normal-cases-in-fork.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Normal cases in fork
+  </span>
+</div>
 
 
 <Aside type="note" title="**Usage of fork**">
@@ -274,7 +340,13 @@ int main(void) {
 
 ### Process Termination
 - **Normal termination**
-    - ![Process Termination 1](/images/sp/ch06-process/process-termination-1.png)
+    - <div style="text-align: center;">
+        <img src="/images/sp/ch06-process/process-termination-1.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Process Termination 1
+        </span>
+      </div>
     - main 內部 call `exit()` 直接回到 kernel 直接消失
     - 你不 exit()，C start-up routine 會幫你 `exit(main(argc, argv));`
     - `_exit()` 就直接死，不 clean up
@@ -299,7 +371,13 @@ int main(void) {
 
 <Aside type="note" title="Terminate Status">
 可以透過一系列 macro 去獲得死亡訊息
- ![Process Termination 2](/images/sp/ch06-process/process-termination-2.png)
+ <div style="text-align: center;">
+   <img src="/images/sp/ch06-process/process-termination-2.png" style="width: 100%;" />
+   <br />
+   <span style="color: grey; font-size: 16px;">
+      Process Termination 2
+   </span>
+ </div>
 - parent 呼叫 `wait()` 不一定是要等小孩死，而是要等待他狀態改變
 </Aside>
 
@@ -384,7 +462,13 @@ int main(void) {
 
 **Double fork**
 - 不想呼叫 `wait()` 但也不希望有 zombie process
-![Orphan](/images/sp/ch06-process/orphan.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/orphan.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Orphan
+  </span>
+</div>
 - Grandchild 才是真正我們想要的
 
 <Aside type="tip" title="Example of double fork">
@@ -495,7 +579,13 @@ output from parent
     - 因為是 unbuffered 所以會產生 context switch，在 **terminal 的 buffer 滿的時候**會 context switch
 - 真正要進行 I/O 才會創建 buffer，並且決定 type
     - 在執行真正 I/O 前設定 buffer 就有效 
-![Race Condition 1](/images/sp/ch06-process/race-condition-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/race-condition-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Race Condition 1
+  </span>
+</div>
 </Aside>
 
 <Aside type="note" title="Example of double fork">
@@ -522,9 +612,21 @@ output from parent
     - C library 會提供一個 `extern char **environ` 如果 virtual memory 不夠，系統會動這個參數，所以不要亂指令 `**envp`
     - `PATH` 會按照 `PATH=/bin:/usr/bin:/usr/local/bin \0` 的順序，因為 ls 是 internal command，要看要執行哪裡的 `ls` 這個順序就是他找的順序
     - 通常會被放在 stack 的上層
-![Race Condition 2](/images/sp/ch06-process/race-condition-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/race-condition-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Race Condition 2
+  </span>
+</div>
 
-![Race Condition 3](/images/sp/ch06-process/race-condition-3.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/race-condition-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Race Condition 3
+  </span>
+</div>
 </Aside>
 
 **`int execlp(const char *filename, const char *arg0, … /* (char *) 0 */);`**
@@ -534,12 +636,24 @@ output from parent
 - p 會把東西 binary file 當 shell script 執行，先呼叫 `/bin/sh` 讓他去執行
 
 <Aside type="note" title="">
-![Race Condition 4](/images/sp/ch06-process/race-condition-4.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/race-condition-4.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Race Condition 4
+  </span>
+</div>
 同常只有 `execve` 是 system call 其他都可以根據這張圖，用 function call 外包
 </Aside>
 
 **Close on exec**
-![Race Condition 5](/images/sp/ch06-process/race-condition-5.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/race-condition-5.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Race Condition 5
+  </span>
+</div>
 - 要不要再執行後把 element 關掉
 - child 的 open fd table 就是 parent 的
     - 預設是 close，只有 open 的時候才會長得不一樣
@@ -556,14 +670,32 @@ output from parent
 **` int pipe( int filedes[2] );`**
 
 - 一端寫一端讀，不一定多少人
-- ![Pipe 1](/images/sp/ch06-process/pipe-1.png)
+- <div style="text-align: center;">
+    <img src="/images/sp/ch06-process/pipe-1.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       Pipe 1
+    </span>
+  </div>
 - `fork()` 時如何送資訊給別人
     - 都是單向讀寫，一個 process 只會有一個 fd 開著
     - 一端寫了另一端還沒讀就 suspend 因為這是 fd blocking mode
     - Multiplexing 就 `poll` 就好了，因為也是 file
     - pipe 完畢再 fork 就可以繼承 pipe
-- ![Pipe 2](/images/sp/ch06-process/pipe-2.png)
-- ![Pipe 3](/images/sp/ch06-process/pipe-3.png)
+- <div style="text-align: center;">
+    <img src="/images/sp/ch06-process/pipe-2.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       Pipe 2
+    </span>
+  </div>
+- <div style="text-align: center;">
+    <img src="/images/sp/ch06-process/pipe-3.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       Pipe 3
+    </span>
+  </div>
 - `$ ls | more`
     - 就是 `$` shell 先呼叫 pipe 然後 fork 出兩個 process
 
@@ -673,7 +805,13 @@ static void charatatime(char *str) {
         putc(c, stdout);
 }
 ```
-![Pipe 4](/images/sp/ch06-process/pipe-4.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/pipe-4.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Pipe 4
+  </span>
+</div>
 - 用這樣的 one way pipe 讓雙方互相溝通
 </Aside>
 
@@ -693,16 +831,34 @@ static void charatatime(char *str) {
 - `PIPE_BUF` 指定最多讀多少，避免資料混淆
 
 <Aside type="tip" title="Example">
-![FIFO 1](/images/sp/ch06-process/fifo-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/fifo-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     FIFO 1
+  </span>
+</div>
 - 把東西同時送給兩個地方
 </Aside>
  
 <Aside type="tip" title="Socket">
-![FIFO 2](/images/sp/ch06-process/fifo-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/fifo-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     FIFO 2
+  </span>
+</div>
 - 可以讓大家都寫在裡面，server 可以讀
 - pipe 無法單端讀寫，因此 response 需要這樣送，如下圖
     - client 的會是 specific 的，不然會混淆
-![FIFO 3](/images/sp/ch06-process/fifo-3.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch06-process/fifo-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     FIFO 3
+  </span>
+</div>
 - open well-known FIFO for `R`, `W` 變成
 </Aside>
 

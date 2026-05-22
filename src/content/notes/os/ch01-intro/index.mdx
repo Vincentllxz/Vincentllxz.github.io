@@ -15,7 +15,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 # Overview
 
-![Overview](/images/os/ch01-intro/overview.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/overview.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Overview
+  </span>
+</div>
 
 ## What OS do?
 
@@ -39,7 +45,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ## Computer-System Organization
 
-![Computer-System Organization](/images/os/ch01-intro/computer-system-organization.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/computer-system-organization.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Computer-System Organization
+  </span>
+</div>
 
 通常一台電腦都會有
 - **Bus**: 連接 CPU, devvice controllers, share memory
@@ -61,7 +73,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **Hardware** 會 trigger interrupt by sending **signal** to CPU (By bus)
     - 這裡的 signal 是硬體上的「電壓變化」而不是 Unix kernel signal
 - **Interrupt vector**: 紀錄要跳到哪裡
-![Interrupt 1](/images/os/ch01-intro/interrupt-1.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/interrupt-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Interrupt 1
+  </span>
+</div>
 
 **Step**
 1. CPU 收到後，會馬上轉換執行某個動作（存在某個 fixed location）
@@ -69,9 +87,21 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 3. 執行 ISP (Interrupt service routine)
 4. CPU 回覆原始狀態
 
-![Interrupt 2](/images/os/ch01-intro/interrupt-2.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/interrupt-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Interrupt 2
+  </span>
+</div>
 
-![Interrupt 3](/images/os/ch01-intro/interrupt-3.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/interrupt-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Interrupt 3
+  </span>
+</div>
 - I/O request 後控制權到 I/O Device 上
 - I/O 結束後發送 CPU 被 Interrupt 後會先打斷 User Program 去執行 ISR
 - 執行結束後回覆 User Program 
@@ -104,7 +134,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - 通常一個 Storage 讀寫速度越快就越小，而且 **Voltile**
 - 會有成本問題
-![Secondary and Tertiary Storage](/images/os/ch01-intro/secondary-and-tertiary-storage.png) 
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/secondary-and-tertiary-storage.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Secondary and Tertiary Storage
+  </span>
+</div>
 </Aside>
 
 #### Direct Memory Access
@@ -117,13 +153,25 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     > [!Tip]
     > 有些 high-end system 會用 switch 而不是 bus architecture，DMA 在此情況更有效率
 
-![Direct Memory Access](/images/os/ch01-intro/direct-memory-access.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/direct-memory-access.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Direct Memory Access
+  </span>
+</div>
 
 ### Comuter-System Architecture
 - Single Processor Systems
 - Multiprocessor Systems
     - 在現今的系統內比較重要
-![Comuter-System Architecture](/images/os/ch01-intro/comuter-system-architecture.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/comuter-system-architecture.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Comuter-System Architecture
+  </span>
+</div>
     - 可以用不同 CPU 控制也可以用不同 core 控制
 - Cluster Systems
 
@@ -154,7 +202,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **Kernel mode** & **User mode**
 - **Mode bit**
     - 用 system call 做到更改
-![Dual-Mode & Multimode Operation](/images/os/ch01-intro/dual-mode-and-multimode-operation.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/dual-mode-and-multimode-operation.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Dual-Mode &amp; Multimode Operation
+  </span>
+</div>
 - **Privileged instruction**: 有些指令 hardware 只讓在 kernel mode 的 process 執行
 
 #### Timer
@@ -173,7 +227,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **Security**: Malicious 的 attcktion protect
 
 ## Virtualization
-![Virtualization](/images/os/ch01-intro/virtualization.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/virtualization.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Virtualization
+  </span>
+</div>
 - Virtual machine 可以有多個，各自擁有 Kernel
 
 ## Distributed System
@@ -181,7 +241,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **TCP/IP**
 - Locol area network 
 
-![Distributed System](/images/os/ch01-intro/distributed-system.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch01-intro/distributed-system.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Distributed System
+  </span>
+</div>
 - Distributed OS 是只有一個 OS，可以用很多 kernel
 - Network OS 是在 Application 上用 Network 連接
 - Middkeware OS 是用 Middkeware 連接，通常用 subscribe 的方法連接

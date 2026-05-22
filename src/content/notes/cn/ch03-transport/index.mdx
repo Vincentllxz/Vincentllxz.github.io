@@ -24,9 +24,21 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Transport Layer action
 - **Sender**: 把 Application Layer message 封裝，加上 Transport layer header，往下送到 IP
-![Transport Layer action 1](/images/cn/ch03-transport/transport-layer-action-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/transport-layer-action-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Transport Layer action 1
+  </span>
+</div>
 - **Receiver**: Check header value，然後 Demultiplex message 到正確的 process
-![Transport Layer action 2](/images/cn/ch03-transport/transport-layer-action-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/transport-layer-action-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Transport Layer action 2
+  </span>
+</div>
 - **TCP**: Transmission Control Protocol
 - **UDP**: User Datagram Protocol
 - 不提供 Delay guarantee, Bandwidth guarantee
@@ -34,14 +46,32 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ## Multiplexing & Demultiplexing
 - 一台主機可能要接收很多 request，為了分別他們，將 response send 到正確的 client process 上，我們的可以使用 Multiplexing & Demultiplexing
 - **Multiplexing**: 加上 header 幫助辨認傳送的地方
-![Multiplexing & Demultiplexing 1](/images/cn/ch03-transport/multiplexing-and-demultiplexing-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Multiplexing &amp; Demultiplexing 1
+  </span>
+</div>
 - **demultiplexing**: 解讀 header 傳送到正確的 socket
-![Multiplexing & Demultiplexing 2](/images/cn/ch03-transport/multiplexing-and-demultiplexing-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Multiplexing &amp; Demultiplexing 2
+  </span>
+</div>
 
 
 ### Multiplexing & Demultiplexing for UDP
 - header 的架構必須有這些東西
-![Multiplexing & Demultiplexing for UDP 1](/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-1.png =50%x)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-1.png" style="width: 50%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Multiplexing &amp; Demultiplexing for UDP 1
+  </span>
+</div>
 
 <Aside type="caution" title="">
 UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因此不同 source 的 data 會被送到同一個 socket 裡面
@@ -49,7 +79,13 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 
 - 機制如下
     - Request 跟 Response 只需要交換 Source port, Destination port 就好了
-![Multiplexing & Demultiplexing for UDP 2](/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Multiplexing &amp; Demultiplexing for UDP 2
+  </span>
+</div>
 
 ### Multiplexing & Demultiplexing for TCP
 - 稱為 Connection-oriented demultiplexing
@@ -60,7 +96,13 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - Destination port number
 - 即便是同一個 port 還是會被開到不同的 socket 裡面
 - 一樣交換兩端資訊即可送回
-![Multiplexing & Demultiplexing for TCP](/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-tcp.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-tcp.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Multiplexing &amp; Demultiplexing for TCP
+  </span>
+</div>
 
 ## UDP (User Datagrams Protocol)
 - Connectionless 不需要 handshake
@@ -79,8 +121,20 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - SNMP
  
 <Aside type="tip" title="Example">
-![Use of UDP 1](/images/cn/ch03-transport/use-of-udp-1.png)
-   ![Use of UDP 2](/images/cn/ch03-transport/use-of-udp-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/use-of-udp-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Use of UDP 1
+  </span>
+</div>
+   <div style="text-align: center;">
+     <img src="/images/cn/ch03-transport/use-of-udp-2.png" style="width: 100%;" />
+     <br />
+     <span style="color: grey; font-size: 16px;">
+        Use of UDP 2
+     </span>
+   </div>
 </Aside>
 
 
@@ -88,7 +142,13 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - Source port, Dest. port
 - Length: include header
 - **Checksum**
-![UDP structure](/images/cn/ch03-transport/udp-structure.png =50%x)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/udp-structure.png" style="width: 50%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     UDP structure
+  </span>
+</div>
 
 ### UDP Check Sum
 - 檢查錯誤：像是 flipped bits，加起來不一樣就知道有 error
@@ -101,30 +161,66 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 <Aside type="note" title="One's complement">
 - 加起來後把第一位 wraparound 加到尾巴，在算一次
 - 做 complement 
-![UDP Check Sum 1](/images/cn/ch03-transport/udp-check-sum-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/udp-check-sum-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     UDP Check Sum 1
+  </span>
+</div>
 </Aside>
 
 <Aside type="caution" title="Checksum is a WEAK PROTECTION">
 - 在這個例子裡 Checksum 沒變但裡面被 flip 了
-![UDP Check Sum 2](/images/cn/ch03-transport/udp-check-sum-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/udp-check-sum-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     UDP Check Sum 2
+  </span>
+</div>
 </Aside>
 
 ## Reliable Data Transfer (RDT)
 我們想像中是左圖，但實際上是右邊，並沒有真正的 reliable channel  
-![Reliable Data Transfer 1](/images/cn/ch03-transport/reliable-data-transfer-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/reliable-data-transfer-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Reliable Data Transfer 1
+  </span>
+</div>
 - 要考慮非常複雜的狀況，要站在另外一端的角度思考會發生什麼事情
     - 要設計出一對這樣的 protocol 而且要可以雙向溝通
 - 實際上的 interface 其實長這樣
-![Reliable Data Transfer 2](/images/cn/ch03-transport/reliable-data-transfer-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/reliable-data-transfer-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Reliable Data Transfer 2
+  </span>
+</div>
 - 我們後面都用這種形式來表示狀態轉移
-![Reliable Data Transfer 3](/images/cn/ch03-transport/reliable-data-transfer-3.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/reliable-data-transfer-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Reliable Data Transfer 3
+  </span>
+</div>
 
 ### rdt 1.0: Reliable transfer with Reliable channel
 - No bits error
 - No loss packet. 
 - **Sender** 只要寄出，就回到原始狀態
 - **Receiver** 只要接收後讀取，就回到原始狀態
-![rdt 1.0: Reliable transfer with Reliable channel](/images/cn/ch03-transport/rdt-1-0-reliable-transfer-with-reliable-channel.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/rdt-1-0-reliable-transfer-with-reliable-channel.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     rdt 1.0: Reliable transfer with Reliable channel
+  </span>
+</div>
 
 ### rdt 2.0: Channel with bits error
 - Maybe flipped bits
@@ -133,7 +229,13 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - Negative Acknowledgements(**NAKs**): 告訴 sender packet 不過
     - Sender 收到 NAKs 後 retransmit
 - 上述過程可以畫成這個 FSM 
-![rdt 2.0: Channel with bits error](/images/cn/ch03-transport/rdt-2-0-channel-with-bits-error.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/rdt-2-0-channel-with-bits-error.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     rdt 2.0: Channel with bits error
+  </span>
+</div>
  
 ### rdt 2.1: Handling Garble ACKs/NAKs
 - 如果 Receiver 送出的 ACKs/NAKs 是亂碼，那 Sender 就必須重複送一次資料我們稱為 duplicate
@@ -142,29 +244,65 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - **Sender**:
     - 在送出 packet 後，跟前者一樣，但當 `corrupt()` 時要在原地等待
     - 在 `make_pkt()` 的時候要送 sequence 進去（0, 1）
-![rdt 2.1: Handling Garble ACKs/NAKs 1](/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     rdt 2.1: Handling Garble ACKs/NAKs 1
+  </span>
+</div>
 - **Receiver**:
     - 當收到並非自己 sequence number 的時候，也要在原地等待，並且送出 `ACKs` 的資訊
     - 要檢查是否是自己的 sequence number
-![rdt 2.1: Handling Garble ACKs/NAKs 2](/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     rdt 2.1: Handling Garble ACKs/NAKs 2
+  </span>
+</div>
 
 ### rdt 2.2: Free NAKs Protocol
 - 其實 `NAK` 可以用 `udt_send()` 非自己 sequence number 來取代
 - 可以簡化 FSM 成
-![rdt 2.2: Free NAKs Protocol](/images/cn/ch03-transport/rdt-2-2-free-naks-protocol.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/rdt-2-2-free-naks-protocol.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     rdt 2.2: Free NAKs Protocol
+  </span>
+</div>
 
 ### rdt 3.0 channels with errors and loss
 - 需要 resend 丟失的 packet
 - pkt 可能會 delay (不是 lost)
     - retransmission 可能會導致 duplicate packet 但是 sequence number 就可以 handle 了
 - 要有 timeout checker 來檢查是否超過時間，超過則重新發送 pkt
-   ![rdt 3.0 channels with errors and loss](/images/cn/ch03-transport/rdt-3-0-channels-with-errors-and-loss.png)
+   <div style="text-align: center;">
+     <img src="/images/cn/ch03-transport/rdt-3-0-channels-with-errors-and-loss.png" style="width: 100%;" />
+     <br />
+     <span style="color: grey; font-size: 16px;">
+        rdt 3.0 channels with errors and loss
+     </span>
+   </div>
    - `star_timer` 於發送 pkt 開始計算
    - `stop_timer` 於 `is_ACK()` 發送 
 
 #### Action of rdt 3.0
-![Action of rdt 3.0 1](/images/cn/ch03-transport/action-of-rdt-3-0-1.png)
-![Action of rdt 3.0 2](/images/cn/ch03-transport/action-of-rdt-3-0-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/action-of-rdt-3-0-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Action of rdt 3.0 1
+  </span>
+</div>
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/action-of-rdt-3-0-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Action of rdt 3.0 2
+  </span>
+</div>
 - **Case (a)**: No loss
 - **Case (b)**: `pkt` loss 
     - 根據 FSM， `timeout` 後才會 resend pkt
@@ -183,27 +321,57 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - $1$ Gbps link
 - $15$ ms prop. delay
 - $8000$ bit packet
-$$ D_{trans} = \frac{L}{R} = \frac{8000 \text{ bits}}{10^9 \ \text{bits/sec}} = 8 \text{ ms } $$
-![Performance of rdt 3.0](/images/cn/ch03-transport/performance-of-rdt-3-0.png)
+$$
+D_{trans} = \frac{L}{R} = \frac{8000 \text{ bits}}{10^9 \ \text{bits/sec}} = 8 \text{ ms }
+$$
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/performance-of-rdt-3-0.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Performance of rdt 3.0
+  </span>
+</div>
 - 這張圖裡面 first, last 之間藍色片段是 $D_{trans}$，我們可以得出
-$$U_{\text{sender}} = \frac{D_{trans}}{\text{RTT} + D_{trans}} = \frac{L/R}{\text{RTT} + L/R} = \frac{.008}{30.008} = 0.00027$$
+$$
+U_{\text{sender}} = \frac{D_{trans}}{\text{RTT} + D_{trans}} = \frac{L/R}{\text{RTT} + L/R} = \frac{.008}{30.008} = 0.00027
+$$
 </Aside>
 
 #### Pipeline
 - 允許一次多個 sequence number 的同時傳送
     - 需要更多 sequence number
     - 需要更多 buffer space
-![Pipeline 1](/images/cn/ch03-transport/pipeline-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/pipeline-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Pipeline 1
+  </span>
+</div>
 
 <Aside type="tip" title="Example">
-![Pipeline 2](/images/cn/ch03-transport/pipeline-2.png)
-$$U_{\text{sender}} = \frac{3L/R}{\text{RTT} + 3L/R} = \frac{.008}{30.008} = 0.00081   $$
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/pipeline-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Pipeline 2
+  </span>
+</div>
+$$
+U_{\text{sender}} = \frac{3L/R}{\text{RTT} + 3L/R} = \frac{.008}{30.008} = 0.00081
+$$
 - 整體數值提升 **3 倍**
 </Aside>
 
 ### Go-Back-N sender/receiver (GBN)
 **Sender**
-![Go-Back-N sender/receiver 1](/images/cn/ch03-transport/go-back-n-sender-receiver-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Go-Back-N sender/receiver 1
+  </span>
+</div>
 上圖是一整串 `pkt`
 - 名詞
     - 綠：已經被 `ACK`
@@ -223,15 +391,33 @@ $$U_{\text{sender}} = \frac{3L/R}{\text{RTT} + 3L/R} = \frac{.008}{30.008} = 0.0
     > [!Note]
     > 假設 sender 一直收到 `ACK(7)` 即便 8, 9, 10 是好的，他也會重新運送整個 `window_size` 裡的 `pkt`
 - FSM of Sender
-    ![Go-Back-N sender/receiver 2](/images/cn/ch03-transport/go-back-n-sender-receiver-2.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-2.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Go-Back-N sender/receiver 2
+      </span>
+    </div>
 
 **Receiver**
-![Go-Back-N sender/receiver 3](/images/cn/ch03-transport/go-back-n-sender-receiver-3.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Go-Back-N sender/receiver 3
+  </span>
+</div>
 - 需要紀錄 `recv_base`，也就是下一個要收到的 **in-order** `pkt`
 - 必須接收 in-order `pkt`，若遇到不是 `in-order` 就 discard，不停發送 `ACK(recv_base - 1)`
 
 <Aside type="tip" title="Example">
-![Go-Back-N sender/receiver 4](/images/cn/ch03-transport/go-back-n-sender-receiver-4.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-4.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Go-Back-N sender/receiver 4
+  </span>
+</div>
 - `pkt` 2 運送失敗，因此寄出的是 `ACK(1)`
     - `recv_base = 2`
 - receiver 必須接收 **in-order** `pkt` 因此會丟掉 3, 4, 5
@@ -240,7 +426,13 @@ $$U_{\text{sender}} = \frac{3L/R}{\text{RTT} + 3L/R} = \frac{.008}{30.008} = 0.0
 
 ### Selective Repeat (SR)
 Receiver 會 individually `ACK`
-![Selective Repeat 1](/images/cn/ch03-transport/selective-repeat-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/selective-repeat-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Selective Repeat 1
+  </span>
+</div>
 - 雙方都有 `window buffer` 機制，為了要讓最後往上傳的 `pkt` **in-order**
 - 每個 `pkt` 都要有 timer
 
@@ -262,11 +454,23 @@ Receiver 會 individually `ACK`
 - otherwise：ignore
 
 <Aside type="tip" title="Example">
-![Selective Repeat 2](/images/cn/ch03-transport/selective-repeat-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/selective-repeat-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Selective Repeat 2
+  </span>
+</div>
 </Aside>
 
 <Aside type="note" title="Dilemma of SR">
-![Selective Repeat 3](/images/cn/ch03-transport/selective-repeat-3.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/selective-repeat-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Selective Repeat 3
+  </span>
+</div>
 - 由於左右對對方而言都是黑盒子，sequence number 太小了就不行了
 </Aside>
 
@@ -286,7 +490,13 @@ Receiver 會 individually `ACK`
 ### TCP segment structure
 
 <Aside type="note" title="TCP segment structure">
-![TCP segment structure](/images/cn/ch03-transport/tcp-segment-structure.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-segment-structure.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP segment structure
+  </span>
+</div>
 - 有 `seq #` 是 counting by bytes of data
     - 每 100 個 byte 變成一個 segment，要送出去 300 個 bytes 就會出現 1~100 為 `seq 1`，101~200 為 `seq 101` 以此類推 
 </Aside>
@@ -297,10 +507,22 @@ Receiver 會 individually `ACK`
 - 使用 cumulative `ACK`：雙方下一個想收收的的下一個 `seq #`
     - 若遇到 out-of-order 每個 TCP 不一定做什麼
 - sender/receiver view
-![TCP seq \# 1](/images/cn/ch03-transport/tcp-seq-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-seq-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP seq \# 1
+  </span>
+</div>
 
 <Aside type="tip" title="Example">
-![TCP seq \# 2](/images/cn/ch03-transport/tcp-seq-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-seq-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP seq \# 2
+  </span>
+</div>
 - 因為他只送了一個 byte 所以 `seq #` 一次只加了一
 </Aside>
 
@@ -310,9 +532,17 @@ Receiver 會 individually `ACK`
 - 通常用 `SampleRTT` 是送出去到 $RTT$ 回來接收到 `ACK`
     - 忽略重新傳送
 - 通常會用 average（加權平均）：**exponential weighted moving average (EWMA)**
-$$\text{EstimatedRTT} = (1-\alpha)*\text{EstimatedRTT} + \alpha \times \text{SampleRTT}$$
+$$
+\text{EstimatedRTT} = (1-\alpha)*\text{EstimatedRTT} + \alpha \times \text{SampleRTT}
+$$
     - $\alpha \approx 0.125$ 通常為最佳
-    - ![Timer](/images/cn/ch03-transport/timer.png)
+    - <div style="text-align: center;">
+        <img src="/images/cn/ch03-transport/timer.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Timer
+        </span>
+      </div>
     - 但我們無法直接使用 $\text{EstimatedRTT}$ 當作 timeout 不然會一直 premature
 - 要加上一個 **safety margin** 通常會跟 variation 有關（實際值, 預測值）
 $$
@@ -338,7 +568,13 @@ $$
     - 有尚未被 ack 的 `pkt` 要重新 set timer
 
 <Aside type="tip" title="Example">
-![Sender event](/images/cn/ch03-transport/sender-event.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/sender-event.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Sender event
+  </span>
+</div>
 - 此處雖然 premature timeout，但對於 receiver 來說他的 `ACK` 紀錄的是他自己接收到已確認的 `seq #`
 </Aside>
 
@@ -355,31 +591,61 @@ $$
 - `timeout` 通常會長一點，要設計彌補機制
 - 用 **duplicate ACK** 來得知要趕快 retransmit
 - 發現出現 **triple duplicate ACK**，必定有前位 segment 沒收到，要重新發送
-![fast retransmit](/images/cn/ch03-transport/fast-retransmit.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/fast-retransmit.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     fast retransmit
+  </span>
+</div>
 
 ### TCP Flow Control
 - TCP 要把自己出裡過的 segment deliver 到 app. layer
     - 寫進 TCP socket buffer 然後 app layer 去讀
 - 寫入 buffer 速度過快會產生資料丟失，要根據剩餘 avalible space 來決定 control
 - 有一個 `rwnd` 參數，就是剩下的 free，不設定 `RcvBuffer` 的話 default 是 4096
-![TCP Flow Control](/images/cn/ch03-transport/tcp-flow-control.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-flow-control.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP Flow Control
+  </span>
+</div>
 
 ### TCP connection managment
 - **"handshake"** 要讓兩邊的 data sync 一下
     - initial, `rwnd`, 是否 accept, `seq #`
-![TCP connection managment](/images/cn/ch03-transport/tcp-connection-managment.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-connection-managment.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP connection managment
+  </span>
+</div>
 
 #### 3-way handshake
 
 <Aside type="caution" title="2-way 不行">
 雙方都看不到對方，現實中可以看到對方，等於是 reliable 的，但 Internet 中大家都看不到，所以會產生問題（rdt 是建立在 data 都 sync 完畢，但此處是討論連線建立）
-![3-way handshake 1](/images/cn/ch03-transport/3-way-handshake-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/3-way-handshake-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     3-way handshake 1
+  </span>
+</div>
 1. server 關閉，但又建立了連線
 2. dup data 的調整
 </Aside>
 
 
-![3-way handshake 2](/images/cn/ch03-transport/3-way-handshake-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/3-way-handshake-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     3-way handshake 2
+  </span>
+</div>
 - 可以避免 server 認為你的 request 是一個新 request
     - **SYN** server to client
     - **SYN** client to server
@@ -401,8 +667,20 @@ $$
 > - $R$：output link capacity
 - 一個 router, infinite buffer
 - no-retransmission
-![Senario 1 1](/images/cn/ch03-transport/senario-1-1.png)
-![Senario 1 2](/images/cn/ch03-transport/senario-1-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-1-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 1 1
+  </span>
+</div>
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-1-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 1 2
+  </span>
+</div>
 - $\lambda_\text{in}$, $\lambda_\text{out}$ 成正比，但當 $\lambda_\text{in} \to R/2$ 時，就停下來了。 
 - $\lambda_\text{in} \to R/2$ 會暴增
     - 越多人在等，queue 越長，越有 delay (exponential 增加)
@@ -416,10 +694,28 @@ $$
 - 一個 router, **finite** buffer
 - 假設 sender 有 perfect knowledge，知道啥時 overflow 就不送
 - 假設 sender 知道 pkt loss.  
-![Senario 2 1](/images/cn/ch03-transport/senario-2-1.png)
-![Senario 2 2](/images/cn/ch03-transport/senario-2-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-2-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 2 1
+  </span>
+</div>
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-2-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 2 2
+  </span>
+</div>
 - $\lambda'_\text{in}$ 傳送 $R/2$ 的資料但裡面有一些是重複無效資料，因此 $\lambda_\text{out}$ 達不到 $R/2$
-![Senario 2 3](/images/cn/ch03-transport/senario-2-3.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-2-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 2 3
+  </span>
+</div>
 - 重傳會不停收到一樣的資訊，會導致無效資料又增加
 - goodput 代表真正有效的 throghput.   
 
@@ -429,8 +725,20 @@ $$
 > - $\lambda_{\text{out}}$：throughput
 > - $R$：output link capacity
 - 四者互為對方的 sender/receiver
-![Senario 3 1](/images/cn/ch03-transport/senario-3-1.png)
-![Senario 3 2](/images/cn/ch03-transport/senario-3-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-3-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 3 1
+  </span>
+</div>
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/senario-3-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Senario 3 2
+  </span>
+</div>
 - $\lambda'_\text{in} \to \infty$ 兩條共用 router 的人，若在這個情況下，一方的速度受限於他走的第一個 router $R$ 而非無限大，但另一方無上限。在這個情況就可以發現，所有 connection 都會佔據大優勢在第一個 router 但在第二個 router 會完全卡死（搶輸），$\lambda'_\text{out} \to 0$
 - 下游 router queue 滿了，產生 downstream transmission `pkt` loss 導致上游無論有多快速的 transmission rate，upstream transmission 一樣是 0
 
@@ -450,14 +758,26 @@ $$
     - 每輪次 $\text{RTT}$ 最多增加 1 segment 的速度
 - 出現 `loss` 後減少 sending rate 一半
     - 砍一半
-![AIMD](/images/cn/ch03-transport/aimd.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/aimd.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     AIMD
+  </span>
+</div>
 
 #### Multiplicative decrease
 - **TCP Reno**：收到 **triple duplicate ACK** 表示有 `loss` 發生，sending rate 砍一半
 - **TCP Tahoe**：如果產生 `time-out` 就把 MSS (Maximum Segment Size) 設定為 1
 
 ###   TCP congetion window
-![TCP congetion window](/images/cn/ch03-transport/tcp-congetion-window.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-congetion-window.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP congetion window
+  </span>
+</div>
 - $\text{LastByteSent}- \text{LastByteAcked} \leq \text{cwnd}$
 $$
 \text{TCP rate} = \frac{\text{cwnd}}{RTT} \ \ \ \text{(bytes/sec)}
@@ -467,20 +787,38 @@ $$
 #### TCP slow start
 - 初始化 $\text{cwnd} = 1\ \text{MSS}$
 - 每輪次 $\text{RTT}$ double $\text{cwnd}$，直到 `loss` 發生
-![TCP slow start](/images/cn/ch03-transport/tcp-slow-start.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-slow-start.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP slow start
+  </span>
+</div>
 - $\text{ssthresh}$ 用來記錄每次 exponential transition to linear 的點
     - 在 $\text{ssthresh}$ 以下用 **exponential** 增加 $\text{cwnd}$
     - 在 $\text{ssthresh}$ 以下用 **linear** 增加 $\text{cwnd}$
     - $\text{ssthresh}$ 每次 `loss` event 前更新
 ### FSM of TCP congestion control
-![FSM of TCP congestion control](/images/cn/ch03-transport/fsm-of-tcp-congestion-control.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/fsm-of-tcp-congestion-control.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     FSM of TCP congestion control
+  </span>
+</div>
 - 產生 **dupACK** 或是 `timeout` 都有可能產生問題，但其實不一定，所以有以下方法
 
 ### Explicit Congestion Notification (ECN)
 - 是一種 network-assisted 的 Congestion control
 - Router 發現 congestion 會在 IP header (ToS 欄位) 放入 `11` 原始為 `10`
 - Destination 收到這個 header 後會 sets ECE 為 `1`（在 Transport Layer）
-![Explicit Congestion Notification](/images/cn/ch03-transport/explicit-congestion-notification.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/explicit-congestion-notification.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Explicit Congestion Notification
+  </span>
+</div>
 - 只有某些 TCP 才能做這件事
 
 ### TCP Fairness
@@ -493,7 +831,13 @@ $K$ TCP sessions share same bottleneck link of bandwidth $R$
 </Aside>
 
 - 在宏觀的角度下來看，我們會維持在一個平均之上，但微觀來看會有不斷地調整，在 congestion avoidance state 之下，就會有這樣線性的情況
-![TCP Fairness](/images/cn/ch03-transport/tcp-fairness.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch03-transport/tcp-fairness.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     TCP Fairness
+  </span>
+</div>
 - 沒有 central 的中控，所以還是微觀下不穩定是無可畢免的
 
 <Aside type="caution" title="Fairness and UDP">

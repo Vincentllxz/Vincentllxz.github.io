@@ -27,11 +27,23 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 Linker 會幫忙把你的 program 跟 start up routine 連起來
 
-![main function 1](/images/sp/ch09-proenv/main-function-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/main-function-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     main function 1
+  </span>
+</div>
 
 會幫忙傳各種參數跟初始化，最後 return 會幫忙做 clean up.  
 
-![main function 2](/images/sp/ch09-proenv/main-function-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/main-function-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     main function 2
+  </span>
+</div>
 
 
 可以用 `nm` 指令來看他的 symbol name
@@ -125,7 +137,13 @@ Compiler 再算 address 的時候其實是用相對位置算
 
 
 #### C language compile
-![C language compile](/images/sp/ch09-proenv/c-language-compile.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/c-language-compile.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     C language compile
+  </span>
+</div>
 - `-E` 做 preprocessing 會把 macro 全部展開，include 也全部展開到一個 `.i` file 裡面
 - `-S` 做 compiler 換成 assembly code
 - `-C` 做 assamble 換成可執行的 object file
@@ -133,7 +151,13 @@ Compiler 再算 address 的時候其實是用相對位置算
 
 
 #### ELF object file format
-![ELF object file format](/images/sp/ch09-proenv/elf-object-file-format.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/elf-object-file-format.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     ELF object file format
+  </span>
+</div>
 
 會存入這些東西
 
@@ -163,7 +187,13 @@ Compiler 再算 address 的時候其實是用相對位置算
 
 ### Linking
 
-![Linking](/images/sp/ch09-proenv/linking.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/linking.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Linking
+  </span>
+</div>
 
 分成 **Definition** 跟 **Reference** symbol 代表我這變數 compiler 只要知道他是什麼型別就好，本人可能是在是外部定義的
 ```c
@@ -175,7 +205,13 @@ int *ep = &e
 - 定義的人才知道真正的 memory 位置
 
 #### Relocation
-![Relocation](/images/sp/ch09-proenv/relocation.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/relocation.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Relocation
+  </span>
+</div>
 
 可以先把每一個 code 都產生一個 `.o` file ，然後才存入一個 executable 的 object file，在這裡 `.bss` 可以做到 relocation 的動作，Link 進去這個 ELF object file 才能知道 external 的 variable 的真實位置
 - 剛剛紀錄的相對位置就派上用場，合併的時候只要知道起始位置，就可以根據 offset 算出後面的相對位置，把 code seesion 的位置變動就好
@@ -191,22 +227,46 @@ int *ep = &e
 
 總而言之是會產生出在 memory 上的對應資料，也會對應到 virtual memory
 
-![Memory Layout of Process 1](/images/sp/ch09-proenv/memory-layout-of-process-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/memory-layout-of-process-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Layout of Process 1
+  </span>
+</div>
 
 
 會用 Loader 把它放進去
 
-![Memory Layout of Process 2](/images/sp/ch09-proenv/memory-layout-of-process-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/memory-layout-of-process-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Layout of Process 2
+  </span>
+</div>
 
 ## Virtual memory
 
 不可能讓他直接 map 到某個位置，記憶體根本不夠用，中間有一大段全都是洞，根本沒有存資料，就不用 map 上去
 
- ![Virtual memory 1](/images/sp/ch09-proenv/virtual-memory-1.png)
+ <div style="text-align: center;">
+   <img src="/images/sp/ch09-proenv/virtual-memory-1.png" style="width: 100%;" />
+   <br />
+   <span style="color: grey; font-size: 16px;">
+      Virtual memory 1
+   </span>
+ </div>
 
 其實是用很像 copy on write 的方法，讓大家可以用同一塊 physical memory 
 
-![Virtual memory 2](/images/sp/ch09-proenv/virtual-memory-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/virtual-memory-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Virtual memory 2
+  </span>
+</div>
 
 會根據 Page table 去做 mapping，map 到實體的 memeory 上，但是因為所有的 virtual memory 都必須要 map 過來，但是 physical memory 一定不夠用，有可能有時候會指到硬碟上面
 - 如果發現已經滿了，但你要動某個變數，OS 就會幫你把你的閒置 virtual memory 掃描到 DISK 上，然後把你要動的那個變數 map 到 physical memeory 上
@@ -215,7 +275,13 @@ int *ep = &e
  
 必須透過軟硬體合作，才能達到好的效果
  
-![Translation of address 1](/images/sp/ch09-proenv/translation-of-address-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/translation-of-address-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Translation of address 1
+  </span>
+</div>
 
 在 **virtual address** 裡面會存
 - **page offset**：最後的 12-bits page offset map 上去之後不會變化，每一個值都是 page 的 address
@@ -225,11 +291,23 @@ int *ep = &e
 
 在 **Page table** 裡面，前面兩個 bit 是紀錄狀態，32-2-12 = 18，可以用來表示 **Physical Page Number (PPN)**，再加上 offset 就可以算出對應位置
 
-![Translation of address 2](/images/sp/ch09-proenv/translation-of-address-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/translation-of-address-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Translation of address 2
+  </span>
+</div>
 
 取出來之後就直接是正確的位置了
 
-![Translation of address 3](/images/sp/ch09-proenv/translation-of-address-3.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/translation-of-address-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Translation of address 3
+  </span>
+</div>
 
 是可以分段 map 進去的，不一定要連續
 
@@ -279,8 +357,20 @@ void func_2(void)
 6. 在 `func_1` 執行 `printf("Hello ")`，然後 `setjmp(func_1_label)`，跳入 `func_2`
 7. `func_1`, `func_2` 就會一直互跳，可以一直輸出 `Hello World\n`
 
-![Stack Frame 1](/images/sp/ch09-proenv/stack-frame-1.png)
-![Stack Frame 2](/images/sp/ch09-proenv/stack-frame-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/stack-frame-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Stack Frame 1
+  </span>
+</div>
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/stack-frame-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Stack Frame 2
+  </span>
+</div>
 </Aside>
 
 ### Heap
@@ -308,9 +398,21 @@ void func_2(void)
 <Aside type="note" title="Record keeping">
 System 如何記住這段 memory 有多長
 1. **Knowing how much to free**: 在前面一段固定長度紀錄大小
-![Heap 1](/images/sp/ch09-proenv/heap-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/heap-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Heap 1
+  </span>
+</div>
 2. Keep track of free block: 可能把 free 的 memory 用 link list 串接起來 
-![Heap 2](/images/sp/ch09-proenv/heap-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch09-proenv/heap-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Heap 2
+  </span>
+</div>
 </Aside>
 
 ### Command line argument/Environment Variable

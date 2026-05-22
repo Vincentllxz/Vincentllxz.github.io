@@ -44,7 +44,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 <Aside type="note" title="Virtual Memory Layout">
 
 
-![Memory Layout 2](/images/os/ch03-process/memory-layout-2.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/memory-layout-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Layout 2
+  </span>
+</div>
 
 每個 Process 擁有獨立的虛擬記憶體空間，內容包含：
 - **Text / Instruction**：存放程式碼（如 `main()`）、函式庫連結等唯讀資料。
@@ -60,14 +66,26 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 <Aside type="tip" title="Example">
 
-![Memory Layout 3](/images/os/ch03-process/memory-layout-3.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/memory-layout-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Layout 3
+  </span>
+</div>
 - main function 的 variable 也是 function call 的東西，因此在 Stack
 - 不把 dynamic allocate 的 memory 存在 Stack 是防止 stack close 後會寄需需要取用，不能被 close 掉
 </Aside>
 
 
 ### Process State
-![Process State](/images/os/ch03-process/process-state.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/process-state.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process State
+  </span>
+</div>
 
 大部分 OS 都分成這樣，但通常會分得更加精細
 
@@ -107,7 +125,13 @@ struct mm_struct     *mm; /* address space of this process */
 Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
 - 會用 `current` pointer 來處理現在 executing 的 process
 
-![Process Control Block](/images/os/ch03-process/process-control-block.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/process-control-block.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process Control Block
+  </span>
+</div>
 
 ### Thread
 
@@ -135,14 +159,26 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
 - Ready Queue
     - 可以被執行的 Process
 
-![Scheduling Queue](/images/os/ch03-process/scheduling-queue.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/scheduling-queue.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Scheduling Queue
+  </span>
+</div>
 
 ### Queuing Diagram
 
 等待的狀態不一樣，應該放在不同的 Wait Queue
 - 假設是 I/O 結束，我要抓 Process 出來就會找的比較快
 
-![Queuing Diagram](/images/os/ch03-process/queuing-diagram.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/queuing-diagram.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Queuing Diagram
+  </span>
+</div>
 
 正常的 **CPU Scheduler** 可能每 100ms 就要做一次 Scheduling
 
@@ -160,7 +196,13 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
 這些 Context Switch 需要的資訊都在 PCB 內
  - **Context**: Value of CPU register, Process State, Memory Management information
 
-![Context Switch](/images/os/ch03-process/context-switch.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/context-switch.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Context Switch
+  </span>
+</div>
 
 Context Switch 的時候是 Pure overhead，所以必須要很快完成，和 Context Switch Speed 有關的是
 - Memory Speed
@@ -182,7 +224,13 @@ Context Switch 的時候是 Pure overhead，所以必須要很快完成，和 Co
 - **process identifier**（`pid`） 可以去分辨他們
 
 Linux System 的 Tree of Process
-![Process Creation](/images/os/ch03-process/process-creation.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/process-creation.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process Creation
+  </span>
+</div>
 
 - **Resource** options: Memory, File
     - Child 可以共享 all Parent's resources
@@ -231,7 +279,13 @@ int main() {
     - 等到 Child Process explicitly call `exit()` 或 implicitly 預設結束
 
 上面的程式執行大概是這樣
-![Process Creation Using UNIX fork](/images/os/ch03-process/process-creation-using-unix-fork.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/process-creation-using-unix-fork.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Process Creation Using UNIX fork
+  </span>
+</div>
 
 #### Process Creation Using Windows API
 Windows 在 Create 的時候就要先寫清楚要 load 什麼 Program
@@ -327,7 +381,13 @@ Process 有分成
 - **Message Passing Modle**
     - 常用在 distributed system
 
-![Interprocess Communication](/images/os/ch03-process/interprocess-communication.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/interprocess-communication.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Interprocess Communication
+  </span>
+</div>
 
 > 其實 message passing 最後的做法也是用 Shared Memory（圖解）
 
@@ -597,7 +657,13 @@ mach_msg(&message.header, // message header
 ### Windows
 有 define 一些 sybsystem，各自有各自的 port，可以用 port 做連接
 
-![Windows](/images/os/ch03-process/windows.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/windows.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Windows
+  </span>
+</div>
 
 ### Pipe
 一種 Unix 就有的古老 IPC，可以是單向也可以雙向，簡單但有很多需要考慮的問題
@@ -729,4 +795,10 @@ public class DateClient
 - **Binding**：對 port 的定義
     - Predetermined
     - Dynamic
-![Remote Procedure Calls](/images/os/ch03-process/remote-procedure-calls.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch03-process/remote-procedure-calls.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Remote Procedure Calls
+  </span>
+</div>

@@ -233,6 +233,19 @@ figcaption {
   margin-top: 0;
   margin-bottom: 0;
 }
+/* Figure caption: MDX wraps the caption in a <p>, and the block puts a <br>
+   before it — together they open a large gap under the image. Hide the dead
+   <br> and collapse the <p> margin so the caption sits snug below the image.
+   Selectors are deliberately specific enough to beat the typography preset. */
+.prose div[style*='text-align: center'] br,
+.prose div[style*='text-align:center'] br {
+  display: none;
+}
+.prose div[style*='text-align: center'] p,
+.prose div[style*='text-align:center'] p {
+  margin-top: 0.4em;
+  margin-bottom: 0;
+}
 
 /* === Scroll reveal — children of [data-reveal] fade up as they enter the viewport.
    The hidden state only applies once JS adds `.reveal-on` to <html>, so the page

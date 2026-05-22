@@ -37,6 +37,25 @@ const typographyConfig: TypographyOptions = {
     'h2,h3,h4,h5,h6': {
       'scroll-margin-top': '4rem'
     },
+    // Make h4 unmistakably a heading — by default it shares the size and
+    // weight of inline bold text, so add an accent bar and a size bump.
+    h4: {
+      position: 'relative',
+      'font-size': '1.1em',
+      'line-height': '1.4',
+      'padding-inline-start': '0.7rem',
+      'margin-top': '1.7em'
+    },
+    'h4::before': {
+      content: '""',
+      position: 'absolute',
+      'inset-inline-start': '0',
+      top: '0.18em',
+      bottom: '0.18em',
+      width: '0.22rem',
+      'border-radius': '9999px',
+      'background-color': 'hsl(var(--primary) / 0.9)'
+    },
     'h1>a,h2>a,h3>a,h4>a,h5>a,h6>a': {
       'margin-inline-start': '0.75rem',
       color: fgMuted,

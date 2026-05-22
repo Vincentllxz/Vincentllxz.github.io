@@ -27,10 +27,22 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Routing
 根據 **forwarding table**（決定你要往哪走） 的產生方式大致上分成兩種大類別
 1. **Traditional Routing Algorithm**
-![Routing 1](/images/cn/ch04-data-plane/routing-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/routing-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Routing 1
+  </span>
+</div>
 - 用統一的 distributed algorithm，router 之間的 algorithm 互相溝通形成 forwarding table
 2. **Software-Defined Networking(SDN)**
-![Routing 2](/images/cn/ch04-data-plane/routing-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/routing-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Routing 2
+  </span>
+</div>
 - 有一個 Romote controller 的 process 擁有所有 router 的資訊去做統一計算，然後分發給各個 router
 - Controller 通常會在各個 data center 或是 server
 - 每個 router 會有一個 agent 收集資料給 center
@@ -50,7 +62,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 不保證 Timing, Order
     - 不保證 Bandwidth available to end-end-flow
 
-![Service model](/images/cn/ch04-data-plane/service-model.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/service-model.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Service model
+  </span>
+</div>
 
 <Aside type="note" title="為何依然使用 best effort model">
 1. 機制簡單：可以很輕易的做新增 router, network 以及做 IP 管理
@@ -63,7 +81,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Router Architecture
 
-![Router Architecture](/images/cn/ch04-data-plane/router-architecture.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/router-architecture.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Router Architecture
+  </span>
+</div>
 
 - 具有 Link Layer 的各種 input/output 接口
 - 有 **switching fabric** 來做各種網路控制
@@ -71,7 +95,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 #### Input port
 
-![Input port](/images/cn/ch04-data-plane/input-port.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/input-port.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Input port
+  </span>
+</div>
 
 - **Line termination**: Physical layer 看看是 wireless 還是 copper 或 fabric
 - **Data Link**: Link layer
@@ -82,7 +112,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 #### Destination-based forwarding
 - 通常會被 aggregate 成一個 range，不然會存太多東西
-![Destination-based forwarding 1](/images/cn/ch04-data-plane/destination-based-forwarding-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/destination-based-forwarding-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Destination-based forwarding 1
+  </span>
+</div>
 - 但有可能會產生一些問題，像是有其中一小段的 data 雖然被分配在 Interface 3 但他其實，但他的目的地應該是 router 1，這時候就可以用 longest prefix matching
 
 <Aside type="note" title="Longest Prefix Matching">
@@ -90,7 +126,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </Aside>
 
 
-![Destination-based forwarding 2](/images/cn/ch04-data-plane/destination-based-forwarding-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/destination-based-forwarding-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Destination-based forwarding 2
+  </span>
+</div>
 對於這個 table
 - `11001000 00010111 00010110 10100001` 應該去 Link 0
 - `11001000 00010111 00011000 10101010` 雖然 Link 2 也 match 但應該去 Link 1
@@ -109,35 +151,77 @@ $$
 - 但通常都會是 blocking 的，所以我們必須要有 **input port queuing**
 
 有以下這幾種 switching 方法，Interconnection Network 比較常見
-![Switching fabrics 1](/images/cn/ch04-data-plane/switching-fabrics-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/switching-fabrics-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Switching fabrics 1
+  </span>
+</div>
 
 - Switching via **Memory**
     - First generation Routers
     - 這種 switching 就是另一種普通 I/O 而已
-    ![Switching fabrics 2](/images/cn/ch04-data-plane/switching-fabrics-2.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/switching-fabrics-2.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Switching fabrics 2
+      </span>
+    </div>
 - Switching via **Bus**
     - 從 input 輸入後，經由 bus connection 不經過 memory 直接前往 output
     - 限制就變成 bus 的頻寬
-    ![Switching fabrics 3](/images/cn/ch04-data-plane/switching-fabrics-3.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/switching-fabrics-3.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Switching fabrics 3
+      </span>
+    </div>
 - Switching via **Interconnection Network**
     - 本來是設計給 multiprocessor 用的一種傳輸方法
     - 通常不會用上面的形式，而是用 **multi-stage** 的形式
-    ![Switching fabrics 4](/images/cn/ch04-data-plane/switching-fabrics-4.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/switching-fabrics-4.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Switching fabrics 4
+      </span>
+    </div>
     - $8 \times 8$ 的設計但只需要 4 個中繼點就好了
     - 我們通常會想用 parellel 的形式去做傳送，可以讓速度大幅增加
-    ![Switching fabrics 5](/images/cn/ch04-data-plane/switching-fabrics-5.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/switching-fabrics-5.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Switching fabrics 5
+      </span>
+    </div>
     - 上圖是 Cisco CRS router
         - 通常有 8 個 switching plane，每個 switching plane 都 是用 3-stage interconnection 來達到平行化
 
 #### Input Port Queue
 
 - 是一種 Head-of-the-Line (**HOL**) blocking: 整個 Queue 的第一個 datagram block 導致的 blocking
-![Input Port Queue](/images/cn/ch04-data-plane/input-port-queue.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/input-port-queue.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Input Port Queue
+  </span>
+</div>
 - 左圖有兩個 input port 裡的 datagram 同時想競爭一個 output port，在 system 決定誰優先後，第二個人會被 block 住，右圖中的綠色 datagram 因為 head 被 block 所以自己也得等待就是一種 **HOL blocking**
 
 #### Output Port Queue
 
-![Output Port Queue 1](/images/cn/ch04-data-plane/output-port-queue-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/output-port-queue-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Output Port Queue 1
+  </span>
+</div>
 
 Output port 結構大致與 input 完全相反
 - output port queue 發生的原因是在 switch fabric 中平行傳輸的 datagram 到這裡被只剩下一個 Data Link 可以傳輸離開
@@ -158,18 +242,48 @@ $$
         - ESN, RED 等 congestion signal，會被標記在 IP header 上
 - **Packet Scheduling** 要決定誰先執行
     - **FCFS**: first come first serve
-    ![Output Port Queue 2](/images/cn/ch04-data-plane/output-port-queue-2.png) 
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/output-port-queue-2.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Output Port Queue 2
+      </span>
+    </div>
         - 就是種最基本的 FIFO 結構
     - **Priority**
-    ![Output Port Queue 3](/images/cn/ch04-data-plane/output-port-queue-3.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/output-port-queue-3.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Output Port Queue 3
+      </span>
+    </div>
         - 會根據 ISP 的 Priority 去做分配，如果 packet prioty 高就會被存在 high priority queue
-        ![Output Port Queue 4](/images/cn/ch04-data-plane/output-port-queue-4.png)
+        <div style="text-align: center;">
+          <img src="/images/cn/ch04-data-plane/output-port-queue-4.png" style="width: 100%;" />
+          <br />
+          <span style="color: grey; font-size: 16px;">
+             Output Port Queue 4
+          </span>
+        </div>
         - 雖然 packet 2 比 packet 3 還早到，但他們在 packet 1 處理完成的時候都已經進入 queue，所以會優先執行 high priority 的
     - **Round Robin** (RR) scheduling
-    ![Output Port Queue 5](/images/cn/ch04-data-plane/output-port-queue-5.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/output-port-queue-5.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Output Port Queue 5
+      </span>
+    </div>
         - 一樣分成多個 queue，但這次執行順序是輪流，每個 queue equally 的輪流執行
     - **Weighted Fair Queuing (WFQ)**
-    ![Output Port Queue 6](/images/cn/ch04-data-plane/output-port-queue-6.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch04-data-plane/output-port-queue-6.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         Output Port Queue 6
+      </span>
+    </div>
         - 更 Generalize 的 Robin Round
         - 除了原始的輪流執行，會分配給每個 Queue 一個 weight $w_i$，i-th queue 分配到的時間就是
 
@@ -192,7 +306,13 @@ IP 全名是 Internet Protocol，負責
 </Aside>
 
 以下是當代的 IP header 架構
-![IP](/images/cn/ch04-data-plane/ip.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/ip.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     IP
+  </span>
+</div>
 
 - `Version`: IP protocol version: IPv4, IPv6
 - `Type of service`: 
@@ -206,14 +326,26 @@ IP 全名是 Internet Protocol，負責
 ### Fragment, Reassemble
 - 一個 link 會有 Maximum Transfer Size(**MTU**)，當你發現傳過來的資料已經超過 MTU 的大小就要做 Fragment
 
-![Fragment, Reassemble 1](/images/cn/ch04-data-plane/fragment-reassemble-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/fragment-reassemble-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Fragment, Reassemble 1
+  </span>
+</div>
 
 - -20 byte 的 header 會有 1480 byte，offset 用 page 算，所以
 $$
 \text{offset} = \frac{1480}{8} = 185
 $$
 - 資料會多 40 byte，因為從一個 IP header 變成三個 IP header
-![Fragment, Reassemble 2](/images/cn/ch04-data-plane/fragment-reassemble-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/fragment-reassemble-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Fragment, Reassemble 2
+  </span>
+</div>
 - 最後根據這些 datagram 做 reassemble
 
 ### IP addressing
@@ -222,7 +354,13 @@ $$
     - Wireless
     - Ether net
 - IP address 會把一組 interface 做 associate（先跳過 Link layer 的 implement）
-![IP addressing](/images/cn/ch04-data-plane/ip-addressing.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/ip-addressing.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     IP addressing
+  </span>
+</div>
 - 我們會把 IP address 分成 subnet part 跟 host part
     - **subnet** part: 同一個 subnet 內有共同的 high order bit
     - **host** part: 剩下自己的 low order bit
@@ -230,7 +368,13 @@ $$
 #### Subnets
 - subnet 中，我有 devices 可以互相連結，不需要使用 router
 
-![Subnets](/images/cn/ch04-data-plane/subnets.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/subnets.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Subnets
+  </span>
+</div>
 
 
 - 我們使用 **CIRD** (Classless InterDomain Routing) protocol 作為 subnet 的協議，format 是
@@ -248,7 +392,13 @@ $$
 $$
 
 #### DHCP
-![DHCP 1](/images/cn/ch04-data-plane/dhcp-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/dhcp-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     DHCP 1
+  </span>
+</div>
 
 - Dynamic Host Configuration Protocol，是這些裝置 ip 配置的方法
     - allow reuse of ip address
@@ -258,7 +408,13 @@ $$
     -  DHCP server responds with **DHCP offer** msg [optional]
     -  host requests IP address: **DHCP request** msg
     -  DHCP server sends address: **DHCP ack** msg
-![DHCP 2](/images/cn/ch04-data-plane/dhcp-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/dhcp-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     DHCP 2
+  </span>
+</div>
 - 通常是在 port 67 listen to DHCP server, server 用 port 68 listen to client
 
 <Aside type="note" title="UDP for DHCP">
@@ -272,15 +428,33 @@ DHCP 本身雖然是 application layer protocol，但做的只是想要交換 IP
 
 假設 ISP 有 $\texttt{200.23.16.0/20}$ 這個 block，那他可以把自己的 subnet 分成 8 個 blocks 分別是 $\texttt{200.23.16.0/23} \to \texttt{200.23.30.0/23}$
 
-![Hierarchical addressing 1](/images/cn/ch04-data-plane/hierarchical-addressing-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/hierarchical-addressing-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Hierarchical addressing 1
+  </span>
+</div>
 
 在 normal 情況下我們可以把 routing 存起來，告訴 internet 把 $\texttt{200.23.16.0/20}$ 全都傳給我
 
-![Hierarchical addressing 2](/images/cn/ch04-data-plane/hierarchical-addressing-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/hierarchical-addressing-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Hierarchical addressing 2
+  </span>
+</div>
 如果我想把其中某個 $\texttt{200.23.18.0/23}$ 轉存到另一個 ISP 身上，我們會 DHCP server 加上 or $\texttt{200.23.18.0/23}$ 的訊息
 - 當有 Internet msg income 的時候 longest prefix 就派上用場了，因為必須要 longest prefix 才是正確要送的，會送往 ISPs-R-Us 而不是 Fly-By-Night-ISP
 
-![Hierarchical addressing 3](/images/cn/ch04-data-plane/hierarchical-addressing-3.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/hierarchical-addressing-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Hierarchical addressing 3
+  </span>
+</div>
 
 
 <Aside type="note" title="ICANN">
@@ -296,7 +470,13 @@ Assigned Names and Numbers) 索取，ICANN 同時也管理所有 DNS 的 policy
 - NAT 讓 local 的一群 host 共用同一個 public 的 IPv4 address，內部再去細分，減輕 ISP 壓力
     - 外部是搜尋不到 `10.0.0.1` 這個 address 的
     - NAT 會把虛擬 IP，根據裡面的對應表，換成他真實的實體 IP
-![NAT](/images/cn/ch04-data-plane/nat.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/nat.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     NAT
+  </span>
+</div>
 - 也可以增加安全性，因為內部看不到實體 IP
 - NAT 會做到以下幾件事
     - 對於 outgoing datagrams 做 IP replace
@@ -318,7 +498,13 @@ NAT 其實在實務上已經違反了歸定，port number 是在 transport layer
 
 #### IPv6 format
 
-![IPv6 format](/images/cn/ch04-data-plane/ipv6-format.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/ipv6-format.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     IPv6 format
+  </span>
+</div>
 
 1. 可以做 priority 的分類在 `traffic class` 裡面（但在 IPv6 裡面並沒有量化）
 2. `flow label` 讓同一個 connection 前後 packet 處理得更一致，讓速度增快
@@ -329,14 +515,26 @@ NAT 其實在實務上已經違反了歸定，port number 是在 transport layer
 
 IPv4 到 IPv6 之間的轉換不是一件簡單的事，因為要 globally 的達成這件事不簡單，因此採用了 Tunneling 的技巧
 - IPv6 的 packet 只要在前面加上一個 IPv4 header 就可以送出去了
-![Tunneling](/images/cn/ch04-data-plane/tunneling.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/tunneling.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Tunneling
+  </span>
+</div>
 - border router 要可以做到 6 to 4 或是 4 to 6 的轉換，這樣就可以傳輸出去
     - border 會把 source 跟 destination 都改成 border 的 router
 
 
 ### Forwarding
 
-![Forwarding](/images/cn/ch04-data-plane/forwarding.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch04-data-plane/forwarding.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Forwarding
+  </span>
+</div>
 
 一個基礎的 flow table 會有 match column 跟 action column，在 SDN 裡面 Header Fields 代表一個 flow，通常會做到四個動作
 - **Match**: 看看他的 Pattern 對應到哪個 row

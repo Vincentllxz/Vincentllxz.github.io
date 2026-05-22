@@ -198,7 +198,13 @@ int main() {
 </Aside>
 
 <Aside type="note" title="收到 Signal 後">
-![System call](/images/sp/ch07-signal/system-call.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/system-call.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     System call
+  </span>
+</div>
 - 可以無限套，把 Signal 收到後，就會先出去執行 signal handler
 - 在執行 signal handler 期間收到 其他 signal 2 要執行其他 signal handler 2 也用一樣的模式出去執行s ignal handler 2，然後回來 signal handler，最後回去 main function
 </Aside>
@@ -209,7 +215,13 @@ int main() {
 - `fork()` 會把所有註冊的行為完全繼承
 - `exec()` 不一定，以下是轉換圖
     - 除了 **Ignore** 其餘全都 **Default**
-![Signal succeed](/images/sp/ch07-signal/signal-succeed.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/signal-succeed.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Signal succeed
+  </span>
+</div>
 
 ### Signal Start-up
 - 當有些 process 我想讓他變成 background (using `double fork()`)，有些 foreground 的 Signal 我不能讓他收到
@@ -243,7 +255,13 @@ again:
 
 ### Reentrant Function
 <Aside type="tip" title="Example">
-![Reentrant Function 1](/images/sp/ch07-signal/reentrant-function-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/reentrant-function-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Reentrant Function 1
+  </span>
+</div>
 </Aside>
 - 這種 Recursive 結構，本來可以寫，但在這種情況下，**Signal 來的時間不可控**，會出現問題
 - `malloc()` 會動到一個 linklist，是一個 global variable，上一個 `malloc()` 的 linklist 還沒弄好，下一個直接進來會爆炸
@@ -286,7 +304,13 @@ char *strtoupper(char *string) {
 
 - 以下都是 non-reentrant function
     - 雖然 `printf()` 是 non-reentrant 但是 debug 的時候不要複雜化問題，直接寫就好
-![Reentrant Function 2](/images/sp/ch07-signal/reentrant-function-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/reentrant-function-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Reentrant Function 2
+  </span>
+</div>
 
 
 ### Unreliable Signals
@@ -330,7 +354,13 @@ char *strtoupper(char *string) {
 
 ### Reliable Signals
 - 紀錄時間，把它分成兩個 phase 
-![Reliable Signals](/images/sp/ch07-signal/reliable-signals.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/reliable-signals.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Reliable Signals
+  </span>
+</div>
     - 先 **signal generated**，這是無法控制的情況
     - 一直到 **signal delivered** 前都可以改變 **action**
     - 在 signal generated, signal delivered 之間被 block 住就是叫 **signal pending**
@@ -608,7 +638,13 @@ globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
 <Aside type="note" title="Variable type">
 - `volatile`：易揮發（易變）
     - 易改變的 variable 就不要讓 compiler 做這種優化
-![nonlocal jump](/images/sp/ch07-signal/nonlocal-jump.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/nonlocal-jump.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     nonlocal jump
+  </span>
+</div>
     - 不讓 compiler 去做 catch（一定放在記憶體）
 - `restrict`：讓別的 pointer 改不到這塊記憶體（no alias）
     - 可以隱藏告訴記憶體有沒有 overlap
@@ -623,16 +659,34 @@ globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
 
 <Aside type="tip" title="Problem of Nonlocal Jumps">
 ### Idea: 必定由深層到淺層跳
-![Idea: 必定由深層到淺層跳 1](/images/sp/ch07-signal/idea-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/idea-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Idea: 必定由深層到淺層跳 1
+  </span>
+</div>
 - 這個 code 可以 call 因為他的 stack 順序是正確的
 
-![Idea: 必定由深層到淺層跳 2](/images/sp/ch07-signal/idea-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/idea-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Idea: 必定由深層到淺層跳 2
+  </span>
+</div>
 - 壓掉 `P2` 後還繼續跳 `P2` 不行
 </Aside>
 
 <Aside type="note" title="Co-routine">
 - 雖然理論上不能從淺層往深層 jump，但實務上我們會用這個方法做 co-routine
-![Idea: 必定由深層到淺層跳 3](/images/sp/ch07-signal/idea-3.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/idea-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Idea: 必定由深層到淺層跳 3
+  </span>
+</div>
 - 紅色代表當前的 `top`
 - 當我們運行到下層使用 `longjump()` 跳回 `P1`，理論上跳回 `P1`，`P2`~`P5` 應該要被 `pop` 清理掉，但是實際上 `pop` 只是改 `top` 值而已，因此會留存資料
 - 我們可以利用這個循環不段切換在 `P1`, `P2` 以及 `P4`, `P5` 之間。   
@@ -666,7 +720,13 @@ unsigned int sleep2(unsigned int nsecs)
 </Aside>
 
 <Aside type="caution" title="Problem of sleep v.2.">
-![Idea: 必定由深層到淺層跳 4](/images/sp/ch07-signal/idea-4.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/idea-4.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Idea: 必定由深層到淺層跳 4
+  </span>
+</div>
 - 深層可以 restore 淺層，但直接把 `sig_int()` `pop` 掉，不一層一層上 `pop`，會出問題
 - 只要 `sig_int()` 超過 5 秒，讓 `sleep(5)` 發送 `SIGALRM`，就會被 `longjump()` 往前淺層跳，就會出問題。  
 - signal handler 一開始需要存 `errno`（為了在 run 完之後 restore 回來），錯誤時 system 會去 check 他，但其實根本沒出錯，所以不能 check 他，但是如果 `sig_int()` 直接被越過，會改到 `errno`，restore 回 `sig_int()` 裡面的狀態，但跳回 `main()`
@@ -782,7 +842,13 @@ struct  sigaction {
     </Aside>
     - `SA_RESETHAND`：退化成註冊一次一次有效（兼容）
 - 新版 handler `void handler(int signo, siginfo_t *info, void *context);` 可以 call 很多新的功能，取用裡面資訊得知錯誤訊息
-![Signal mask 1](/images/sp/ch07-signal/signal-mask-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/signal-mask-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Signal mask 1
+  </span>
+</div>
 
 <Aside type="note" title="Reliable signal()">
 ```c
@@ -876,7 +942,13 @@ main(void)
 - `canjump` 是用來確定 `setjump()` 後才能開始做 Signal 接收，如果還沒 `setjump()` 就 `longjump()` 會亂跳
 - 必須設定成 `sig_atomic_t` 雖然在高階語言，設定變數是一個動作，但是在 assembly 中是好多個動作，必須設定為 atomic 防止變數改變不完全
 
-![Signal mask 2](/images/sp/ch07-signal/signal-mask-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/signal-mask-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Signal mask 2
+  </span>
+</div>
 1. 開始時 mask 為 empty
 2. `pause()` 在 SIGUSR1 deliver 並且 handler 執行完畢才會 return;
 3. `sig_usr1()` 執行期間會把自己 `SIGUSR1` 給 block 住
@@ -1059,12 +1131,24 @@ charatatime(char *str)
 
 ### IPC with signal
 **Wrong case**
-![IPC with signal 1](/images/sp/ch07-signal/ipc-with-signal-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/ipc-with-signal-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     IPC with signal 1
+  </span>
+</div>
 - 任何 signal 都可以叫醒 `sigsuspend()`，所以我們可以用 `sigflag` 來確認，發現不是 `SIGUSR1` 就繼續睡。 
 - 但由於我們要對紅色片段做 critical region 處理，所以必須做 `sigpromask()` 的動作，但在 `fork()` 後 `sigpromask()` 前，signal 可能就來了，造成 signal get lost 的情況
 
 **Right case**
-![IPC with signal 2](/images/sp/ch07-signal/ipc-with-signal-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch07-signal/ipc-with-signal-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     IPC with signal 2
+  </span>
+</div>
 - `fork()` 前要先做 `TELL_WAIT()` 弄成 critical session
 - 然後才在 child 裡面做 suspend
 - 這樣 `SIGUSR1` 就被 block 一定會在最後才 deliver 才 handle.   

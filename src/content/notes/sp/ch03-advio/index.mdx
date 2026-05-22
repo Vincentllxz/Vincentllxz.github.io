@@ -27,7 +27,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **"Slow system calls"**: 
     - 是 forever block 的（像是要等 user input），如果前面不給資料，後面就不用動了
     - Reads or writes on pipes, terminal devices, and network devices
-- ![figure 1](/images/sp/ch03-advio/fig-1.png)
+- <div style="text-align: center;">
+    <img src="/images/sp/ch03-advio/fig-1.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       figure 1
+    </span>
+  </div>
     - 雖然 DISK 不是傳統上會造成 Slow system call 的東東西
 
 <Aside type="tip" title="">
@@ -60,7 +66,13 @@ void set_fl(int fd, int flags)
     - input 是 memory to memory **快**
     - output 是 memory to I/O **慢**
     - 若是 mode Non-blocking: **polling** (busy waiting; a waste of CPU time on a multiuser system) 因為要不停 query 詢問 queue 是否有空
-![figure 2](/images/sp/ch03-advio/fig-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch03-advio/fig-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     figure 2
+  </span>
+</div>
 
 ## I/O Multiplexing
 
@@ -80,7 +92,13 @@ Problem of blocking I/O: 會卡死，一直等
 - `readfds` 有興趣要讀的 fd，用 bits string 代表，有興設定為 `1`
 - `writefds` 有興趣要寫的 fd，，用 bits string 代表，有興設定為 `1`
 - `readfds`, `writefds` 的 type 是 `fd_set` 因為是 system depending 的
-- ![I/O Multiplexing](/images/sp/ch03-advio/i-o-multiplexing.png)
+- <div style="text-align: center;">
+    <img src="/images/sp/ch03-advio/i-o-multiplexing.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       I/O Multiplexing
+    </span>
+  </div>
 - 呼叫 `select()` 後，system 就會去看 4 個，後面的就不用幫忙看，當有 partial ready 後，就會 return 一個 totalFds（幾個 ready 了），所以 `readfds`, `writefds` 同時是輸入也是輸出
 
 **`totalFds = poll( fdarray[], nfds, timeout )`**
@@ -101,14 +119,26 @@ Problem of blocking I/O: 會卡死，一直等
 
 ## File Lock
 - 本來有 1000，藍色 program 先提了 100 然後綠色 提出 100，但 write 的 process 是藍色，他會寫入 900 而非 800
-![File Lock](/images/sp/ch03-advio/file-lock.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch03-advio/file-lock.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     File Lock
+  </span>
+</div>
 - 只要有 process 在 `write()` File 就會被 lock 住，多個 process 會搶一個 file
 - 只有 `read()` 是可以 share 的
 - 使否上所是 Unix 決定的，因為只有系統知道其他人有沒有在讀寫，如果不行鎖，就等到可以鎖 （blocking）或 context switch 走（nonblocking） 
 
 
 ### Type of Lock
-![Type of Lock 1](/images/sp/ch03-advio/type-of-lock-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch03-advio/type-of-lock-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Type of Lock 1
+  </span>
+</div>
 - Shared read lock
     - 可以多人共享
     - 但不在鎖裡面的人都不能讀
@@ -146,7 +176,13 @@ lock 與 fd 無關，跟 process, file 有關
 </Aside>
 
 
-![Type of Lock 2](/images/sp/ch03-advio/type-of-lock-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch03-advio/type-of-lock-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Type of Lock 2
+  </span>
+</div>
 - 因為 i-node table 上有記錄上 lock 的 process，他只認 process 所以只要是從正確的 process 來的就可以把 lock release 掉
 
 <Aside type="note" title="">
@@ -180,10 +216,22 @@ close(fd2);
 - **Client** v.s. **Server**
     - **Client**: 提出 request
     - **Server**: 處理 request
-![Networking 1](/images/sp/ch03-advio/networking-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch03-advio/networking-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Networking 1
+  </span>
+</div>
 
 **Socket Programming**
-![Networking 2](/images/sp/ch03-advio/networking-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch03-advio/networking-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Networking 2
+  </span>
+</div>
 
 ---
 

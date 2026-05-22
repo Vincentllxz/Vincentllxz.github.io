@@ -25,11 +25,23 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ## System call v.s Function call
 
-![System call v.s Function call](/images/sp/ch01-oscon/system-call-v-s-function-call.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/system-call-v-s-function-call.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     System call v.s Function call
+  </span>
+</div>
 
 ### User mode v.s. Kernel mode
 
-![User mode v.s. Kernel mode](/images/sp/ch01-oscon/user-mode-v-s-kernel-mode.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/user-mode-v-s-kernel-mode.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     User mode v.s. Kernel mode
+  </span>
+</div>
 
 - Hardware always in **Kernel Mode**
 
@@ -97,12 +109,24 @@ Only one core of CPU, but want to make **multitasking**.
 
 - **Time Sharing**: the rate is too fast that user won't realize that they are sharing
 
-![CPU Scheduling 1](/images/sp/ch01-oscon/cpu-scheduling-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/cpu-scheduling-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     CPU Scheduling 1
+  </span>
+</div>
 
 - Event can be DISK
 - **(IMPROTANT)** A process want to inline of ready queue, it has to put every data into the memory.
 
-![CPU Scheduling 2](/images/sp/ch01-oscon/cpu-scheduling-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/cpu-scheduling-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     CPU Scheduling 2
+  </span>
+</div>
 
 **Context Switch**
 - **Time Slice** maybe just a nano second
@@ -112,11 +136,23 @@ Only one core of CPU, but want to make **multitasking**.
 - If one process want to ask DISK, CPU will kick out this process into event, but not time slice.
 
  
-![CPU Scheduling 3](/images/sp/ch01-oscon/cpu-scheduling-3.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/cpu-scheduling-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     CPU Scheduling 3
+  </span>
+</div>
 
 - Exit have many kind.
 
-![CPU Scheduling 4](/images/sp/ch01-oscon/cpu-scheduling-4.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/cpu-scheduling-4.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     CPU Scheduling 4
+  </span>
+</div>
 
 <Aside type="note" title="About Mode switch and Context switch">
 **Mode switch may not lead to Context switch**
@@ -124,11 +160,23 @@ Only one core of CPU, but want to make **multitasking**.
 </Aside>
 
 ### UNIX Process
-![UNIX Process 1](/images/sp/ch01-oscon/unix-process-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/unix-process-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     UNIX Process 1
+  </span>
+</div>
 
 From "init" prcess use **fork** to build a process tree.
 
-![UNIX Process 2](/images/sp/ch01-oscon/unix-process-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/unix-process-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     UNIX Process 2
+  </span>
+</div>
 
 
 **Pipe**
@@ -162,7 +210,13 @@ From "init" prcess use **fork** to build a process tree.
 
 ## Memory Management
 
-![Memory Management](/images/sp/ch01-oscon/memory-management.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/memory-management.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Management
+  </span>
+</div>
 
 ## File/Directory Management
 
@@ -178,14 +232,26 @@ From "init" prcess use **fork** to build a process tree.
 
 ### File Structure
 
-![File Structure 1](/images/sp/ch01-oscon/file-structure-1.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/file-structure-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     File Structure 1
+  </span>
+</div>
 
 - **root** `/`: all unix like system's root.
 - **lib**: library, the include path
 - **bin**: binary, in the system genuinly
 - **var**: dynamic file
 
-![File Structure 2](/images/sp/ch01-oscon/file-structure-2.png)
+<div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/file-structure-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     File Structure 2
+  </span>
+</div>
 
 ```bash
 chmod <mode> <file(s)>

@@ -43,7 +43,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **base register**: 檢查 if `address >= base`
 - **limit register**: 檢查 if `address < base + limit`
  
-![Address Protection](/images/os/ch05-main-memory/address-protection.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/address-protection.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Address Protection
+  </span>
+</div>
 
 會隨著 Context Switch 變化，存在 Register 是因為這個動作要非常快，因為每個 Process 都需要檢查
 
@@ -103,7 +109,13 @@ Static Linking 就是把 Library 當作一個新的 Object File
 
 ### Memory Protection
 
-![Memory Protection](/images/os/ch05-main-memory/memory-protection.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/memory-protection.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Protection
+  </span>
+</div>
 
 一個 logical address 進來之後先檢查有沒有超過 Limit，因為是 Continuous 所以只需要檢查有沒有超過某個 limit
 
@@ -113,7 +125,13 @@ Static Linking 就是把 Library 當作一個新的 Object File
 - Reject
 - 排進 Wait Queue 裡面
 
-![Memory Allocation](/images/os/ch05-main-memory/memory-allocation.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/memory-allocation.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Memory Allocation
+  </span>
+</div>
 
 #### Dynamic Storage Allocation Problem
 
@@ -151,7 +169,9 @@ Simulation 之後發現 First fit 跟 Best fit 會很不錯
 ### Basic Method
 
 **Pages** 是一個 fixed size 的 Logical Memory，**Frames** 是一個 fixed size 的 Physical Memory 通常 
-$$\texttt{Page Size == Frame Size}$$
+$$
+\texttt{Page Size == Frame Size}
+$$
 
 一段 Logical address 通常會有
 - **Page Number** `p` 前半，是在 **Page Table** 裡的 index
@@ -163,7 +183,13 @@ $$\texttt{Page Size == Frame Size}$$
 
 Paging 一樣是在 **MMU** 裡面實現的
 
-![Basic Method 2](/images/os/ch05-main-memory/basic-method-2.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/basic-method-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Basic Method 2
+  </span>
+</div>
 
 1. CPU 產生 `p+d` 的 logical address
 2. `p` 被當作 index，去 Page table 裡面替換成 `f`
@@ -176,11 +202,23 @@ Paging 一樣是在 **MMU** 裡面實現的
 
 可以是不連續的 Access，Logical 上看 Page 0~3 是連續的，但在 Frame 上看是不連續的
 
-![Basic Method 3](/images/os/ch05-main-memory/basic-method-3.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/basic-method-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Basic Method 3
+  </span>
+</div>
 
 access `10` 會變成 `60` 也就是 `6*4 + 0 = 24` 是 `e`
 
-![Basic Method 4](/images/os/ch05-main-memory/basic-method-4.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/basic-method-4.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Basic Method 4
+  </span>
+</div>
 
 OS 會先 keep 一個 Free-Frame List，有新 Process 要 allocate 的時候就 Dynamically 的去從 list 裡找，再更改那個 List
 
@@ -191,7 +229,9 @@ OS 會先 keep 一個 Free-Frame List，有新 Process 要 allocate 的時候就
 - Internal fragmentation = `2,048 − 1,086` bytes = `962` bytes
 
 最後剩餘的 bytes 還是得全部塞進一個 page 裡面，而這種情況 Worst Cast 就是
-$$\texttt{(1 frame) - (1 bytes)}$$
+$$
+\texttt{(1 frame) - (1 bytes)}
+$$
 
 如果這是個 Uniform Distribution 的話，那平均會剩下 $\texttt{0.5 frame}$，那是否是 Page size 越小越好？
 
@@ -219,14 +259,26 @@ Page table 是一個 per process 的 Data Structure 有兩種 implement
 
 為了讓 Address 轉換的過程加速，多增加一個比較靠近硬體層面的 **TLB**
 
-![Translation Look-Aside Buffer 1](/images/os/ch05-main-memory/translation-look-aside-buffer-1.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/translation-look-aside-buffer-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Translation Look-Aside Buffer 1
+  </span>
+</div>
 
 MMU 先去檢查 TLB 裡面有沒有要求的 Address
 
 <Aside type="note" title="TLB">
 
 他是一種 hardware，所以加速是在硬體層面上進行的，使用 **Associative Memory** 進行加速，當發出請求的時候，硬體 control lines 會平行化的去找那個 frame page
-![Translation Look-Aside Buffer 2](/images/os/ch05-main-memory/translation-look-aside-buffer-2.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/translation-look-aside-buffer-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Translation Look-Aside Buffer 2
+  </span>
+</div>
 </Aside>
 
 因為真正的 CPU execution 是一種 pipeline 的感覺，不同步驟可以同時做（e.g. 不同任務的讀、算可以同時進行），每當運行發生 TLB miss（當前 Address 不在 TLB 內）就要寫入 TLB
@@ -263,9 +315,13 @@ $$
 
 此時我們計算 Effective memory-access time
 If $\text{Hit ratio } = 80\%$
-$$0.8 \times 10 + 0.2 \times 20 = 12\ (\text{nanosec.})$$
+$$
+0.8 \times 10 + 0.2 \times 20 = 12\ (\text{nanosec.})
+$$
 If $\text{Hit ratio } = 99\%$
-$$0.99 \times 10 + 0.01 \times 20 = 10.1\ (\text{nanosec.})$$
+$$
+0.99 \times 10 + 0.01 \times 20 = 10.1\ (\text{nanosec.})
+$$
 
 
 實際上 TLB 也可以是 Hierarchical 的，但是運作起來更加複雜
@@ -276,7 +332,13 @@ $$0.99 \times 10 + 0.01 \times 20 = 10.1\ (\text{nanosec.})$$
 
 #### Valid-invalid bit
 
-![Valid-invalid bit](/images/os/ch05-main-memory/valid-invalid-bit.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/valid-invalid-bit.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Valid-invalid bit
+  </span>
+</div>
 
 可以告訴我們哪個欄位不能 access，一遇到 invalid 就可以直接 Error trap，有可能是發生 page fault
 
@@ -289,7 +351,13 @@ $$0.99 \times 10 + 0.01 \times 20 = 10.1\ (\text{nanosec.})$$
 
 有一種 **Reentrant code** 是不能在 Execution 的時候變化的 code，是可以被 share 的，此時如果有 Paging 就可以非常方便的在 Physical memory 上 Share 這段 code
 
-![Shared Pages](/images/os/ch05-main-memory/shared-pages.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/shared-pages.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Shared Pages
+  </span>
+</div>
 
 只要 Process 把自己需要的那段 Share code 放到自己的 Page table 上 mapping 過去就好了
 
@@ -307,7 +375,13 @@ $$
 
 把 Page number 的存取變成一個 tree structure，讓他可以分開來（但其實使用的 total memory 會比較多，也是一種 trade-off）
 
-![Two-Level Paging](/images/os/ch05-main-memory/two-level-paging.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/two-level-paging.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Two-Level Paging
+  </span>
+</div>
 
 32-bit 的話就可以是：$p_1$ 10 bit，$p_2$ 10 bit
 
@@ -317,7 +391,13 @@ $$
 
 ### Hashed Page Tables
 
-![Hashed Page Tables](/images/os/ch05-main-memory/hashed-page-tables.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/hashed-page-tables.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Hashed Page Tables
+  </span>
+</div>
 
 把 Page table 改成一個 Hash table，用 Hash function 到達指定 entry 後，透過 link list 的 traverse 找到對應的 Frame number
 
@@ -327,7 +407,13 @@ $$
 
 檢查現在這個 Frame 正在被誰使用，也就是說這並不是個 Per process 的 data structure
 
-![Inverted Page Tables](/images/os/ch05-main-memory/inverted-page-tables.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/inverted-page-tables.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Inverted Page Tables
+  </span>
+</div>
 
 `i` 是 frame 的 index，如果要 access `pid+p+d` 這個 address，對 Page table 做 search，假設第 `i` 個 entry 剛好符合這個條件，那 Physical address 就會是 `i+d`
 
@@ -346,7 +432,13 @@ $$
 \text{Actul memory space} \leq \text{Total memory of process}
 $$
 
-![Swapping](/images/os/ch05-main-memory/swapping.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/swapping.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Swapping
+  </span>
+</div>
 
 ### Standard Swapping
 
@@ -360,7 +452,13 @@ $$
 
 > 該如何選擇誰要搬走就是 Ch.10 Virtual Memory 的問題
 
-![Swapping with Paging](/images/os/ch05-main-memory/swapping-with-paging.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/swapping-with-paging.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Swapping with Paging
+  </span>
+</div>
 
 ### Swapping on Mobile Systems
 
@@ -383,7 +481,13 @@ Intel adopted AMD's x86-64 architecture
 
 有三種不同的 **translation granules**，有不同的 **regions** 也就是連續的 memory
 
-![ARMv8 Architecture](/images/os/ch05-main-memory/armv8-architecture.png)
+<div style="text-align: center;">
+  <img src="/images/os/ch05-main-memory/armv8-architecture.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     ARMv8 Architecture
+  </span>
+</div>
 
 有 two level TLB
 - **micro TLBs**: inner, ASIDs supported

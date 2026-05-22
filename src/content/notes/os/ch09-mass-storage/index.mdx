@@ -1,0 +1,428 @@
+---
+title: "NTU-OS 作業系統 Ch9 Mass-Storage System"
+description: "NTU Operating System 作業系統:Ch9 Mass-Storage System"
+publishDate: "2026-05-23 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Aside } from 'astro-pure/user'
+
+# Mass-Storage System
+
+## Overview
+
+### Hard Disk Drives (HDDs)
+
+磁碟上的一片一片叫做 **platter** 可以存資料，一圈叫一個 **track**, track 裡面一段一段就是 **sector**，把不同層的 track 組合再一起我們叫他 **cylinder**
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/hard-disk-drives.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Hard Disk Drives (HDDs)
+  </span>
+</div>
+
+#### HDD Performance
+
+現在的 HDD 每分鐘會旋轉 5000~15000 RPM
+- **Transfer rate** Data 在 Dirve 跟 Computer 之間傳輸的速度
+- **Positioning time (Random-access time)**
+    - **Seek time**: Disk arm 控制他的長度跑到指定 cylinder 的時間
+    - **Rotational Latency**: 旋轉到正確 sector 的時間
+- **Head crash**: Disk Head 跟 platter 直接碰到了（不好）
+
+額外定義幾個名詞
+- **Access time**：
+$$
+\text{Seek time} + \text{Rotational Latency}
+$$
+- **I/O time**：
+$$
+\text{Access time} + \text{Transfer time} + \text{Controller overhead}
+$$
+
+<Aside type="tip" title="Example">
+Transfer a 4KB block on a 7200 RPM disk with a 5ms seek time, 1Gb/sec transfer rate, and 0.1ms controller overhead
+1. access time
+
+$$
+\text{Access time} = \text{Seek time} + \text{Rotational latency} = 5\text{ms} + 4.17\text{ms} = 9.17\text{ms}
+$$
+
+其中 rotational latency 取平均，也就是半圈的時間：
+
+$$
+\text{Rotational latency} = \frac{1}{7200 / 60} \times \underbrace{0.5}_{\text{半圈}} = \frac{1}{120} \times 0.5 = 0.00417\text{s} = 4.17\text{ms}
+$$
+
+2. Transfer time
+$$
+\text{Transfer time} = \frac{4 \times 8 / 1024 / 1024 \;(\text{Gb})}{1 \;(\text{Gb/s})} = 0.00031\text{s} = 0.031\text{ms}
+$$
+
+（4KB → 換算成 Gb 後除以傳輸率 1 Gb/s）
+
+$$
+\text{I/O time} = \underbrace{9.17\text{ms}}_{\text{access}} + \underbrace{0.031\text{ms}}_{\text{transfer}} + \underbrace{0.1\text{ms}}_{\text{controller}} = 9.301\text{ms}
+$$
+</Aside>
+
+### Nonvolatile Memory (NVM)
+
+USB drive 就是一種，NVM 常常被當作一種 disk-driver like container，我們也叫他 **Solid-state Disk (SSD)**
+
+- Pros: 相較於 HDD 是比較 reliable 的，因為 HDD 是物理上機械式行為，並且會比較快
+- Cons: 缺點就是容量比較小而且比較貴
+
+有一點直得注意是 NVM device 通常沒辦法跟傳統 bus 搭配，因為傳統 bus 是設計給 HDD 的，硬湊可能會產生很大的 bottleneck
+
+SSD 因為自己的特性，雖然也是用 page 存取，但沒辦法 overwrite，要先做 erase，這個 erase 的動作一次都是一個 block 也就是好多個 page，因此會產生很大的 overhead，並且 SSD 有一個 erase 的次數上限，大概 100,000 次的複寫就不能夠再繼續存資料了
+
+所以我們常常用 **drive writes per day (DWPD)** 來衡量一個 SSD 的 life span
+
+#### NAND Flash Controller Algorithms
+
+在沒有 erase 的情況下沒辦法 overwrite，會產生一種情況：同樣的資料寫了又寫會寫到不同地方，會讓舊資料變的 invalid，我們會用 **flash translation layer (FTL)** 來記錄這些資料，這時候又有一個新問題 **Garbage collection**。
+
+**Garbage collection** 就是把 Invalid 的 data 全都聚集，一次 erase，為了做到這件事，我們需要做 **overprovisioning** 把 good data copy 到另一個新空間，overprovisioning 也可以幫助我們平均分散資料，也就是 **wear leveling**，把資料搬到比較沒有被 erase 過的 block 上
+
+### Others
+
+#### Volatile Memory
+
+其實可以把 RAM 當作一個 Drive，用一樣的方法操作他，像是 Linux 中的 `/dev/ram` 但這樣的資料關掉之後也是會消失
+
+> 不用 cache 或 buffer 的原因是因為這些地方空間有限，OS 需要這些空間。
+
+這是一種 temporary storage 在 Linux 裡面也可以存在 `/tmp` 用 `tmpfs` 的 file type，速度當然會比較快
+
+#### Connection Method
+
+所有 secondary storage 都會有各自跟 computer 連接的方法，各自有各自的 feature
+- Advanced technology attachment (ATA)
+- Serial ATA (SATA)
+- eSATA
+- Serial attached SCSI (SAS)
+- Universal serial bus (USB)
+- Fibre channel (FC)
+- NVM express (NVMe) especially for NVM devices which are much faster than HDDs
+
+而這裡也有 Controller 的概念：
+- **host controller**: 在電腦端負責用 message 傳指令給 device controller
+- **device controller**: 在 device 端用自己的 cache 接收指令
+    - controller 跟 storage device 本身有資料的傳輸
+    - controller 跟 host 的 DRAM 也會有 **DMA** 的連接
+
+#### Address Mapping
+
+通常會把一個 storage device 視為一個 one dimension arrays，我們叫他 **logical blocks**，這是一個 smallest unit of transfer
+
+我們可以把它 map 到實體的 device 上面
+
+<Aside type="tip" title="Example">
+Sector 0 is the first sector of the first track on the outermost cylinder，然後用下面的順序做 mapping
+- Through that track
+- Through the rest of the tracks on that cylinder
+- Through the rest of the cylinders from outermost to innermost
+</Aside>
+
+**logical block address** 會讓我們比較好處理，一樣是種 vitulization 的操作
+- Constant linear velocity (CLV): 內圈外圈的 sector 一樣大
+- Constant angular velocity (CAV): 每圈 sector 一樣多
+
+## HDD Scheduling
+
+OS 需要負責讓硬體的 Access time minimize 以及 **Bandwith** maximize，也就是 **seek time** 跟 **rotational latency**
+$$
+\text{Bandwidth} = \frac{\text{Amount of Data}}{\text{Last Transfer time} - \text{First request service time}}
+$$
+
+當一個 Process 需要執行 I/O 都要發給 OS 一個 system call，會提供以下資訊
+- input or output
+- open file handle (`fd`)
+- memory address for the transfer
+- The amount of data to transfer
+
+OS 提供的 **queuing request** 機制可以讓 device optimize performance
+
+我們要真正知道 HDDs 的 head 在哪是非常困難的，但我們可以做一些估計
+- LBA 越大通常 physical address 越大
+- LBA 相近的 block 通常 phisical block 也會有 proximity
+
+### FCFS Scheduling
+
+假設 
+- Request queue: `98`, `183`, `37`, `122`, `14`, `124`, `65`, `67`
+- Head pointer 在 `53`
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/fcfs-scheduling.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Example of FCFS
+  </span>
+</div>
+
+總共有 **640** 個 cylinders movement
+
+
+### SCAN Scheduling
+
+這種演算法會先從 end point 挪到另一個 end point，不停在兩端挪動，遇到誰就先處理誰，**SCAN algorithm** 也叫做 **elevator algorithm**
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/scan-scheduling.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Example of SCAN
+  </span>
+</div>
+
+總共有 **236** 個 cylinders movement
+
+假設從 A end 走到 B end，那當 head 走到 B end，A end 的 request density 就會太高，也就是說越靠近 A end 的 request 的 waiting time 會太長，我們需要改善
+
+### C-SCAN Scheduling
+
+把 SCAN 到末尾的操作改成 **跳回原本的起始點**，相較於 SCAN 會更加 Uniform
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/c-scan-scheduling.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Example of SCAN
+  </span>
+</div>
+
+因為 HDDs 是一個環狀結構，所以真正的移動只有 **184** 個 cylinders movement
+
+### Selecting a Disk-Scheduling Algorithm
+
+SCAN, C-SCAN 通常就有很不錯的效果了，在 Linux 裡面還提供 **Deadline Scheduler**，也就是分成
+- Read Queue
+- Write Queue
+
+通常 Read Queue 的 Priority 會比較高，因為 read block 是比較常發生的，真正 implement 其實有四個 Queue：Read Queue, Write Queue 還會按照
+- LBA order
+- FCFS order
+
+做排序，因為我們需要考慮到他的 arriving time，假設一個 request 存在的時間已經超過了設定的 deadline（500 ms default），那我們就會從 LBA Order 的 queue 裡面找到對應的 Block 裡面的所有 sector 做存取
+
+其實還有各式各樣的 Scheduler（e.g. NOOP, completely fair queueing scheduler (CFQ)）
+
+## NVM Scheduling
+
+NVM 沒有 head movement 的問題，因此直接使用 **FCFS** 其實就是很好的方法了，當然還是可以做一些修改
+- Linux 的 NOOP 會把 LBA 靠近的 request merge 在一起
+
+通常我們可以把 I/O 分成 Sequencial 和 Random-access I/O，**Random-access I/O** 非常適合 NVM
+- 用 **IOPS (input/output operations per second)** 做 metric
+    - HHD: $\sim 10^3$ IOPS
+    - SSD: $\sim 10^7$ IOPS
+
+> 但 sequencial 來講還是 HDD 適合
+
+但在使用 NVM 的時候要注意 **write amplification**，也就是一個 write 可能 trigger 好多個 I/O operation，可以用 garbage collection 解決
+
+## Error Detection and Correction
+
+**Error detection** 就使要找錯誤，或是說發現錯誤，常用在 Networking
+
+<Aside type="tip" title="Example">
+a bit **flipping** and **parity** bit：檢查有沒有 bit flipping 有奇數還是偶數個 1
+</Aside>
+
+- **Checksum**: 上面就是一個例子，但在現代，我們通常使用 modular arithmetic 的 properties 去做應用
+- **Cyclic redundancy check (CRC)**：在 Network 常用，用 hash function 去做檢查
+- **Error-correction code (ECC)**：不只做通知，還會幫忙修正，但就需要更多 information
+    - **soft error** is recoverable
+    - **hard error** is signaled but noncorrectable
+
+## Storage Device Management
+
+### Drive Formatting, Partitions, and Volumes
+
+在一個 disk 出場的時候其實就已經做好 **Low-level formatting** (or **physical formatting**)，也就是把 sector 就設定好了
+- Header
+- Data
+- Trailer (e.g., Error correction code)
+
+但我們可以選擇 sector sizes，但當 OS 真正要使用前還要經過下面的步驟
+1. **Partition**: 要對硬碟做切割，決定哪一塊是 swap 哪裡是 OS 要的，哪裡是 User 的
+    - **Mounting** 就是讓 file system 變得可以讓 system, user 使用
+2. **Volume**: 做管理（C, D 槽）
+3. **Logical formatting**: 設定 initial 的 data structure
+
+大部分的 file system 都會把 blocks group 成一個 **cluster**，因為 HDD 希望 data 是 sequencial 的，所以會需要把 block 聚集，顯示他的 locality
+
+### Boot Block
+
+用來做 **bootstrap** 用的一塊空間，在 bootstrap 的時候會把他從 disk 上 load 進到 memory，存有這塊 Boot block 的 disk 就叫做 **boot disk** or **system disk**
+
+拿 Windows 當例子，有一個 **Master boot record (MBR)**
+- NVM 或 HDD 的第一個 block
+- 裡面有一個 table 會存入 partition 的各種資訊，比如指向 boot program 的 partition
+
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/master-boot-record.png" style="width: 50%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     An Master Boot Record (MBR)
+  </span>
+</div>
+
+1. Run the code in the system's firmware
+2. Direct to read the boot code from the MBR
+3. Read the first sector/page from the boot partition which directs to the **kernel**
+
+### Bad Blocks
+
+一個 disk 出場一定會有一些 bad block，我們可以用 **Sector sparing** ｘ呆處理
+- OS 想讀取 87-th sector
+- Controller 計算 error-correction code (ECC) 發現這個 sector 是壞的
+- Controller 回報 I/O error 給 OS
+- Device controller 把 bad sector 取代成 **spare**
+- 未來 OS 想讀 87 sector 的時候，controller 就會直接把它 translate 乘 spare sector
+
+或是我們做 **Sector slipping** 也就是平移
+
+## Swap-Space Management
+
+Swap out 跟 page out 可能會混用，但 swap 是整個 process 的 memory，這裡的 Swap-Space Management 是可以用在 swapping 也可以用在 paging 的空間
+
+
+當 DRAM 空間不夠我們就要搬東西到 Swap space 上，所以我們需要 OS 來管理這件事，可以放在
+- Raw partition
+- File system 的一個 file
+
+Linux 有一個 swap map，是 `0` 就表示這個 partition 可以使用，是自是多少就代表有多少 process referecnce 的這裡（因為有 share memory 所以會超過 1）
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/linux-swap-map.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Linux Swaping Partition and Swap map
+  </span>
+</div>
+
+## Storage Attachment
+
+Storage 到底是怎麼接上來的
+
+### Host-Attached Storage
+
+**Host-attached storage** 就是直接接在主機上用 local I/O port 讀寫的 storage，最常見的是 **SATA**，經典的 system 有多個 SATA port
+
+想要更多空間也可以用 USB FireWire, Thunderbolt ports
+
+如果是 server 等級的 machine 通常會用 **fibre channel** (FC) 當作 attachment
+
+### Network-Attached Storage (NAS)
+
+**Network-attached storage (NAS)** 是一種在網路上的 Storage，我們透過 remote-procedure-call (RPC) interface，可以用 TCP/UDP + IP 去做連接
+
+這些伺服器不一定真的是一台 server，有可能只是一個 storage system 而已
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/nas.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Example of NAS
+  </span>
+</div>
+
+有一些更進階的 protocol 像是 iSCSI，是一種用 IP 傳輸的 SCSI protocol，可以讓網路硬碟運作得像本地端一樣
+
+### Cloud Storage
+
+跟 NAS 不同的是，NAS 只是一個新的 File System，會連接到統一個 data center，採用 api-base 來連接 server，像是 google drive, dropbox，透過網頁、API 就可以連接
+
+### Storage Area Networks (SAN) and Storage Arrays
+
+**Storage Area Networks** 就是一個 connect 很多 servers and storage units 的系統，非常彈性，可以隨意組合，有 multiple host 跟 multiple storage array，assign 的方法完全 dynamic
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/storage-area-networks.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Storage Area Networks and Storage Arrays
+  </span>
+</div>
+
+**storage array** 可以根據我們希望的目的來打造，可以跟 Network 比較有關也可以跟 storage 有關
+
+通常會用 FC 當作 Connection 或是 InfiniBan
+
+## RAID Structure
+
+### Reliability via Redundancy
+
+全稱是 **Redundant arrays of independent (inexpensive) disks (RAID)**，概念很簡單，就是要有備份，也就是用 **redundancy** 提升 reliability
+
+計算 **mean time to data loss** 我們需要
+- **Mean time between failures (MTBF)** 平均 loss 時間
+- **Mean time to repair** 平均修復時間
+
+<Aside type="tip" title="Example">
+If the MTBF of a single drive is 100,000 hours and the mean time to
+repair is 10 hours
+- Then the mean time to data loss of a mirrored drive system is
+$$
+\frac{100,000^2}{2 \times 10} = 500 \times 10^6 \text{ hours} = 57,000 \text{ years}
+$$
+
+從機率角度來看發生 loss 需要本體丟失以及備份丟失，B 出錯必須在 A 出錯的十小時內才會真的發生
+</Aside>
+
+> 現實生活中兩次 failure 不一定會 independent
+
+### Performance via Parallelism
+
+備份後，我們做 Parallelism 就會更方便，有一種方法叫 **Data striping** 假設我們把不同 bit 放在不同 drive 上，我們就可以讓每個 bit 做到 Parallelism，這樣子叫做 **bit-level striping**，當然也有 **block-level striping**
+- Throughput of multiple small accesses 會增加
+- Response time of large accesses 也會減少
+
+### RAID Levels
+
+- **Mirroring** 或是 **shadowing** 我們稱為 **RAID 1** 會 keep duplication
+- **Block interleaved parity (RAID 4, 5, 6)** 就是比較少的 redundancy
+- **Striped mirrors (RAID 1+0)** 或 **mirrored stripes (RAID 0+1)** 就是可以增加 performance 以及 reliability
+
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/raid-levels.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Illustration of RAID
+  </span>
+</div>
+
+- RAID 0：Non-Redundant
+- RAID 1：Mirrored
+- RAID 4：只用一個額外的 DISK 去存 parity
+- RAID 5：parity 散布在多個 DISK 上
+- RAID 6：parity 加上其他資訊，散布在多個 DISK 上
+- Multidimensional RAID 6：用專門的 DISK 儲存 P 跟其他資訊
+
+> RAID 4, 5, 6 還是可以做到 error correction，Driver 會有一些 Failure information 但還是有機會可以修復
+
+RAID 0+1，如果其中一個 Disk 壞掉，那整個 Stripe 都不能用了，但如果是 RAID 1+0 可以從 Mirror 的 DISK 去組合出來
+
+<div style="text-align: center;">
+  <img src="/images/os/ch09-mass-storage/raid-01-10.png" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Illustration of RAID 0+1, RAID 1+0
+  </span>
+</div>
+
+- **Snapshot**：會再更新前做一個備份，可以 trace 發生啥事
+- **Replication**：一個 write 發生可能需要其他 write，我們想做到 autometically duplication write，可以 sync 也可以 async

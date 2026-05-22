@@ -19,7 +19,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 <Aside type="note" title="">
 做出一個 app 我們只需要知道 API (Application layer Interface) 如何操作，以及他與 Transport Layer 的溝通關係就好了
-![figure](/images/cn/ch02-app/fig.png =60%x)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/fig.png" style="width: 60%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     figure
+  </span>
+</div>
 </Aside>
 
 ## Principle of Application layer
@@ -64,7 +70,13 @@ P2P 會交換
 - **Throughput**
 - **Security**
 - 以下是常見服務隊各種屬性的要求
-![Available in Transport Layer](/images/cn/ch02-app/available-in-transport-layer.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/available-in-transport-layer.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Available in Transport Layer
+  </span>
+</div>
 
 ### Transport Layer
 - **TCP** service: 
@@ -114,7 +126,13 @@ Accept-language: fr
 - 每行結尾都有 `\r\n`
 - 大致結構如下
     - request 下面是 header 資訊
-  ![HTTP Request message](/images/cn/ch02-app/http-request-message.png)
+  <div style="text-align: center;">
+    <img src="/images/cn/ch02-app/http-request-message.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       HTTP Request message
+    </span>
+  </div>
 
 ### Types of HTTP Request message
 - **POST**: 上傳 form 資料（用 body）
@@ -149,7 +167,13 @@ Content-Type: text/html
     4. 向 Back-end database 請求資料
 
 <Aside type="tip" title="Example">
-![Cookie](/images/cn/ch02-app/cookie.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/cookie.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Cookie
+  </span>
+</div>
 - Backend create entry 之後就會回傳 cookie ID
 - Request 用這個 ID 去請求
 </Aside>
@@ -173,7 +197,13 @@ Server 可以用 Control header 對 Cache 下指令
 - 可以減少 access link 的 traffic
 
 <Aside type="tip" title="">
-![Web Caches 1](/images/cn/ch02-app/web-caches-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/web-caches-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Web Caches 1
+  </span>
+</div>
 觀察一下 Access link 使用率，真的非常高
 $$
 \text{Access link 使用率} = \frac{1.50 \text{ (Mbps)}}{1.54\text{ (Mbps)}} = 0.97
@@ -196,7 +226,13 @@ $$
 </Aside>
 
 <Aside type="caution" title="Solution 2：Buy a **Web Cache**">
-![Web Caches 2](/images/cn/ch02-app/web-caches-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/web-caches-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Web Caches 2
+  </span>
+</div>
 假定 **hit rate** 是 **0.4**，表示四成資料會不需要經過 Access link，只需要 msec delay，剩餘 60％ 維持原樣
 $$
 \text{Hit rate} = 0.4
@@ -218,13 +254,25 @@ $$
 - Check if cache is up-to-date
 - 會進行以下機制，自動排除寄送 `304 Not Modified`
     - 加入一行 header `If-modified-since: <date>`
-  ![Conditional GET](/images/cn/ch02-app/conditional-get.png)
+  <div style="text-align: center;">
+    <img src="/images/cn/ch02-app/conditional-get.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       Conditional GET
+    </span>
+  </div>
 
 
 ### HTTP/2
 - 把資料分解成 frame 去做 HOL Blocking
 - 如果 $O_1$ 必須一起送出，那 $O_2 \to O_4$ 會 delay 非常嚴重，但分段就可以讓 delay 只存在 $O_1$
-- ![HTTP/2](/images/cn/ch02-app/http-2.png)
+- <div style="text-align: center;">
+    <img src="/images/cn/ch02-app/http-2.png" style="width: 100%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+       HTTP/2
+    </span>
+  </div>
 
 
 ## Email, SMTP
@@ -233,7 +281,13 @@ Email 分為三個部分
 - **User Agent**
 - **SMTP protocol**: 推送信件到另一個 Server
 
-![Email, SMTP 1](/images/cn/ch02-app/email-smtp-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/email-smtp-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Email, SMTP 1
+  </span>
+</div>
 
 - SMTP 用的是 Direct Transfer
 - ```
@@ -254,7 +308,13 @@ Email 分為三個部分
   S:  221 hamburger.edu closing connection
   ```
 
-![Email, SMTP 2](/images/cn/ch02-app/email-smtp-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/email-smtp-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Email, SMTP 2
+  </span>
+</div>
 
 ### Compare to HTTP
 - HTTP: client PULL, single object
@@ -284,7 +344,13 @@ Email 分為三個部分
 
 
 ### A Distributed, Hierarchical Database
-![A Distributed, Hierarchical Database](/images/cn/ch02-app/a-distributed-hierarchical-database.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/a-distributed-hierarchical-database.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     A Distributed, Hierarchical Database
+  </span>
+</div>
 - 根域名 DNS 伺服器 (**root** DNS servers)
     - 具有非常重要的功能
     - ICANN 定義的
@@ -296,11 +362,23 @@ Email 分為三個部分
 
 ### Iterated Query
 - 要一層一層訪問才能獲得真正的網域，可能會造成 congestion
-![Iterated Query](/images/cn/ch02-app/iterated-query.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/iterated-query.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Iterated Query
+  </span>
+</div>
 
 ### Recursive Query
 - 同樣一層一層訪問，但不用每次都回到 local DNS server
-![Recursive Query](/images/cn/ch02-app/recursive-query.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/recursive-query.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Recursive Query
+  </span>
+</div>
 
 ### DNS Caching
 - 會設定 TTL
@@ -316,11 +394,29 @@ Email 分為三個部分
     - **Type MX**: for mail
 
 ### DNS protocol message
-![DNS protocol message 1](/images/cn/ch02-app/dns-protocol-message-1.png)
-![DNS protocol message 2](/images/cn/ch02-app/dns-protocol-message-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/dns-protocol-message-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     DNS protocol message 1
+  </span>
+</div>
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/dns-protocol-message-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     DNS protocol message 2
+  </span>
+</div>
 
 ## P2P
-![P2P 1](/images/cn/ch02-app/p2p-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/p2p-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     P2P 1
+  </span>
+</div>
 - 在 client-server 架構裡，只有 server 在上傳，所以若有 $N$ 份大小為 $F$ 的資料，則 delay 為
 $$
 D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}} \right\}
@@ -330,7 +426,13 @@ $$
 D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}}, \frac{NF}{u_s + \sum u_i} \right\}
 $$
 這兩個公式在人數多的時候會體現出非常大的差異
-![P2P 2](/images/cn/ch02-app/p2p-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/p2p-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     P2P 2
+  </span>
+</div>
 
 ### BitTorrent
 - 在某一個 torrent 裡面的 peer 們會從其他的 peer 那邊下載該檔案的等大的 chunks
@@ -353,12 +455,24 @@ $$
     - VBR (Variable Bit Rate): 根據時間, 空間決定 encoding rate
 
 <Aside type="note" title="Streaming">
-![Video Stream & CDN 1](/images/cn/ch02-app/video-stream-and-cdn-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/video-stream-and-cdn-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Video Stream &amp; CDN 1
+  </span>
+</div>
 - 並不是下載整個影片檔，而是 server 邊送我邊看，因此稱作 streaming
 </Aside>
 
 <Aside type="note" title="Playout Buffering">
-![Video Stream & CDN 2](/images/cn/ch02-app/video-stream-and-cdn-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/video-stream-and-cdn-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Video Stream &amp; CDN 2
+  </span>
+</div>
 - 可以根據情況調整 buffer video 大小
 </Aside>
 
@@ -379,7 +493,13 @@ $$
 - 這是一種 OTT (over the top) 服務 
     - content 並不是 internet 但是使用了 Internet
 - 運作原理是可以讓 Server 根據 Congestion 情況判斷應該從哪個 CDN 拿取資料。
-![CDN](/images/cn/ch02-app/cdn.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch02-app/cdn.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     CDN
+  </span>
+</div>
 
 ---
 

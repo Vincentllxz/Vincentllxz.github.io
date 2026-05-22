@@ -78,7 +78,13 @@ $$
 - 可能會發生 Congestion 導致 Loss 或 Queue
 
 <Aside type="note" title="Queueing delay">
-![Packet-switching](/images/cn/ch01-intro/packet-switching.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/packet-switching.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Packet-switching
+  </span>
+</div>
 - Ether net 傳輸到家裡的 transmit 非常快，Access link 傳輸出去很慢就會發生 queuing
 - Router 可能會在這個 queuing 過程中發生 **Packet Loss**，因為他還要持續接收其他 packet
 </Aside>
@@ -88,19 +94,43 @@ $$
 - Guarantee 一定有完整的一條 path 上面不會有其他人（圖例：四條中保證一條為空）
     - 如果你那段沒有用到，其他人也不能用
     - Inefficient
-    - ![Circuit-switching](/images/cn/ch01-intro/circuit-switching.png =80%x)
+    - <div style="text-align: center;">
+        <img src="/images/cn/ch01-intro/circuit-switching.png" style="width: 80%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           Circuit-switching
+        </span>
+      </div>
 
 
 ### FDM vs TDM
 - **FDM**
     - 完整使用那個頻段
-    ![FDM vs TDM 1](/images/cn/ch01-intro/fdm-vs-tdm-1.png)
+    <div style="text-align: center;">
+      <img src="/images/cn/ch01-intro/fdm-vs-tdm-1.png" style="width: 100%;" />
+      <br />
+      <span style="color: grey; font-size: 16px;">
+         FDM vs TDM 1
+      </span>
+    </div>
 -**TDM**
     - Sharing，但頻寬 (bandwidth) 大，只要在自己的 time slot 都可以用
-    - ![FDM vs TDM 2](/images/cn/ch01-intro/fdm-vs-tdm-2.png)
+    - <div style="text-align: center;">
+        <img src="/images/cn/ch01-intro/fdm-vs-tdm-2.png" style="width: 100%;" />
+        <br />
+        <span style="color: grey; font-size: 16px;">
+           FDM vs TDM 2
+        </span>
+      </div>
 
 <Aside type="tip" title="Example">
-![FDM vs TDM 3](/images/cn/ch01-intro/fdm-vs-tdm-3.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/fdm-vs-tdm-3.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     FDM vs TDM 3
+  </span>
+</div>
 - **Circuit switch**: 10 user
 - **Packet switch**: 35 user，user > 10 位的機率遠遠小於 0.0004 
 
@@ -119,18 +149,36 @@ $$
     - 不可能讓 ISP 全部掌握在誰手裡，所以每個地區有自己的 ISP
 - **CPN**: 大公司也會需要自己的 Global ISP 我們稱為 Content Provider Network (**CPN**)
 
-![Structure 1](/images/cn/ch01-intro/structure-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/structure-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Structure 1
+  </span>
+</div>
 
 
 - **Tier-1**: Commercial ISPs (National or International)
 
-![Structure 2](/images/cn/ch01-intro/structure-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/structure-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Structure 2
+  </span>
+</div>
 
 ## Performance
 也就是分析各種 delay 來源
 
 ### Packet delay
-![Packet delay](/images/cn/ch01-intro/packet-delay.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/packet-delay.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Packet delay
+  </span>
+</div>
 - $d_{\text{proc}}$: Processing delay (typically < microsec)
     - 檢查 forwarding table
     - forwarding 過程
@@ -167,12 +215,24 @@ $$
 - 在這個簡單的 pipe 裡面，前者速率 $R_S$，後者則為 $R_C$
     - 如果 $R_S > R_C$ 那 Client 感受到的會是 $R_C$ 的傳輸速度，反之亦然
     - 因此一個網路線路的 Throughput 取決於最慢的那條，我們稱這條 link 為 **bottleneck link** (瓶頸線路)
-![Throughput 1](/images/cn/ch01-intro/throughput-1.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/throughput-1.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Throughput 1
+  </span>
+</div>
 - 在一條正常的網路裡 Bottleneck link 為 $\ell_B$
 $$
 \ell_B = \arg \min_{i\ \in\ \{1,2,...,n\}} R_i
 $$
-![Throughput 2](/images/cn/ch01-intro/throughput-2.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/throughput-2.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Throughput 2
+  </span>
+</div>
     - 而他的速率就是 $R_B$
 $$
 R_B = \min_{i\ \in\ \{1,2,...,n\}} R_i
@@ -181,7 +241,13 @@ $$
 $$
 R = \min \{R_s, R_c, \frac{R}{N}\}
 $$
-![Throughput 3](/images/cn/ch01-intro/throughput-3.png =60%x)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/throughput-3.png" style="width: 60%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Throughput 3
+  </span>
+</div>
     - 真實情況中 $\frac{R}{N} > R_c, R_s$，bottleneck 通常都是 edge link
     
 ## Layering, Encapsulation
@@ -211,7 +277,13 @@ flowchart TB
 - **Physical layer (物理層)**: 真正的傳輸，把一個一個 bit 傳送過去下一個節點
 
 ### Services, Layering, Encapsulation
-![Services, Layering, Encapsulation](/images/cn/ch01-intro/services-layering-encapsulation.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/services-layering-encapsulation.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Services, Layering, Encapsulation
+  </span>
+</div>
 - 每個 layer 會在 Application layer 的 message 前面加上自己需要辨識用的 header 這個過程稱為 Encapsulation
     - 例如 Transport layer 會在 header 中加入他屬於哪個 process，Network layer 會加上 Destination
 - 到了 destination 後一層一層的解讀最終在正確地方獲得正確資料，這個解讀 header 的過程叫 Decapsulation
@@ -226,12 +298,24 @@ flowchart TB
 
 ### Packet "sniffing"
 - 此處的 C 可以讀到所有 B 要傳送到其他地方的 packet
-![Packet "sniffing"](/images/cn/ch01-intro/packet-sniffing.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/packet-sniffing.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Packet "sniffing"
+  </span>
+</div>
 - Wireshark 就是一款免費的 packet-sniffer
 
 ### IP Snoofing
 - 對 packet 進行操作，此處 C 假裝自己 send 的 packet 是 B 來的
-![IP Snoofing](/images/cn/ch01-intro/ip-snoofing.png)
+<div style="text-align: center;">
+  <img src="/images/cn/ch01-intro/ip-snoofing.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     IP Snoofing
+  </span>
+</div>
 
 ### Denial of Service (DoS)
 - 生成很多假的 http request 讓 server 癱瘓掉
