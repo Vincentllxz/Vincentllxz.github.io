@@ -1,0 +1,70 @@
+---
+// Side-by-side comparison cards with pros/cons — for comparing algorithms,
+// approaches, protocols or tools in course notes (e.g. CPU-scheduling
+// algorithms, sorting algorithms, IPC mechanisms).
+interface CompareItem {
+  title: string
+  /** Small pill label beside the title, e.g. '非搶占式'. */
+  tag?: string
+  /** One-line description shown under the title. */
+  desc?: string
+  /** Advantages — rendered with a green check. */
+  pros?: string[]
+  /** Drawbacks — rendered with a red cross. */
+  cons?: string[]
+}
+
+interface Props {
+  items: CompareItem[]
+  /** Columns on >= sm screens. Defaults to the item count, capped at 3. */
+  cols?: 2 | 3
+  class?: string
+}
+
+const { items, cols, class: className } = Astro.props
+
+const resolvedCols = cols ?? Math.min(items.length, 3)
+const smColClass = resolvedCols >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
+---
+
+<div class:list={['not-prose my-7 grid grid-cols-1 gap-3 sm:gap-4', smColClass, className]}>
+  {
+    items.map((item) => (
+      <div class='flex flex-col rounded-2xl border bg-card p-5'>
+        <div class='flex items-start justify-between gap-2'>
+          <h3 class='m-0 text-base font-semibold text-foreground'>{item.title}</h3>
+          {item.tag && (
+            <span class='shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-medium text-primary'>
+              {item.tag}
+            </span>
+          )}
+        </div>
+        {item.desc && <p class='mb-0 mt-1 text-sm text-muted-foreground'>{item.desc}</p>}
+        {item.pros && item.pros.length > 0 && (
+          <ul class='m-0 mt-3 flex list-none flex-col gap-1.5 p-0'>
+            {item.pros.map((p) => (
+              <li class='m-0 flex gap-2 p-0 text-sm text-foreground'>
+                <span class='shrink-0 font-semibold' style='color:#10b981'>
+                  ✓
+                </span>
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {item.cons && item.cons.length > 0 && (
+          <ul class='m-0 mt-2 flex list-none flex-col gap-1.5 p-0'>
+            {item.cons.map((c) => (
+              <li class='m-0 flex gap-2 p-0 text-sm text-foreground'>
+                <span class='shrink-0 font-semibold' style='color:#f43f5e'>
+                  ✗
+                </span>
+                <span>{c}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    ))
+  }
+</div>

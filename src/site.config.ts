@@ -146,7 +146,7 @@ export const integ: IntegrationUserConfig = {
   // See: https://astro-pure.js.org/docs/integrations/others#medium-zoom
   mediumZoom: {
     enable: true, // disable it will not load the whole library
-    selector: '.prose .zoomable',
+    selector: '.prose img',
     options: {
       className: 'zoomable'
     }

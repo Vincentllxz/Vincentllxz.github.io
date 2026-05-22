@@ -88,6 +88,28 @@ const {
 
     <RichBlocks />
 
+    {/* Mark the current page's nav link — powers the active underline in the header. */}
+    <script is:inline>
+      ;(function () {
+        var mark = function () {
+          try {
+            var path = (location.pathname || '/').replace(/\/+$/, '') || '/'
+            document
+              .querySelectorAll('#headerExpandContent a[aria-label="Nav menu item"]')
+              .forEach(function (a) {
+                var href = (a.getAttribute('href') || '/').replace(/\/+$/, '') || '/'
+                var active = href === path || (href !== '/' && path.indexOf(href + '/') === 0)
+                a.classList.toggle('nav-active', active)
+              })
+          } catch (e) {
+            /* nav highlight is decorative — ignore failures */
+          }
+        }
+        mark()
+        document.addEventListener('astro:page-load', mark)
+      })()
+    </script>
+
     {/* Set highlight color */}
     <style define:vars={{ highlightColor }}>
       :global(.highlight) {

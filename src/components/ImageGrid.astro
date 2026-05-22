@@ -1,0 +1,59 @@
+---
+// Responsive image gallery — lays related images out in a grid instead of
+// stacking them one per row. Each image is click-to-zoom via the global
+// medium-zoom selector (`.prose img`, set in site.config.ts).
+interface GridImage {
+  src: string
+  alt?: string
+  /** Optional caption shown beneath this single image. */
+  caption?: string
+}
+
+interface Props {
+  images: GridImage[]
+  /** Columns on >= sm screens. Defaults to the image count, capped at 3. */
+  cols?: 1 | 2 | 3 | 4
+  /** Optional caption shown beneath the whole grid. */
+  caption?: string
+  class?: string
+}
+
+const { images, cols, caption, class: className } = Astro.props
+
+const resolvedCols = cols ?? Math.min(images.length, 3)
+// Literal class strings so UnoCSS can detect and generate them.
+const smColMap: Record<number, string> = {
+  1: 'sm:grid-cols-1',
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-3',
+  4: 'sm:grid-cols-4'
+}
+const smColClass = smColMap[resolvedCols] ?? 'sm:grid-cols-2'
+const baseColClass = images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
+---
+
+<figure class:list={['not-prose my-7 flex flex-col gap-2', className]}>
+  <div class:list={['grid gap-3', baseColClass, smColClass]}>
+    {
+      images.map((img) => (
+        <figure class='m-0 flex flex-col gap-1.5'>
+          <img
+            src={img.src}
+            alt={img.alt ?? img.caption ?? ''}
+            loading='lazy'
+            decoding='async'
+            class='h-auto w-full rounded-xl border bg-muted'
+          />
+          {img.caption && (
+            <figcaption class='text-center text-sm text-muted-foreground'>{img.caption}</figcaption>
+          )}
+        </figure>
+      ))
+    }
+  </div>
+  {
+    caption && (
+      <figcaption class='text-center text-sm text-muted-foreground'>{caption}</figcaption>
+    )
+  }
+</figure>

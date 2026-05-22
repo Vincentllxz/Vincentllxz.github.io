@@ -279,3 +279,107 @@ html.reveal-on [data-reveal] > *:nth-child(4) {
   margin: 1.5rem 0;
   overflow-x: auto;
 }
+
+/* ============================================================
+   Polish pass — site-wide micro-interactions & reading comfort
+   ============================================================ */
+
+/* Anchor jumps (TOC links, heading "#" links) land clear of the
+   sticky header instead of tucking underneath it. */
+html {
+  scroll-padding-top: 5.5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Text selection tinted with the site accent. */
+::selection {
+  background-color: hsl(var(--primary) / 0.22);
+}
+
+/* Article body links — accent-coloured, with an underline that grows
+   in on hover. Heading "#" anchors, image links and `.not-prose`
+   blocks are excluded. */
+.prose :is(p, li, td, th) a:not(:where([class~='not-prose'] *)):not(:has(img)) {
+  color: hsl(var(--primary) / 0.95);
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1.5px;
+  transition:
+    background-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.2s ease;
+}
+.prose :is(p, li, td, th) a:not(:where([class~='not-prose'] *)):not(:has(img)):hover {
+  background-size: 100% 1.5px;
+}
+
+/* Article images are click-to-zoom (medium-zoom) — show the affordance. */
+.prose :where(img):not(:where([class~='not-prose'] *)) {
+  cursor: zoom-in;
+  transition: filter 0.3s ease;
+}
+.prose :where(img):not(:where([class~='not-prose'] *)):hover {
+  filter: brightness(1.04);
+}
+
+/* Header nav — underline sweeps in on hover, and stays lit on the
+   current page (`.nav-active`, set by BaseLayout.astro). */
+@media (min-width: 640px) {
+  #headerExpandContent a[aria-label='Nav menu item'] {
+    position: relative;
+  }
+  #headerExpandContent a[aria-label='Nav menu item']::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: 0.3rem;
+    height: 2px;
+    border-radius: 2px;
+    background-color: hsl(var(--primary));
+    transform: scaleX(0);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #headerExpandContent a[aria-label='Nav menu item']:hover::after,
+  #headerExpandContent a[aria-label='Nav menu item'].nav-active::after {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose :is(p, li, td, th) a:not(:where([class~='not-prose'] *)):not(:has(img)),
+  .prose :where(img):not(:where([class~='not-prose'] *)),
+  #headerExpandContent a[aria-label='Nav menu item']::after {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Background canvas — three layers, all kept very faint so they
+   add depth without competing with the content:
+     1. a dot grid (texture)
+     2. a soft accent glow bleeding in from the top-left corner
+     3. a soft glow bleeding in from the bottom-right corner
+   Tune any layer's alpha to taste; the glows are `fixed` so they
+   stay anchored to the viewport corners while the page scrolls.
+   ============================================================ */
+body {
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1.4px),
+    radial-gradient(36rem 26rem at 4% -6%, hsl(199 78% 58% / 0.13), transparent 60%),
+    radial-gradient(32rem 24rem at 103% 106%, hsl(199 74% 56% / 0.11), transparent 60%);
+  background-size: 24px 24px, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-attachment: scroll, fixed, fixed;
+  background-position: center top, left top, right bottom;
+}
+.dark body {
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1.4px),
+    radial-gradient(36rem 26rem at 4% -6%, hsl(199 80% 62% / 0.16), transparent 60%),
+    radial-gradient(32rem 24rem at 103% 106%, hsl(265 70% 62% / 0.16), transparent 60%);
+}
