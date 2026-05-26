@@ -190,8 +190,8 @@ OS 會有一些 **Backdoor** 或叫 **Escape**，可以直接對 I/O 控制( e.g
 ### Block and Character Devices
 
 **Block-device interface**，通常用在 disk 上，一次就是讀取所有 block 裡面的資料，通常會有 `read()`, `write()`, and `seek()` 去做操作，都有不同的 parameter
-- **Raw I/O**：不通過 OS 去控制，直接去控制 I/O device
-- **Direct I/O**：中間有 OS 去做 buffer 或 locking
+- **Raw I/O**：跳過 buffer 並且不通過 OS 去控制，直接去控制 I/O device
+- **Direct I/O**：跳過 buffer 但中間有 OS 去做控制，但會 disable buffer 或 locking
 
 在這些操作上，可以有額外的 library 去做額外的變化，像是 memory-mapped file 的 access
 
