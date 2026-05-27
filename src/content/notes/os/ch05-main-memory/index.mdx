@@ -95,7 +95,7 @@ CPU 先產生 Program Counter，透過 PC 的 memory 產生出這次要執行的
 
 Static Linking 就是把 Library 當作一個新的 Object File
 
-這件事不是 Programmer 的責任，要讓 Progranm 的 Execution File 變小，共用 **Dynamically linked libraries (DLLs)**
+這件事不是 Programmer 的責任，要讓 Program 的 Execution File 變小，共用 **Dynamically linked libraries (DLLs)**
 - 更新的時候只需要更新被 Link 到的就好了
 - 是一種 Shared Library
 
@@ -228,7 +228,7 @@ OS 會先 keep 一個 Free-Frame List，有新 Process 要 allocate 的時候就
 - Process size = `72,766` bytes = `35` pages + `1,086` bytes
 - Internal fragmentation = `2,048 − 1,086` bytes = `962` bytes
 
-最後剩餘的 bytes 還是得全部塞進一個 page 裡面，而這種情況 Worst Cast 就是
+最後剩餘的 bytes 還是得全部塞進一個 page 裡面，而這種情況 Worst Case 就是
 $$
 \texttt{(1 frame) - (1 bytes)}
 $$
@@ -238,12 +238,12 @@ $$
 其實並不是，這是一種 Trade-off，系統整體來看，Page table 會太大，那 overhead 還是很大，所以要取到一個 balance 的點
 - 一般來講都是 4KB 或是 8KB 的大小（要在更大的話需要 hardware 的配合）
 
-#### Amout of Address Memory
+#### Amount of Address Memory
 
 32-bit CPU 假設每個 page-table entry 只有 4-byte long，但卻可以指向 $2^{32}$ 個 Physical page frame，如果每個 Frame size 是 4KB（$2^{12}$ bytes）那我們就可以 access $2^{44}$ bytes 的 Physical memory，但我們並不會真的把 32 bits 全部用來存這個，還有一些 attribute 可以存在這 32 bit 裡面
 
 #### Frame table
-Page table 是 per process 的，但 OS 來是需要記錄一個全域的 **Frame table**，並且其實每個 Process 的 Page table 也需要被記錄，讓 Context Switch 更順利
+Page table 是 per process 的，但 OS 還是需要記錄一個全域的 **Frame table**，並且其實每個 Process 的 Page table 也需要被記錄，讓 Context Switch 更順利
 
 ### Hardware Support
 
@@ -429,7 +429,7 @@ $$
 
 一個 Process 其實可以暫時先把它挪去 Backing Store，再回來，這樣可以造成一個效果
 $$
-\text{Actul memory space} \leq \text{Total memory of process}
+\text{Actual memory space} \leq \text{Total memory of process}
 $$
 
 <div style="text-align: center;">

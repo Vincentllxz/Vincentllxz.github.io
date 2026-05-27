@@ -153,7 +153,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 
 ### Direct Access (Relative Access)
 
-這種 file 裡面都會有 fix length 的 **locgical address**，可以用這個東西做參考
+這種 file 裡面都會有 fix length 的 **logical address**，可以用這個東西做參考
 
 - `read(n)`
 - `write(n)`
@@ -176,7 +176,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 
 ### Other Access Methods
 
-有很多建立在 Direct Access 之上的方法，通常都跟 **inde** 有關，存一個 index table 來做存取，但如果一個 index table 太大也可能會需要 multilevel
+有很多建立在 Direct Access 之上的方法，通常都跟 **index** 有關，存一個 index table 來做存取，但如果一個 index table 太大也可能會需要 multilevel
 
 - IBM indexed sequential-access method (ISAM)
 - OpenVMS index and relative files
@@ -251,7 +251,7 @@ OS 跟 Program 可以決定 file structure 做讀取
   </span>
 </div>
 
-在這種 framwork 底下，delete directory 是一件值得思考的事情，有些系統會 not delete unless is empty，有些則會 delete 所有底下的 file
+在這種 framework 底下，delete directory 是一件值得思考的事情，有些系統會 not delete unless is empty，有些則會 delete 所有底下的 file
 
 ### Acyclic-Graph Directories
 
@@ -324,7 +324,7 @@ Linux, Unix 為了簡化把東西分成
 - 3 種權限
   - Read, write, execute
 
-用下面的個 `chmod` 做更改指令
+用下面的 `chmod` 做更改指令
 
 ```bash
 chmod 761 <name>
@@ -344,7 +344,7 @@ chmod 761 <name>
 
 #### Sharing Between Processes
 
-我們可以透過這樣的機制，把 data 先寫到 memory 裡面，再寫回各自的 file 裡面，就可以做到 Concurrecy
+我們可以透過這樣的機制，把 data 先寫到 memory 裡面，再寫回各自的 file 裡面，就可以做到 Concurrency
 
 這樣的方法也支持 copy-on-write，也就是先 share 一個 read only 的 file，當某個 process 想改的時候，再做 copy 就好
 
@@ -356,7 +356,7 @@ chmod 761 <name>
   </span>
 </div>
 
-因為 memory-mapping file 本身就是就是一個 memory，只要兩個 process share 那個 file 就好了
+因為 memory-mapping file 本身就是一個 memory，只要兩個 process share 那個 file 就好了
 
 <div style="text-align: center;">
   <img src="/images/os/ch10-file-system-interface/share-memory.png" style="width: 70%;" />

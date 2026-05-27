@@ -40,7 +40,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - 很難定義
 - **Kernel**: All time running program on the computer
 - **System Program**: By system, but not all time
-- **Allication Program**
+- **Application Program**
 - **Middleware**: 軟體衍生結果，有一些 service 可以讓 developer called，更方便點
 
 ## Computer-System Organization
@@ -54,7 +54,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </div>
 
 通常一台電腦都會有
-- **Bus**: 連接 CPU, devvice controllers, share memory
+- **Bus**: 連接 CPU, device controllers, share memory
 - OS 通常有 Device **Driver**，是一種 protocol
 
 ### Interrupt
@@ -84,7 +84,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 **Step**
 1. CPU 收到後，會馬上轉換執行某個動作（存在某個 fixed location）
 2. 存下剛剛停下的地方
-3. 執行 ISP (Interrupt service routine)
+3. 執行 ISR (Interrupt service routine)
 4. CPU 回覆原始狀態
 
 <div style="text-align: center;">
@@ -115,24 +115,24 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Storage Structure
 
 #### Main memory
-- 也叫做 **Randomly access memory (RAM)**
+- 也叫做 **Random access memory (RAM)**
 - 最常見的是 **DRAM (dynamic)**
-- RAM 是有揮發性（易變）所以有另一種不揮發（nonvoltile）的硬體來存一些重要、且不用寫入操作的記憶體
+- RAM 是有揮發性（易變）所以有另一種不揮發（nonvolatile）的硬體來存一些重要、且不用寫入操作的記憶體
     - 用來啟動 OS 的 **bootstrap program** 會存在 Electrically Erasable Programmable Read-Only Memory (EEP**ROM**) 
 
 > By **von Neumann architecture**
 
 #### Secondary and Tertiary Storage
-- Main memory 通常比較小而且 voltile
+- Main memory 通常比較小而且 volatile
 - **Secondary Storage**
     - **Hard Disk Drive (HDD)**
-    - **Non-voltiile Memory (NVM) Device**
+    - **Non-volatile Memory (NVM) Device**
 - Tertiary Storage
     - CD, Blu-ray, 磁碟
    
 <Aside type="note">
 
-- 通常一個 Storage 讀寫速度越快就越小，而且 **Voltile**
+- 通常一個 Storage 讀寫速度越快就越小，而且 **Volatile**
 - 會有成本問題
 <div style="text-align: center;">
   <img src="/images/os/ch01-intro/secondary-and-tertiary-storage.png" style="width: 100%;" />
@@ -161,7 +161,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
   </span>
 </div>
 
-### Comuter-System Architecture
+### Computer-System Architecture
 - Single Processor Systems
 - Multiprocessor Systems
     - 在現今的系統內比較重要
@@ -169,7 +169,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
   <img src="/images/os/ch01-intro/comuter-system-architecture.png" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Comuter-System Architecture
+     Computer-System Architecture
   </span>
 </div>
     - 可以用不同 CPU 控制也可以用不同 core 控制
@@ -224,7 +224,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ## Protection and Security
 - **Protection**: 不讓別人 access 某些地方
-- **Security**: Malicious 的 attcktion protect
+- **Security**: Malicious 的 attack protect
 
 ## Virtualization
 <div style="text-align: center;">
@@ -239,7 +239,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ## Distributed System
 - Network:
     - **TCP/IP**
-- Locol area network 
+- Local area network 
 
 <div style="text-align: center;">
   <img src="/images/os/ch01-intro/distributed-system.png" style="width: 100%;" />
@@ -250,7 +250,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </div>
 - Distributed OS 是只有一個 OS，可以用很多 kernel
 - Network OS 是在 Application 上用 Network 連接
-- Middkeware OS 是用 Middkeware 連接，通常用 subscribe 的方法連接
+- Middleware OS 是用 Middleware 連接，通常用 subscribe 的方法連接
 
 ## Kernel Data Structures
 - Lists, stacks, and queues
@@ -267,7 +267,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - Cloud computing
     - A logical extension of virtualization
 - Real-time embedded systems
-    - Schdueling
+    - Scheduling
 
 ### Computing Modes
 

@@ -77,7 +77,7 @@ Typical File-Control Block 需要含有以下 attributes
 - **boot control block** (per volume): 在 boot 的時候需要的，但不一定每個 volume 都需要這個，所以有些不負責開機的 file system 這個 block 是 empty 的
   - 通常是第一個 block
   - **Boot block** in UFS, **Partition boot sector** in NTFS
-- **Volume control block** (per volume): 儲存 volume 的 metadat 用的 block
+- **Volume control block** (per volume): 儲存 volume 的 metadata 用的 block
   - **Superblock** in UFS and stored **master file table** in NTFS
 - **Directory structure** (per file system)
   - inode in UFS, stored master file table in NTFS
@@ -144,7 +144,7 @@ Typical File-Control Block 需要含有以下 attributes
 1. 停下 process 檢查 file，再 rerun，但會有很高的 overhead
 2. Over estimated 大小，空間 overhead
 3. 真的發現空間不夠，再做 copy 到新空間
-4. **Extent**，空間不夠厚分段，用 linklist 連接每個 segment
+4. **Extent**，空間不夠就分段，用 linklist 連接每個 segment
 
 ### Linked Allocation
 
@@ -208,7 +208,7 @@ Typical File-Control Block 需要含有以下 attributes
 
 我們希望 storage 空間使用得當，並且 access speed 要增加
 
-- Contiguous allocation 在 direct access 上很快，但會有 external feagmentation
+- Contiguous allocation 在 direct access 上很快，但會有 external fragmentation
 - Linked allocation 做 direct access 必須 traverse，所以會慢
 - Index allocation 分析很複雜，跟 index structure, file 都有關
 
@@ -239,9 +239,9 @@ $$
 
 ### Linked List
 
-有一個 list head 指向第一個 free block，把所有 block 用一個，相比於 bitmap 我們需要的只是 pointer，空間會少，而且找第一個 free block 會比較短時間
+有一個 list head 指向第一個 free block，把所有 block 用一個 list 串起來，相比於 bitmap 我們需要的只是 pointer，空間會少，而且找第一個 free block 會比較短時間
 
-但缺點是 traverse list 依然是一個 time comsuming 的事情，但其實 traverse 的機會不多
+但缺點是 traverse list 依然是一個 time consuming 的事情，但其實 traverse 的機會不多
 
 <div style="text-align: center;">
   <img src="/images/os/ch11-file-system-implementation/free-space-linked-list.png" style="width: 70%;" />
@@ -251,7 +251,7 @@ $$
   </span>
 </div>
 
-這個改念跟 file-allocation table (FAT) 是很像的只不過我們記錄的是 free-block，所以假設我們有 FAT 可以串 free block，也可以不用 seperate method 來處理，只需要注記是在記錄 free block 的 list
+這個概念跟 file-allocation table (FAT) 是很像的只不過我們記錄的是 free-block，所以假設我們有 FAT 可以串 free block，也可以不用 separate method 來處理，只需要注記是在記錄 free block 的 list
 
 ### Grouping
 
@@ -269,7 +269,7 @@ $$
 
 方法是把一個 volume 切成好多個 metaslabs，每個 metaslab 會對應到一個 space map，space map 會有跟空間相關的資訊，以此為標準進行管理
 
-Space map 會搭配 log-structure file system technique 來進行處理，簡而言之是會把 block 的 activity 存成一個 log，把 block load 到 memory 上之後再根據 log 進行一系列的 operation，就可以知道現在的狀態
+Space map 會搭配 log-structured file system technique 來進行處理，簡而言之是會把 block 的 activity 存成一個 log，把 block load 到 memory 上之後再根據 log 進行一系列的 operation，就可以知道現在的狀態
 
 ### TRIMing Unused Blocks
 
@@ -362,7 +362,7 @@ File 是 sequence read 的時候，我們必須保證不使用 LRU (Least recent
 
 > ZFS 也提供了 Checksums
 
-### Backup an Restore
+### Backup and Restore
 
 **Backup** data 有各種作法，做了 backup 就可以在關鍵時刻 **restore**，但系統常常分大備份跟小備份
 

@@ -74,7 +74,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
   </span>
 </div>
 - main function 的 variable 也是 function call 的東西，因此在 Stack
-- 不把 dynamic allocate 的 memory 存在 Stack 是防止 stack close 後會寄需需要取用，不能被 close 掉
+- 不把 dynamic allocate 的 memory 存在 Stack 是防止 stack close 後還需要取用，不能被 close 掉
 </Aside>
 
 
@@ -149,7 +149,7 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
 可以分成
 - I/O-Bound Process
     - I/O 時間 > Computation 時間
-- CPU-   Bound Process
+- CPU-Bound Process
     - I/O 時間 < Computation 時間
 
 ### Scheduling Queue
@@ -250,7 +250,7 @@ Linux System 的 Tree of Process
 #include <stdio.h>
 #include <unistd.h>
 int main() {
-    pid t pid;
+    pid_t pid;
     /* fork a child process */
     pid = fork();
     if (pid < 0) { /* error occurred */
@@ -273,7 +273,7 @@ int main() {
     - 對 Parent 回傳值是 `pid` of the child
     - 對 Child 回傳值是 zero
 - `exec()`
-    - 重新執行一個新的 Bianary File
+    - 重新執行一個新的 Binary File
 - `wait()`
     - 等待 Child Process 結束
     - 等到 Child Process explicitly call `exit()` 或 implicitly 預設結束
@@ -304,7 +304,7 @@ int main(VOID){
     ZeroMemory(&pi, sizeof(pi));
     /* create child process */
     if (!CreateProcess(NULL, /* use command line */
-        "C:∖∖WINDOWS∖∖system32∖∖mspaint.exe", /* command */
+        "C:\\WINDOWS\\system32\\mspaint.exe", /* command */
         NULL, /* don't inherit process handle */
         NULL, /* don't inherit thread handle */
         FALSE, /* disable handle inheritance */
@@ -373,12 +373,12 @@ Process 有分成
 - **plug-in**
 
 ## Interprocess Communication
-每個 Process 之謙需要 Cooperation，或是他們之間有 Parent-Child 的關係，可能會需要做 Communication
+每個 Process 之間需要 Cooperation，或是他們之間有 Parent-Child 的關係，可能會需要做 Communication
 
 **Interprocess Communication (IPC)** 根據 mechanism 可以分成
-- **Share memory Modle**
+- **Share memory Model**
     - 一般來說比較快
-- **Message Passing Modle**
+- **Message Passing Model**
     - 常用在 distributed system
 
 <div style="text-align: center;">
@@ -457,7 +457,7 @@ OS 可以選 fixed or variable in size
 
 ### Naming
 
-#### Direct Commnication
+#### Direct Communication
 每個 Process 要送訊息都必須要「指名道姓」
 - **Symmetry** in addressing
     - `send(P, message)`: send a message to process `P`
@@ -467,7 +467,7 @@ OS 可以選 fixed or variable in size
     - `send(P, message)`
     - `receive(id, message)`: 指名道姓，但是可以接收其他 Process 的，但是不寫死是某個 Process（User 可以更改）
 
-#### Indirect Commnication
+#### Indirect Communication
 Mailbox 的概念，把某個 message 放在一個指定位置，但要給誰不確定
 - `send(A, message)`: send a message to mailbox A
 - `receive(A, message)`: receive a message from mailbox A
@@ -568,10 +568,10 @@ int main() {
     /* memory map the shared memory object */
     ptr = (char *) mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     /* write to the shared memory object */
-    sprintf(ptr,"%s",message 0);
-    ptr += strlen(message 0);
-    sprintf(ptr,"%s",message 1);
-    ptr += strlen(message 1);
+    sprintf(ptr,"%s",message_0);
+    ptr += strlen(message_0);
+    sprintf(ptr,"%s",message_1);
+    ptr += strlen(message_1);
     return 0;
 }
 ```
@@ -655,7 +655,7 @@ mach_msg(&message.header, // message header
 </Aside>
 
 ### Windows
-有 define 一些 sybsystem，各自有各自的 port，可以用 port 做連接
+有 define 一些 subsystem，各自有各自的 port，可以用 port 做連接
 
 <div style="text-align: center;">
   <img src="/images/os/ch03-process/windows.png" style="width: 100%;" />

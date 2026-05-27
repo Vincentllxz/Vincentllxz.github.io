@@ -192,7 +192,7 @@ POSIX standard 只是一個 spec，而不是一個 implementation
 int sum; /* this data is shared by the thread(s) */
 void *runner(void *param); /* threads call this function */
 int main(int argc, char *argv[]) {
-    pthread t_tid; /* the thread identifier */
+    pthread_t tid; /* the thread identifier */
     pthread_attr_t attr; /* set of thread attributes */
     /* set the default attributes of the thread */
     pthread_attr_init(&attr);
@@ -218,7 +218,7 @@ void *runner(void *param) {
 #include <stdio.h>
 #include <unistd.h>
 int main() {
-    pid t pid;
+    pid_t pid;
     /* fork a child process */
     pid = fork();
     if (pid < 0) { /* error occurred */
@@ -266,7 +266,7 @@ for (int i = 0; i < NUM_THREADS; i++)
     pthread_join(workers[i], NULL);
 ```
 
-> 參考 [System Programming 系統程式設計 筆記](/1-_CzGphTiCrzZWiBODFIQ)
+> 參考 [System Programming 系統程式設計 筆記](/notes/sp)
 
 
 ### Windows Threads
@@ -293,7 +293,7 @@ DWORD ThreadId;
     WaitForSingleObject(ThreadHandle,INFINITE);
     /* close the thread handle */
     CloseHandle(ThreadHandle);
-    printf("sum = %d∖n",Sum);
+    printf("sum = %d\n",Sum);
 }
 ```
 
@@ -465,7 +465,7 @@ GCD schedules tasks 可以把他們分成
 
 可以告訴 compiler 這個大括號內是一個 **block**
 ```c
-ˆ{ printf("I am a block"); }
+^{ printf("I am a block"); }
 ```
 ```swift
 dispatch_async(queue,{ print("A closure.") })
@@ -481,7 +481,7 @@ for (int i = 0; i < n; i++) {
 ```
 變成
 ```c
-parallel for (size t(0), n, [=](size t i) {apply(v[i]);});
+parallel_for(size_t(0), n, [=](size_t i) {apply(v[i]);});
 ```
 就可以讓 library 去處理 task 的 parrellel
 

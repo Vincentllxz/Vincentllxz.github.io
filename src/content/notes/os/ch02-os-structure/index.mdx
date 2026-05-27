@@ -34,7 +34,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **File-System Manipulation**
     - 包含 access management
 - **Communication**
-    - Maybe in share memeory or bus
+    - Maybe in share memory or bus
 - **Error Detection**
 - **Resource Allocation**
 - **Accounting (Logging)**
@@ -129,7 +129,7 @@ Terminate normally
     - attach or detach remote devices
     - **Message-passing model** and **shared-memory model**
 7. Protection
-    - get file permissions, set file permissi
+    - get file permissions, set file permissions
 <div style="text-align: center;">
   <img src="/images/os/ch02-os-structure/type-of-system-call.png" style="width: 100%;" />
   <br />
@@ -139,8 +139,8 @@ Terminate normally
 </div>
 
 ## Linkers & Loaders
-- **Compiler** 會把 program complie 成一個 **Relocatable Object File**
-- **Linker** 會把 Object File 跟其他 Obj file 去 combie 成一個 **executable file**
+- **Compiler** 會把 program compile 成一個 **Relocatable Object File**
+- **Linker** 會把 Object File 跟其他 Obj file 去 combine 成一個 **executable file**
 - 最後真正執行的是 **Loader** 會把其他 DLL (Dynamic Link Library) 合併進來，load 到 memory 裡
 > DLL 的出現是希望 executable file 不要太大
 - 中間會有 Relocation 這個重新分配記憶體位置的步驟
@@ -159,7 +159,7 @@ Terminate normally
 
 ## Operating-System Structure
 ### Monolithic Structure
-- Simple (單純) but not nessesarily easy
+- Simple (單純) but not necessarily easy
     - 所有功能都是同地位，System call 跟 hardware 都包在一起
     - Traditional Unix System Structure
     <div style="text-align: center;">
@@ -185,8 +185,8 @@ Terminate normally
 
 ### Microkernels
 - Kernel 要極小，除了最基本的其他都給 User mode 實現
-- 安全，extentable 但 not efficient
-- 用 Messege Passing 傳資料
+- 安全，extendable 但 not efficient
+- 用 Message Passing 傳資料
 <div style="text-align: center;">
   <img src="/images/os/ch02-os-structure/microkernels.png" style="width: 100%;" />
   <br />
