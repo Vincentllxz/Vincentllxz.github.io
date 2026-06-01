@@ -1,0 +1,786 @@
+---
+title: "NTU-OS 作業系統 Ch13 Synchronization Tools"
+description: "NTU Operating System 作業系統:Ch13 Synchronization Tools"
+publishDate: "2026-05-23 16:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Aside } from 'astro-pure/user'
+
+# Synchronization Tools
+
+## Background
+
+在之前 process 的時候，我們有介紹到 process 是可以 concurrent execution 的（不一定是 Parallel），也就是可以交替運行，concurrent access 可能會造成 inconsistency
+
+<Aside type="tip" title="Bounded Buffer problem">
+
+- Process1 `count++`
+
+```c
+reg1 = count;
+reg1 = reg1 + 1;
+count = reg1;
+```
+
+- Process2 `count--`
+
+```c
+reg2 = count;
+reg2 = reg2 - 1;
+count = reg2;
+```
+
+這兩個指令會造成的 low level 操作，有可能會交替出現，會造成 register 資料 inconsistent
+</Aside>
+
+### Race Condition
+
+剛剛這種情況叫做 race condition，簡而言之就是 Process 同時間 (concurrent) access data，如果交替的順序出現差別會導致 data inconsistent 我們就稱它叫 race condition
+
+以下是一個例子：
+
+1. Processes `P0` and `P1` 用 `fork()` 建立 child process
+2. 用 kernel 的 `next_available_pid` 拿下一個 available 的 `pid`
+3. 假設 `P0` 先拿到 `pid` 但 `P1` 在 `next_available_pid` 更新前就先拿到 `pid`，`P0`, `P1` 就會拿到同一個 `pid`
+
+<div style="text-align: center;">
+  <img src="/images/os/ch13-synchronization-tools/race-condition-on-pid.png" style="width: 50%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Race condition on pid
+  </span>
+</div>
+
+## Critical-Section Problem
+
+假設我們現在有 $n$ 個 process
+
+$$
+\{p_0, p_1, \ldots, p_{n-1}\}
+$$
+
+每個 process 都有一個 segment 我們稱為 **critical section**，意思是在這段 code 裡面會 access 到一些 data，這些 data 是跟這組 process 裡面其他 process 共享的，也就是會 share data
+
+照理來說，process 執行這段 code 應該要讓其他 process 無法 access 這些 data，不然就會造成 race condition，而 **Critical section problem** 就是我們需要設計一個 protocol 來解決這個問題
+
+每個 process 還會有
+
+1. Ask for permission 在進入 critical section 之前的 **entry section**
+2. 在 critical section 後的 **exit section** and then **remainder section**，這裡的 code 要把 permission 釋放
+
+```c
+Do {
+    entry section
+    critical section
+    exit section
+    remainder section
+} while (true)
+```
+
+為了解決這個問題，必須要符合 3 個 requirement
+
+1. **Mutual Exclusion**:
+   - 如果一個 process 在執行 critical section 的時候，其他 process 不可以執行他們各自的 critical section
+
+2. **Progress**:
+   - 如果現在沒有 process 在執行 critical section，又有其他的 process 想進入 critical section，我們必須在有限時間內選一個讓他進入 critical section
+
+3. **Bounded Waiting**:
+   - 如果一個 process 想進入 critical section，在他發要求到他進入為止，其他每個 process 進入 critical section 的次數是有一個限制的
+   - 也就是說在這段時間內，我們可以由總共的 process 數量得知所有 process 進入 critical section 的總次數的上限
+
+有一個額外的 assumption: Process 一定是 nonzero speed 的
+
+### Interrupt-Based Solution
+
+在 entry section 的時候把 interrupt disable 掉，在 exit section 再把 interrupt enable，但這樣的方法有以下問題
+
+- 一個 process 在 critical section 裡面跑的時間是不確定的，會造成 starvation
+- Multiple CPU 會出現問題
+
+### Software Solution
+
+Low level language 裡面有 `load` 跟 `store` 指令，這兩個指令是 atomic 的，而這個 solution 的關鍵是他們 share 了一個 variable
+
+假設下面這隻 program 是 process $P_i$ 的 code
+
+```c
+while (true){
+    turn = i;
+    while (turn == j) ;
+    /* critical section */
+    turn = j;
+    /* remainder section */
+}
+```
+
+上面這個例子，他們 share 了 `turn` 這個 variable，先把 turn 設定成 `i` 也就是自己，但我們需要確定 `turn` 不會在 進入 critical section 前被改掉所以需要等待，直到被設定成 `i` 才進入，做完 critical section 再設定回來
+
+我們來檢查一下是否符合三個 requirement
+
+1. 我們保證 `turn` 不是 `i` 就是 `j`，如果 process `i` 在執行 critical section 的期間，Process j 把 `turn` 設定成 `j`，那 process j 也可以進入 critical section，所以光是 Mutual Exclusion 不符合了
+2. Progress 符合
+3. Bounded-waiting 則不符合，如果我們在 `turn == j` 等，那如果另一個 process 執行完把 `turn = i` 又執行回去，但另一個 process 又把 `turn = j` 這樣就會無限等待，永遠被 process j 霸佔，並且一直在 critical section 執行
+
+但如果 code 長這樣
+
+```c
+while (true){
+    while (turn == j) ;
+    /* critical section */
+    turn = j;
+    /* remainder section */
+}
+```
+
+1. 做了這樣的修正我們就可以保證 Mutual Exclusive，因為這樣不會需要，我們只在 critical section 改動，只在 critical section 裡面做執行權交換
+2. 但 Progress 我們無法保證，如果有一方根本沒有要執行 critical section 就會造成 dead lock
+3. Bounded-Waiting 的話，如果就 deadlock 方面解釋，是沒有的，因為 forever wait，但另一方面，如果對面有在執行，那他最多就執行一次
+
+## Peterson's Solution
+
+跟剛剛有一樣的假設，Low level language 裡面有 `load` 跟 `store` 指令，這兩個指令是 atomic 的，也有 `turn`，但是多了一個 `bool flag[2]` 的 share variable
+
+- `flag[i] = true` 表示 process i 準備進入 critical section 了
+
+```c
+while (true){
+    flag[i] = true; // [!code highlight]
+    turn = j;
+    while (flag[j] && turn == j) ;
+    /* critical section */
+    flag[i] = false; // [!code highlight]
+    /* remainder section */
+}
+```
+
+對 process i 來說，在 entry section 先把指揮權交給別人，但是並非真正交給別人，真正控制的是 `flag[i]`，這裡的 `while` 迴圈條件是
+
+1. `turn == j` 是 `j` 的機會
+2. `flag[j] == true` `j` 真的要做 process `i` 就必須等待，我們考慮三個 requirement
+
+1. Mutual exclusion: 兩個 `flag` 一開始都是 `true`，所以兩個 process 所以只要 `turn` 是其中 `i` or `j` 其中一個，那另一個 process 就會等待，另一個則在 critical section
+2. Progress: process `i` 要進入 critical section 前，如果
+   - `flag[j] == false` 表示 j 沒有要進入 critical section，那 i 就可以進入
+   - `flag[j] == true` 表示 j 想進入，就要看 `turn`
+     - `turn == i` process j 設定的，那 process i 就可以進入
+     - `turn == j` process i 設定的，那代表 j 會先行動，然後把自己的 flag 設定成 `false`，假設 j 想要擋 i，那他會馬上設定回 `true`，但他會順便把 `turn = i`，也就代表 process i 可以執行了
+3. Bounded-waiting: wait time 一定是一次
+
+### Modern Architecture
+
+Peterson's Solution 邏輯上是完美的，在 Modern Architecture 中，他是無法實現的，因為 modern CPU, compiler 會把 read, write 做 reordering，在 multithread 之下，會造成問題
+
+以下是個例子：
+
+- 兩個 thread share 這些 data
+
+```c
+bool flag = false;
+int x = 0;
+```
+
+- Thread 1 做
+
+```c
+while (!flag) ;
+print x
+```
+
+- Thread 2 做
+
+```c
+x = 100;
+flag = true;
+```
+
+- 我們希望 output 會是 `100` 但如果做了 reorder 後，因為 `flag` 跟 `x` 是 independent 的 variable 所以被 compiler 做 reorder，有可能發生
+
+```c
+flag = true;
+x = 100;
+```
+
+的順序變動，所以 thread 2 可能會 output 不可預期的的東西
+
+### Peterson's Solution Revisited
+
+剛剛先把 `flag` 設定 `true`，但 reorder 可能把 `turn` 先設定再設定 `flag`，會發生下圖的問題，導致 critical section 重疊了
+
+<div style="text-align: center;">
+  <img src="/images/os/ch13-synchronization-tools/revisited-peterson-solution.png" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Revisited of Peterson's Solution
+  </span>
+</div>
+
+`P1` 由於 `flag[0] == false` 提前進入 critical section，導致跟原本應該進入的 `P0` 重疊
+
+## Hardware Support for Synchronization
+
+### Memory Barriers
+
+**Memory model** 是一種描述 memory 運作的方法，我們可以分成兩種
+
+- **Strongly ordered**: Processor 對 memory 做出改變後，每個 processor 都會看到
+- **Weakly ordered**: 改變不會馬上被其他 processor 看到
+
+**Memory Barrier** 要做的事情就是強迫讓這些 change 讓其他 processor 都看到
+
+當我們有 Memory Barrier 之後，`load` 跟 `store` 就會有固定的 order，在執行他後面的一系列 `load` 跟 `store` 之前，一定要先執行完前面「所有」指令
+
+就算有 reordering 發生 Memory Barrier 還是會保證所有 `store` 會發生在後面來的所有 operation 發生前結束，也會告訴其他所有 processor
+
+> 這是一種非常 low level 的 solution，我們要在非常底層進行操作
+
+以下是一個例子：
+
+- Thread 1:
+
+```c
+while (!flag)
+    memory_barrier();
+print x
+```
+
+- Thread 2:
+
+```c
+x = 100;
+memory_barrier();
+flag = true
+```
+
+加上 `memory_barrier()` 指令後，我們可以保證
+
+- 對 Thread 1，`flag` 會在 `x` 之前被 load
+- 對 Thread 2，`x` 的 assignment 會在 `flag` 之前
+
+### Hardware Instructions
+
+我們介紹兩種，
+
+- `test_and_set`: 針對一個 word 先做 test 才去使用
+- `compare_and_swap` (CAS): atomic 的交換兩個值
+
+#### `test_and_set` Instruction
+
+首先是定義
+
+```c
+bool test_and_set (boolean *target) {
+    bool rv = *target;
+    *target = true;
+    return rv;
+}
+```
+
+以下是他的性質
+
+- 一定要是 atomic 的執行
+- 設定 return value 成原本的 pass parameter `target`
+- 把 pass parameter `target` 設成 `true`
+
+以下是一個 solution 例子，假設我們有一個 share variable `lock` 被初始化成 `false`
+
+```c
+do {
+    while (test_and_set(&lock)) ;
+    /* do nothing */
+    /* critical section */
+    lock = false;
+    /* remainder section */
+} while (true);
+```
+
+`test_and_set(&lock)` 只有在正在執行 critical section 的 process 把 `lock = false` 才能讓某個在等的 process 進入 critical section
+
+> 就系統角度而言，符合 progress，但就單個 process 而言，bounded waiting time 是不符合的，因為沒有強制結束 process 的手段，process 可以在 critical section 裡面無限跑
+
+#### `compare_and_swap` Instruction
+
+首先是定義
+
+```c
+int compare_and_swap(int *value, int expected, int new_value) {
+    int temp = *value;
+    if (*value == expected)
+        *value = new_value;
+    return temp;
+}
+```
+
+以下是他的性質
+
+- 一定要是 atomic 的執行
+- 設定 return value 成原本的 pass parameter `value`
+- 如果 `*value == expected`，那就把 `*value = new_value;`
+
+以下是一個 solution 例子，假設我們有一個 share variable `lock` 被初始化成 `0`
+
+```c
+while (true) {
+    while (compare_and_swap(&lock, 0, 1) != 0) ;
+    /* do nothing */
+    /* critical section */
+    lock = 0;
+    /* remainder section */
+}
+```
+
+`compare_and_swap(&lock, 0, 1)` 發現 `lock == 0` 就會把 `lock = 1` 然後跳出 `while` 執行 critical section
+
+> 可以保持 mutual exclusion，progress 跟 bounded waited time 跟剛剛的情況一樣
+
+以下是符合 Bound-Waiting 的 implementation
+
+```c
+while (true) {
+    waiting[i] = true;
+    key = 1;
+    while (waiting[i] && key == 1)
+        key = compare_and_swap(&lock,0,1);
+    waiting[i] = false;
+    /* critical section */
+    j = (i + 1) % n;
+    while ((j != i) && !waiting[j])
+        j = (j + 1) % n;
+    if (j == i)
+        lock = 0;
+    else
+        waiting[j] = false;
+    /* remainder section */
+}
+```
+
+如果 lock 現在是 `0` 那我們就會把 CAS 會把 `lock = 1` 然後 return `0`，就可以脫離 while 迴圈執行 critical section，其他 process `key` 繼續維持 `1`，結束後，就開始找下一個 process，找到的話就把他的 `waiting[j] = false`，如果沒找到就把 `lock = 1`
+
+> 一個 process 會選正在 waiting 的 process，而重複的話會直接放掉 lock，所以有 bounded waiting
+
+### Atomic Variables
+
+`compare-and-swap` 是一種實現其他 synchronous operation 的方法，**atomic variable** 就是其中一種，讓一個 variable 不會被 interrupt
+
+下面是一個例子
+
+- 設定 `sequence` 是一個 atomic variable
+- `increment()` 是一個對 `sequence` 的操作
+- `increment(&sequence)` 是一個 atomic operation
+
+```c
+void increment(atomic_int *v) {
+    int temp;
+    do {
+        temp = *v;
+    } while(temp!=(compare_and_swap(v,temp,temp+1));
+}
+```
+
+## Mutex Locks
+
+Mutex 是一種 Linux 設計出來的 mutual exclusion 的 lock，是一種解決 race condition 給 application programmer 設計的 function
+
+每個 process 都要先 `acquire()` 再 `release()`，而這兩個都是 **atomic** operation，底層通常也是 `compare-and-swap`
+
+- 還額外需要一個 `available` variable 來知道現在 lock 是不是 available
+
+這個 solution 需要 **busy waiting** 的 `acquire()`，就是因為這樣的迴圈，我們又稱它叫 **spinlock**
+
+這是一個 Mutex 的 high level 的 structure
+
+```c
+while (true){
+    acquire lock
+    /* critical section */
+    release lock
+    /* remainder section */
+}
+
+acquire() {
+    while (!available) ;
+    /* busy wait */
+    available = false;
+}
+
+release() {
+    available = true;
+}
+```
+
+## Semaphore
+
+是一種「訊號」，做的事情跟 mutex 很像，但更加精細，Semaphore `S` 本質上是一個 integer，除了一開始的 initialization 之外，我們只允許以下兩個 atomic 操作
+
+- `wait()` (原本叫做 `P()`)
+
+```c
+wait(S) {
+    while (S <= 0) ;
+    // busy wait
+    S--;
+}
+```
+
+- `signal()` (原本叫做 `V()`)
+
+```c
+signal(S) {
+    S++;
+}
+```
+
+很像是停車場的停車位，`signal()` 告訴你有空位了，`wait()` 來佔位子
+
+### Semaphore Usage
+
+分成兩種
+
+- **Counting semaphore**: 無上限的鎖
+- **Binary semaphore**: 類似於 mutex，只有 0 跟 1 代表 lock 跟 unlock
+
+是為了解決 Synchronization 而產生的工具，以下有兩個 example
+
+如果我們要用一個 semaphore 來 simulate 一個 initialize 成 1 的 mutex 那我們可以用下面的簡單方法實作
+
+```c
+wait(mutex);
+/* critical section */
+signal(mutex);
+```
+
+另外一個例子：我們要讓 `S1` 發生在 `S2` 之前，但兩個 statement 在不同的 process 上
+
+```c
+P1: S1; signal(synch);
+P2: wait(synch); S2;
+```
+
+先把 `synch` initialize 成 `0` 然後就可以很好地完成 synchronous
+
+### Semaphore Implementation
+
+有兩件事要注意
+
+- `wait()`, `signal()` 都應該要放在 critical section 裡面
+- 這樣的定義之下的 semaphore 可能會有 busy waiting 會造成效能影響
+
+#### Semaphore without Busy Waiting
+
+解決這個問題我們需要改變 `wait()`, `signal()` 的 implementation，如果一個 process call `wait()`，他就會
+
+1. suspend itself, 而不是 busy waiting
+2. 把 suspended process 放到 **associated with semaphore 的 waiting queue**，這樣才知道在等誰
+3. 把 process 變成 waiting state
+
+接下來就會把 Control 給到 CPU scheduler，當有其他 process 對 semaphore 執行了 `signal()` 後，我們要
+
+1. 幫 process call `wakeup()` 讓他變成 ready state
+2. 把 process 放回 ready queue
+
+但是否真正 execute 還是 depend on CPU scheduler
+
+為了實現剛剛的方法，我們需要讓每個 semaphore 都具有以下的 data structure
+
+```c
+typedef struct {
+    int value;
+    struct process *list;
+} semaphore;
+```
+
+以下則是 `wait()` operation，用 `sleep()` 來 implement 的樣子
+
+```c
+wait(semaphore *S) {
+    S->value--;
+    if (S->value < 0) {
+        add this process to S->list;
+        sleep();
+    }
+}
+```
+
+以下是 `signal()` 的 implementation，主要是要從 list remove 一個 waiting 的 process 然後 awake 他
+
+```c
+signal(semaphore *S) {
+    S->value++;
+    if (S->value <= 0) {
+        remove a process P from S->list;
+        wakeup(P);
+    }
+}
+```
+
+> `wakeup(P)` 會把一個 suspend 的 `P` resume
+
+#### Semaphore Discussion
+
+這些 operation 是一定要 atomic 的，如果要完成 bounded waiting queue，其實使用 FIFO queue 就可以完成了，如果需要其他的 Queue 也是可以的
+
+但其實這種方法並沒有真正解決 busy waiting，只是把 busy waiting 轉移到了 critical section 身上，因為 semaphore 只記錄了有「幾個」 resource 可以用，而沒有紀錄「哪個」resource 可以用，所以就算一個 process 進入 critical section 後，還是要去檢查哪個 resource 可以用，但通常在 critical section 的 busy waiting 還是比在 entry section 的短
+
+## Monitors
+
+雖然已經有兩種 solution，但 timing error 還是有可能發生
+
+- `signal(mutex);` + critical section + `wait(mutex);`：reorder 會讓多個 process 同時進入 critical section
+- `wait(mutex);` + critical section + `wait(mutex);`：沒有任何 process 可以進入 critical section
+- Omit the `wait(mutex)`, or the `signal(mutex)`, or both： 會讓 mutual exclusion 被打壞，也可能會 deadlock
+
+總之這樣的方法可能會因為 programmer 的錯誤使用導致出現 timing error，而且非常容易發生，Monitor 就是來解決這個問題
+
+### Monitor Usage
+
+Monitor 是一種 high level 的 solution，Monitor type 是一種 **Abstract data type (ADT)**，也就是一種跟 implementation 完全無關的東西
+
+詳細來說 Monitor type 是一種包含一系列 programmer-defined mutual exclusive operation 的 ADT，跟 object oriented 的 object 有點像
+
+以下是一種 monitor syntax 的 pseudocode
+
+```c
+monitor monitor-name {
+    /* shared variable declarations */
+    procedure P1 (...) {...}
+    procedure P2 (...) {...}
+    procedure Pn (...) {...}
+    initialization_code (...) {...}
+}
+```
+
+雖然可以有一些 share variables，但最後的 procedure 都是 mutual exclusive 的
+
+<div style="text-align: center;">
+  <img src="/images/os/ch13-synchronization-tools/schematic-view-monitor.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Schematic View of a Monitor
+  </span>
+</div>
+
+我們可以保證每次在 monitor 裡面運行的只有一個 process 而已
+
+#### Condition Variables
+
+Monitor 其實沒那麼好用，我們希望有更 powerful 的方法，於是我們引入 condition variable
+
+- 兩個 condition `x`, `y`
+- 只有 `signal()`, `wait()` 兩個 function 可以動到 `x`, `y`，並且他們有**各自**的 `signal()`, `wait()`
+
+我們要調用 `wait()` 要使用 `x.wait()`, `x.signal()` 或 `y` 也是相應操作
+
+<div style="text-align: center;">
+  <img src="/images/os/ch13-synchronization-tools/schematic-view-conditional-variable.png" style="width: 70%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Schematic View of a Conditional variable
+  </span>
+</div>
+
+如果有 `x`, `y` 兩個 condition 的話，他們會有各自的 queue
+
+假設現在有兩個 process `P`, `Q`，`Q` 已經先 call `x.wait()`，他就會先去 waiting queue，接下來如果 `P` 執行 `x.signal()` 那他就會去把一個跟 `x` related 的 suspend process 叫起來，假設 `Q` 被叫醒了
+
+理論上 `P`, `Q` 都可以繼續執行，但因為我們考慮了 monitor，所以只能選一個繼續，有兩種可能
+
+- 選 `Q`：signal and wait，P 先睡
+- 讓 `Q` 繼續等：signal and continue，Q 回去睡
+
+兩種方法都合理，假設 `P` 已經在執行了，就讓他繼續執行應該比較好，但 `x.signal()` 代表 `x.wait()` waiting 的東西已經好了才會 trigger，如果這個東西是有時效性的，那應該讓 `Q` 執行才是正解
+
+### Implementing a Monitor Using Semaphores
+
+我們先設定一個 semaphore，來讓我們達到 mutual exclusive
+
+```c
+semaphore mutex; // (initially = 1)
+```
+
+我們會在
+
+- 進入 monitor 前 `wait(mutex)`
+- 出 monitor 前 `signal(mutex)`
+
+就跟 critical section 很類似
+
+並且我們採用 signal-and-wait scheme，也就是 call `signal()` 後必須 suspend 自己，讓下一個 process 拿到 `mutex`，為了達成這個 mechanism 我們必須再 hold 兩個新變數
+
+- Binary semaphore `next` 可以讓發 signal 的 process suspend 自己
+- `next_count` 紀錄有多少個 process 被 suspend 在 `next` 上
+
+```c
+semaphore mutex; // (initially = 1)
+semaphore next; // (initially = 0)
+int next_count = 0;
+```
+
+下面的 implementation 是一種比較概念性的介紹，假設有一個 function F
+
+```c
+wait(mutex);
+...
+body of F
+...
+if (next_count > 0)
+    signal(next);
+else
+    signal(mutex);
+```
+
+> `mutex` 是拿來做 monitor 的，而 `next` 是拿來做 signal and wait 的
+
+#### Implementing a Condition variable Using Semaphores
+
+如果要考慮 condition variable 的話，對於每個 condition variable `x` 我們還需要額外考慮
+
+```c
+semaphore x_sem; // (initially = 0)
+int x_count = 0;
+```
+
+而 `x.wait()` 需要考慮的就是到底要把誰叫醒
+
+```c
+x_count++;
+if (next_count > 0)
+    signal(next);
+else
+    signal(mutex);
+wait(x_sem);
+x_count--
+```
+
+而 `x.signal()` 則如下，要直接去 `wait(next)`
+
+```c
+if (x_count > 0) {
+    next_count++;
+    signal(x_sem);
+    wait(next);
+    next_count--;
+}
+```
+
+### Resuming Processes within a Monitor
+
+如果現在有好多個 process 都在 `x.wait()`，那當 `x.signal()` 觸發的時候我們應該要讓哪個 process resume 呢，當然可以 FCFS，但我們希望 system 可以更具彈性
+
+比如我們可以 **conditional-wait**，當 wait 的時候我們用 `x.wait(c)`
+
+- `c` 是 priority number
+- 當 `x.signal()` 被觸發，我們就去找 `c` 最小的那個 process 去 wakeup
+
+#### Single Resource Allocation
+
+Single Resource Allocation 是一種 conditional wait 的例子，假設有 process 要 request 一個 resource 他必須提供
+
+- maximum use time `t`
+
+那我們選的時候，會選出有最小 `t` 值的 process，假設 `R` 是一個 `ResourceAllocator`
+
+```c
+R.acquire(t);
+...
+access the resource;
+...
+R.release;
+```
+
+更詳細點寫是這樣，在 `acquire()` 的時候必須傳入一個 `time`
+
+```c
+monitor ResourceAllocator {
+    bool busy;
+    condition x;
+    void acquire(int time) {
+        if (busy)
+            x.wait(time);
+        busy = true;
+    }
+    void release() {
+        busy = false;
+        x.signal();
+    }
+    initialization code() {
+        busy = false;
+    }
+}
+```
+
+但這種方法跟之前的 `wait()`, `signal()` 有同樣的問題，使用者使用失誤就會造成很多無法預期的事情，比如說
+
+- 順序錯誤
+- 缺少程序
+
+<Aside type="tip" title="Example">
+
+- A process might access a resource without first gaining access permission to the resource
+- A process might never release a resource once it has been granted access to the resource
+- A process might attempt to release a resource that it never requested
+- A process might request the same resource twice (without first releasing the resource)
+</Aside>
+
+## Liveness
+
+剛剛的問題我們全都會關心 Bounded waiting 跟 Progress 兩個性質，**Liveness** 就是一個 set of properties，用以維持 Progress
+
+> **Starvation** 就是一個 process 被 forever block 了，無法正常拿到 semaphore 繼續執行
+
+> 在一些系統的課程會提到 Liveness 跟 Safety 兩個 properties，簡而言之 Liveness 就是好事要在未來發生，Safety 則是壞事在未來不能發生
+
+### Deadlock
+
+等的無限久這件事我們之前可能是在說 Process A 在等 Process B，但 B 一直在做事情，造成永久死結，但其實 B 也不一定在做事，以下是一個例子
+
+- Let `S` and `Q` be two semaphores initialized to `1`
+- `P0`: `wait(S);` `wait(Q);` ... `signal(S);` `signal(Q);`
+- `P1`: `wait(Q);` `wait(S);` ... `signal(Q);` `signal(S);`
+- `P0` executes `wait(S)` and `P1` executes `wait(Q)`
+- When `P0` executes `wait(Q)`, it must wait until `P1` executes `signal(Q)`
+- However, `P1` is waiting until `P0` executes `signal(S)`
+- Since these `signal()` operations will never be executed, P0 and `P1` are deadlocked
+
+> Deadlock 這個問題很廣泛，比如自駕車在路口可能會被 deadlock 導致所有車都過不了
+
+### Priority Inversion
+
+簡單講是 Priority 反過來了，會發生的原因通常是 low priority process 身上有 high priority process 需要的 semaphore，下面是個例子
+
+- There are three processes `L`, `M`, and `H` with priorities `L < M < H`
+- `H` requires a semaphore `S` which is currently being accessed by `L`
+- `H` waits for `L` to finish using resource `S`
+- `M` becomes runnable and preempts `L`
+
+理論上 `L` 不跑應該要 `H` 先跑，但 CPU scheduler 居然把 control 給 `M`
+
+我們會用 **Priority-inheritance protocol**，意思是如果 `H` 在等 `L` 這個 process 的話，我們就會需要把 `L` 的 Priority 提升到跟 `H` 一樣，防止被 preempt
+
+## Evaluation
+
+我們有很多種 Evaluation 的方法，基本上可以分成
+
+- Optimistic：試著去 access data，看看有沒有跟別人相衝，衝了的話就不做，會先預期是可以做的
+- Pessimistic：先預期不能做，真正拿到 lock 的時候才去做
+
+這兩種 method 在不同情況會有不同效果
+
+- Uncontended: 不常有相衝，適合 Optimistic
+- Moderate contention
+- High contention: 適合 Pessimistic
+
+還有其他很多指標像是
+
+- Low overhead
+- Ability to scale
+- Ease to develop and test
+- Simplicity and ease of use
+
+也是需要考慮的 factors
