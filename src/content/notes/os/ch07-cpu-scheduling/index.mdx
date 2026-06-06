@@ -339,8 +339,8 @@ Time Quantum $q= 4$
   </span>
 </div>
 
-1. 如果一個 Process 先進到 $Q_0$，用 RR 做 schedule，在 8 個 quantum 內沒做完的話，我們就放到 $Q_1$ 內
-2. 進到 $Q_1$，用 RR 做 schedule，在 16 個 quantum 內沒做完的話，我們就放到 $Q_2$ 內
+1. 如果一個 Process 先進到 $Q_0$，用 RR 做 schedule，在 1 個 quantum (8 ms) 內沒做完的話，我們就放到 $Q_1$ 內
+2. 進到 $Q_1$，用 RR 做 schedule，在 1 個 quantum (16 ms) 內沒做完的話，我們就放到 $Q_2$ 內
 3. 在 $Q_2$ 內做 FCFS
 
 ## Thread Scheduling
