@@ -154,17 +154,20 @@ while (true){
 while (true){
     flag[i] = true; // [!code highlight]
     turn = j;
-    while (flag[j] && turn == j) ;
+    while (flag[j] && turn == j) 
+        ;
     /* critical section */
     flag[i] = false; // [!code highlight]
     /* remainder section */
 }
 ```
 
-對 process i 來說，在 entry section 先把指揮權交給別人，但是並非真正交給別人，真正控制的是 `flag[i]`，這裡的 `while` 迴圈條件是
+對 process `i` 來說，在 entry section 先把指揮權交給別人，但是並非真正交給別人，真正控制的是 `flag[i]`，這裡的 `while` 迴圈條件是
 
 1. `turn == j` 是 `j` 的機會
-2. `flag[j] == true` `j` 真的要做 process `i` 就必須等待，我們考慮三個 requirement
+2. `flag[j] == true` 代表 `j` 真的要做
+
+process `i` 就必須等待，接下來我們考慮三個 requirement：
 
 1. Mutual exclusion: 兩個 `flag` 一開始都是 `true`，所以兩個 process 所以只要 `turn` 是其中 `i` or `j` 其中一個，那另一個 process 就會等待，另一個則在 critical section
 2. Progress: process `i` 要進入 critical section 前，如果
