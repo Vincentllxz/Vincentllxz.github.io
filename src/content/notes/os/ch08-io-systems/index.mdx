@@ -153,7 +153,7 @@ Interrupt 有以下的 features
 以下是幾個 DMA 的 method
 - **Scatter-gather** method：一次指令先把所有分段的 memory 要送到哪裡就先設定好，DMA 慢慢去做就好
 - **Double buffering** (inefficient)：先把東西搬到 kernel space 再搬到 user space
-- **DMA-request** and **DMA-acknowledge** wires：handshaking 時候的 DMA controller 跟 device 之間的 communication
+- **DMA-request** and **DMA-acknowledge** wires：handshaking 時候的 DMA controller 跟 device 之間的 communication（就跟網路傳輸一樣，詳見[計算機網路 transport layer](https://vinsong.csie.org/notes/cn/ch03-transport)）
 - **Cycle stealing**：在 DMA 正在對 Memory bus 做事的時候，CPU 會被禁止 access 到 main memory
 - **DVMA**：用 virtual addresses
 
@@ -165,7 +165,7 @@ Interrupt 有以下的 features
   <img src="/images/os/ch08-io-systems/application-i-o-interface-1.png" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Application I/O Interface 1
+     Application I/O Interface structure
   </span>
 </div>
 
@@ -175,7 +175,7 @@ Interrupt 有以下的 features
   <img src="/images/os/ch08-io-systems/application-i-o-interface-2.png" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Application I/O Interface 2
+     Application I/O Interface types
   </span>
 </div>
 
