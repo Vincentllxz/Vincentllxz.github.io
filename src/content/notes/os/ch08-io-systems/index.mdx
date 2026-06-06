@@ -25,7 +25,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - Storage devices (e.g., disks, tapes)
 - Transmission devices (e.g., network connections, Bluetooth)
--  Human-interface devices (e.g., screen, keyboard, mouse, audio)
+- Human-interface devices (e.g., screen, keyboard, mouse, audio)
 - More specialized devices (e.g., steering of a jet)
 
 我們先定義幾個名詞
@@ -36,7 +36,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Typical PC Bus Structure
 
-- **PCI Bus** 連接所有 Device, Memory
+- **PCIe (Peripheral Component Interconnect Express) Bus** 連接所有 Device, Memory
 - **Expansion Bus** 可以讓慢速裝置傳輸稍微加速
 - **Serial-attached SCSI (SAS)** bus 串接 DISK
 
@@ -87,10 +87,10 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 #### Handshaking
 
 一個 Host 跟 Controller 如何溝通完成一個任務的過程
-1. `Status Register` 裡面的 `busy` bit 被 `clear` 了
+1. 一直 read `status Register` 裡面的 `busy` bit 直到變成 `clear` 了
 2. Host set 一個 `write` bit 在 `command(control) register` 並且把資料放到 `data-out register` 
-3. `command(control) register` 發現 `command-ready` bit 被 set
-4. set `busy` bit
+3. Host set `command-ready` bit 在 `command(control) register` 裡面
+4. Controller set `busy` bit 在 `status register` 裡面
 5. Controller 讀取 `command(control) register` 看到 `write`，去讀取 `data-out register` (**此處才是真正的 I/O**)
 6. Controller clear
     - `command-ready` bit
@@ -131,7 +131,7 @@ Interrupt 有以下的 features
 
 ### Direct Memory access
 
-我們希望大量的 I/O 傳輸 **不要牽扯到 CPU** 也就是避免 **programmed I/O**（one byte by a time）
+我們希望大量的 I/O 傳輸 **不要牽扯到 CPU** 也就是避免 **programmed I/O**（one byte by a time，由 CPU 下指令控制的 I/O）
 
 <div style="text-align: center;">
   <img src="/images/os/ch08-io-systems/dma-progress.png" style="width: 100%;" />
@@ -142,9 +142,9 @@ Interrupt 有以下的 features
 </div>
 
 1. 我們想把 Disk 2 上的一段 data 寫到 memory 裡面
-2. Device driver 會告訴 Controller 要傳輸 "`c`" bytes 到 "x" 上
+2. Device driver 會告訴 Controller 要傳輸 `c` bytes 到 address `x` 上
 3. Controller 開始進行 DMA
-4. DMA controller 直接傳輸，直到 "`c`" 降低到 0
+4. DMA controller 直接傳輸，直到 `c` 降低到 0
 5. `c == 0` DMA 會 interrupt CPU
 
 整個過程中 **CPU 只參與了第一個步驟**，其他都不會碰到
