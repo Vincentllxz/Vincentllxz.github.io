@@ -41,6 +41,14 @@ const socialImage = `/og/notes/${id}.jpeg`
 const articleDate = updatedDate?.toISOString() ?? publishDate.toISOString()
 // Default to the blog's accent color so /notes pages match /blog pages.
 const primaryColor = data.heroImage?.color ?? '#4891B2'
+
+// Chapter pages get a prominent "back to course TOC" card at the bottom; the course
+// index itself doesn't need one (the top-left Back button already returns to /notes).
+const isChapter = id.includes('/')
+const parentId = isChapter ? id.split('/')[0] : undefined
+const parentNote = parentId ? notes.find((n) => n.id === parentId) : undefined
+const parentHref = parentNote ? `/notes/${parentNote.id}` : '/notes'
+const parentTitle = parentNote?.data.title ?? 'Notes'
 ---
 
 <PageLayout
@@ -61,6 +69,23 @@ const primaryColor = data.heroImage?.color ?? '#4891B2'
   <Fragment slot='bottom'>
     {/* Copyright */}
     <Copyright {data} />
+    {/* Back to course TOC (chapter pages only) */}
+    {
+      isChapter && (
+        <a
+          href={parentHref}
+          data-astro-prefetch
+          class='not-prose group mt-3 flex items-center gap-4 rounded-2xl border bg-background px-4 py-3 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md hover:shadow-primary/10 sm:mt-6'
+        >
+          <span class='shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-1'>
+            ←
+          </span>
+          <span class='min-w-0 grow truncate font-medium text-foreground group-hover:text-primary'>
+            回到 {parentTitle} 目錄
+          </span>
+        </a>
+      )
+    }
     {/* Chapter recommend (prev / next) */}
     <ArticleBottom collections={notes} {id} class='mt-3 sm:mt-6' />
     {/* Comment */}
