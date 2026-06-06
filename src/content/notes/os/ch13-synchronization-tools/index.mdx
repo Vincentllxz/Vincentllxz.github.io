@@ -173,8 +173,8 @@ process `i` 就必須等待，接下來我們考慮三個 requirement：
 2. Progress: process `i` 要進入 critical section 前，如果
    - `flag[j] == false` 表示 j 沒有要進入 critical section，那 i 就可以進入
    - `flag[j] == true` 表示 j 想進入，就要看 `turn`
-     - `turn == i` process j 設定的，那 process i 就可以進入
-     - `turn == j` process i 設定的，那代表 j 會先行動，然後把自己的 flag 設定成 `false`，假設 j 想要擋 i，那他會馬上設定回 `true`，但他會順便把 `turn = i`，也就代表 process i 可以執行了
+     - `turn == i` process `j` 設定的，那 process `i` 就可以進入
+     - `turn == j` process `i` 設定的，那代表 `j` 會先行動，然後把自己的 flag 設定成 `false`，假設 `j` 想要擋 `i`，那他會馬上設定回 `true`，但他會順便把 `turn = i`，也就代表 process `i` 可以執行了
 3. Bounded-waiting: wait time 一定是一次
 
 ### Modern Architecture
@@ -364,7 +364,7 @@ while (true) {
 }
 ```
 
-如果 lock 現在是 `0` 那我們就會把 CAS 會把 `lock = 1` 然後 return `0`，就可以脫離 while 迴圈執行 critical section，其他 process `key` 繼續維持 `1`，結束後，就開始找下一個 process，找到的話就把他的 `waiting[j] = false`，如果沒找到就把 `lock = 1`
+如果 lock 現在是 `0` 那我們就會把 CAS 會把 `lock = 1` 然後 return `0`，就可以脫離 while 迴圈執行 critical section，其他 process `key` 繼續維持 `1`，結束後，就開始找下一個 process，找到的話就把他的 `waiting[j] = false`，如果沒找到就把 `lock = 0`
 
 > 一個 process 會選正在 waiting 的 process，而重複的話會直接放掉 lock，所以有 bounded waiting
 
