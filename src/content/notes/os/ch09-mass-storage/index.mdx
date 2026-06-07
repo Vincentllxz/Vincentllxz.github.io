@@ -89,9 +89,14 @@ SSD 因為自己的特性，雖然也是用 page 存取，但沒辦法 overwrite
 
 #### NAND Flash Controller Algorithms
 
-在沒有 erase 的情況下沒辦法 overwrite，會產生一種情況：同樣的資料寫了又寫會寫到不同地方，會讓舊資料變的 invalid，我們會用 **flash translation layer (FTL)** 來記錄這些資料，這時候又有一個新問題 **Garbage collection**。
+在沒有 Erase 的情況下，NAND Flash 沒辦法直接 Overwrite。因此，當我們要更新同一筆資料時，只能把它寫到另一個乾淨的空白 address，這會導致舊 address 的資料變成 Invalid
+為了解決資料位置不斷改變的問題，我們需要 **Flash Translation Layer (FTL)** 來維護一張映射表，追蹤每筆邏輯資料目前實際存放的實體位址。
 
-**Garbage collection** 就是把 Invalid 的 data 全都聚集，一次 erase，為了做到這件事，我們需要做 **overprovisioning** 把 good data copy 到另一個新空間，overprovisioning 也可以幫助我們平均分散資料，也就是 **wear leveling**，把資料搬到比較沒有被 erase 過的 block 上
+隨著寫入次數增加，Invalid data 會散佈在各個 Block 中浪費空間，這時就需要 **Garbage Collection (GC)** 來回收空間。GC 會挑選出包含大量 Invalid data 的舊 Block，把裡面剩下的 Valid data 搬移到新的空白 Block 中，接著把舊 Block 整個抹除 Erase
+
+為了確保 GC 運作時，永遠有多餘的空白 Block，SSD controller 會保留一部分使用者看不到的隱藏容量，這稱為 **Overprovisioning (OP)**。
+
+此外，因為每個 Block 都有壽命限制，控制器還會執行 **Wear Leveling** 演算法，主動將資料搬移分配，讓所有 Block 的抹除次數盡可能平均，藉此延長整顆 Flash 的壽命
 
 ### Others
 
