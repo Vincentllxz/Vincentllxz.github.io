@@ -190,8 +190,8 @@ OS 會有一些 **Backdoor** 或叫 **Escape**，可以直接對 I/O 控制( e.g
 ### Block and Character Devices
 
 **Block-device interface**，通常用在 disk 上，以 block 為單位進行讀寫，通常會有 `read()`, `write()`，由於是 Addressable 的所以還可以用 `seek()` 去做操作，每個 system call 都有不同的 parameter
-- **Raw I/O**：跳過 File System, OS buffer cache，直接去控制 I/O device，(e.g., Database system 對 Disk 有更好的 Management)
-- **Direct I/O**：透過 File System 操作檔案，但跳過 OS 的 [Buffer Cache / Page Cache](https://vinsong.csie.org/notes/os/ch11-file-system-implementation#buffer-cache-and-page-cache)，資料直接從 User-space 的 buffer 透過 DMA 寫入 Device，或是從 Device 直接讀取到 User-space 的 buffer，這樣就不會有兩份資料的 copy
+- **Raw I/O**：跳過 OS 的 File System, OS buffer cache，直接去控制 I/O device，(e.g., Database system 對 Disk 有更好的 Management)
+- **Direct I/O**：透過 OS 的 File System 操作檔案，但跳過 OS 的 [Buffer Cache / Page Cache](https://vinsong.csie.org/notes/os/ch11-file-system-implementation#buffer-cache-and-page-cache)，這個模式下會 disable buffer, locking
 
 在這些操作上，可以有額外的 library 去做額外的變化，像是 memory-mapped file 的 access，利用 MMU, Page fault 去做一些優化，或是直接把檔案的內容映射到 memory 裡面，這樣就不需要 `read()`, `write()` 了
 
