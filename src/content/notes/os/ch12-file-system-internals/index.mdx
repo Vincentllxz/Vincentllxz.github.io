@@ -19,7 +19,7 @@ import { Aside } from 'astro-pure/user'
 
 用過電腦都知道 devices 可能有好多個，也就是硬碟有很多，而硬碟又可以切成好多 partition, partition 又可以切成好多 volume，volume 上就可以有 file system
 
-> 如果 volume manager 支援跨 partition 的操作的話，也是可以做到跨 partition 的 volume 的，甚至可以跨 device
+> 邏輯上來講 Volume 是可以切在不同 Disk 上的，但 partition 只能在同一顆 Disk 上，如果 volume manager 支援跨 partition 的操作的話，也是可以做到跨 partition 的 volume 的，甚至可以跨 device
 
 <div style="text-align: center;">
   <img src="/images/os/ch12-file-system-internals/file-systems-illustration.png" style="width: 80%;" />
