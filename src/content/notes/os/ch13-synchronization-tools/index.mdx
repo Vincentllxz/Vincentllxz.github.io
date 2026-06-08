@@ -1,6 +1,6 @@
 ---
-title: "NTU-OS 作業系統 Ch13 Synchronization Tools"
-description: "NTU Operating System 作業系統:Ch13 Synchronization Tools"
+title: "NTU-OS 作業系統 Ch6 Synchronization Tools"
+description: "NTU Operating System 作業系統:Ch6 Synchronization Tools"
 publishDate: "2026-05-23 16:00:00"
 tags:
   - "NTU"
@@ -164,8 +164,8 @@ while (true){
 
 對 process `i` 來說，在 entry section 先把指揮權交給別人，但是並非真正交給別人，真正控制的是 `flag[i]`，這裡的 `while` 迴圈條件是
 
-1. `turn == j` 是 `j` 的機會
-2. `flag[j] == true` 代表 `j` 真的要做
+1. `flag[j] == true` 代表 `j` 真的要做
+2. 當 `flag[i] == true && flag[j] == true` 的時候，`turn` 就會決定誰先進入 critical section
 
 process `i` 就必須等待，接下來我們考慮三個 requirement：
 

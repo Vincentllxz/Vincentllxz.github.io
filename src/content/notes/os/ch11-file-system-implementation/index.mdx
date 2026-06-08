@@ -1,6 +1,6 @@
 ---
-title: "NTU-OS 作業系統 Ch11 File-System Implementation"
-description: "NTU Operating System 作業系統:Ch11 File-System Implementation"
+title: "NTU-OS 作業系統 Ch14 File-System Implementation"
+description: "NTU Operating System 作業系統:Ch14 File-System Implementation"
 publishDate: "2026-05-23 14:00:00"
 tags:
   - "NTU"
@@ -32,22 +32,23 @@ draft: false
   </span>
 </div>
 
-- **Device**: 最下層硬體
-- **I/O Control**:
-  - Device driver 跟 Interrupt handler，負責在 Memory 跟 device 之間做傳輸
-  - Device driver 也會送指令到 I/O controller's memory 進行 translate
-- **Basic File system**:
-  - 以 Block 為單位做 data 管理
-  - 需要處理 Memory buffer 跟 cache 的問題
-  - Transfer 前要先在這層處理 memory 空間、I/O request
-- **File-organization module**
-  - 以 file 為單位處理 data
-  - 要做 free space management
+- Application programs
 - **Logical file system**
   - 有所有的 metadata 跟 file system structure，除了真實資料
   - 管理 directory structure
   - 用 **file-control blocks (FCBs)** 或是 **inodes** maintain file system structure
-- Application programs
+- **File-organization module**
+  - 以 file 為單位處理 data
+  - 要做 free space management
+- **Basic File system**:
+  - 以 Block 為單位做 data 管理
+  - 需要處理 Memory buffer 跟 cache 的問題
+  - Transfer 前要先在這層處理 memory 空間、I/O request
+- **I/O Control**:
+  - Device driver 跟 Interrupt handler，負責在 Memory 跟 device 之間做傳輸
+  - Device driver 也會送指令到 I/O controller's memory 進行 translate
+- **Device**: 最下層硬體
+
 
 Typical File-Control Block 需要含有以下 attributes
 
