@@ -268,7 +268,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 這種結構可以做到 share，我們可以用
 
 - **Link**: 指向另一個真正 file 或 directory 的位置，讀取的時候做 **resolve** 到真正的 location
-- **Copy**: 但我們需要一個機制保證這兩個 file 是 sync 的
+- **Copy**: 但我們需要一個機制保證這兩個 file 是 sync 的，我們可以放兩個檔案，讓他們指向同一個實體 file
 
 但這會出現兩個問題
 
@@ -283,6 +283,12 @@ OS 跟 Program 可以決定 file structure 做讀取
 允許 cycle 出現，我們需要做到一些額外的 protection
 
 - 互指的 cycle 會讓有些 ref count 不是 `0` 但其實已經沒有任何 file 指向他了
+
+<Aside type="tip" title="Example">
+有一個 `root` 下面有 `dir_A`，假設 `dir_A` 裡面有一個 `dir_B`，然後 `dir_B` 裡面又有一個 link 指向 `dir_A`，這樣就會出現 cycle，照理來說 `ref_count = 2`
+
+這時如果我們要刪掉 `dir_A`，首先我們會從 `root` 刪掉 `dir_A`，這時候 `ref_count = 1`，但我們因為 `dir_B` 裡面還有一個 link 指向 `dir_A`，所以我們不會刪掉 `dir_A`，但其實 `dir_A` 已經沒有任何 file 指向他了，所以就會出現「幽靈資料夾」的問題。
+</Aside>
 
 **Garbage collection** 就會變得非常重要
 
