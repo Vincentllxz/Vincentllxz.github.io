@@ -114,18 +114,22 @@ const ldBreadcrumb = articleDate &&
 <meta content={socialImageURL} property='twitter:image' />
 
 {/* Structured data (JSON-LD) — article rich results + breadcrumb trail */}
-{ldArticle && (
-  <script
-    type='application/ld+json'
-    set:html={JSON.stringify(ldArticle).replace(/</g, '\\u003c')}
-  />
-)}
-{ldBreadcrumb && (
-  <script
-    type='application/ld+json'
-    set:html={JSON.stringify(ldBreadcrumb).replace(/</g, '\\u003c')}
-  />
-)}
+{
+  ldArticle && (
+    <script
+      type='application/ld+json'
+      set:html={JSON.stringify(ldArticle).replace(/</g, '\\u003c')}
+    />
+  )
+}
+{
+  ldBreadcrumb && (
+    <script
+      type='application/ld+json'
+      set:html={JSON.stringify(ldBreadcrumb).replace(/</g, '\\u003c')}
+    />
+  )
+}
 
 {/* Sitemap */}
 <link href='/sitemap-index.xml' rel='sitemap' />

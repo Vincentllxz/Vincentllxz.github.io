@@ -1,7 +1,7 @@
 import type { OGImageOptions } from 'astro-og-canvas'
+import { OGImageRoute } from 'astro-og-canvas'
 
 import { getBlogCollection } from 'astro-pure/server'
-import { OGImageRoute } from 'astro-og-canvas'
 
 export const prerender = true
 
@@ -13,18 +13,14 @@ const noteEntries = await getBlogCollection('notes')
 type PageData = { title: string; description: string }
 
 const entries: [string, PageData][] = [
-  ...blogEntries.map(
-    (entry): [string, PageData] => [
-      `blog/${entry.id}`,
-      { title: entry.data.title, description: entry.data.description }
-    ]
-  ),
-  ...noteEntries.map(
-    (entry): [string, PageData] => [
-      `notes/${entry.id}`,
-      { title: entry.data.title, description: entry.data.description }
-    ]
-  )
+  ...blogEntries.map((entry): [string, PageData] => [
+    `blog/${entry.id}`,
+    { title: entry.data.title, description: entry.data.description }
+  ]),
+  ...noteEntries.map((entry): [string, PageData] => [
+    `notes/${entry.id}`,
+    { title: entry.data.title, description: entry.data.description }
+  ])
 ]
 
 const pages: Record<string, PageData> = Object.fromEntries(entries)

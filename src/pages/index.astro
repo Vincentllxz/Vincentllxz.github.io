@@ -51,19 +51,9 @@ const structuredData = {
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#5BBCD6'>
-  <link
-    rel='preconnect'
-    href='https://fonts.googleapis.com'
-  />
-  <link
-    rel='preconnect'
-    href='https://fonts.gstatic.com'
-    crossorigin
-  />
-  <link
-    rel='stylesheet'
-    href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'
-  />
+  <link rel='preconnect' href='https://fonts.googleapis.com' />
+  <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap' />
   <script
     type='application/ld+json'
     set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')}
@@ -82,7 +72,7 @@ const structuredData = {
         stroke-linecap='round'
         stroke-linejoin='round'
       >
-        <path d='M6 9l6 6 6-6' />
+        <path d='M6 9l6 6 6-6'></path>
       </svg>
     </div>
     <section class='animate relative mb-10 flex flex-col items-center gap-y-4' id='content-header'>
@@ -92,18 +82,8 @@ const structuredData = {
       </div>
       <div class='home-signature' aria-label='VinSong'>
         <div class='home-signature-tilt'>
-          <svg
-            class='home-signature-svg'
-            viewBox='0 0 560 180'
-            role='img'
-            aria-label='VinSong'
-          >
-            <text
-              x='50%'
-              y='126'
-              text-anchor='middle'
-              class='home-signature-text'
-            >VinSong</text>
+          <svg class='home-signature-svg' viewBox='0 0 560 180' role='img' aria-label='VinSong'>
+            <text x='50%' y='126' text-anchor='middle' class='home-signature-text'>VinSong</text>
           </svg>
           <svg
             class='home-signature-svg home-signature-glow-svg'
@@ -112,17 +92,17 @@ const structuredData = {
           >
             <defs>
               <linearGradient id='sig-ink' x1='0%' y1='0%' x2='100%' y2='100%'>
-                <stop offset='0%' stop-color='#a8dcea' />
-                <stop offset='55%' stop-color='#b3c4f2' />
-                <stop offset='100%' stop-color='#d9bdee' />
+                <stop offset='0%' stop-color='#a8dcea'></stop>
+                <stop offset='55%' stop-color='#b3c4f2'></stop>
+                <stop offset='100%' stop-color='#d9bdee'></stop>
               </linearGradient>
             </defs>
             <text
               x='50%'
               y='126'
               text-anchor='middle'
-              class='home-signature-text home-signature-glow-text'
-            >VinSong</text>
+              class='home-signature-text home-signature-glow-text'>VinSong</text
+            >
           </svg>
         </div>
       </div>
@@ -164,8 +144,14 @@ const structuredData = {
                   tx = ((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * 7
                   ty = ((r.top + r.height / 2 - e.clientY) / (r.height / 2)) * 6
                   // Percentages stay correct even while the gate scales the signature.
-                  glow.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%')
-                  glow.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%')
+                  glow.style.setProperty(
+                    '--mx',
+                    (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%'
+                  )
+                  glow.style.setProperty(
+                    '--my',
+                    (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%'
+                  )
                   glow.classList.add('glow-on')
                 } else {
                   tx = 0
@@ -182,10 +168,7 @@ const structuredData = {
             if (!r.width || !r.height) return
             const vw = window.innerWidth
             const vh = window.innerHeight
-            const scale = Math.max(
-              1.15,
-              Math.min((vw * 0.86) / r.width, (vh * 0.6) / r.height)
-            )
+            const scale = Math.max(1.15, Math.min((vw * 0.86) / r.width, (vh * 0.6) / r.height))
             sig.style.setProperty('--intro-tx', (vw / 2 - (r.left + r.width / 2)).toFixed(1) + 'px')
             sig.style.setProperty('--intro-ty', (vh / 2 - (r.top + r.height / 2)).toFixed(1) + 'px')
             sig.style.setProperty('--intro-scale', scale.toFixed(3))
@@ -256,26 +239,21 @@ const structuredData = {
           <Label title='Taiwan / Taipei'>
             <Icon name='location' class='size-5' slot='icon' />
           </Label>
-          <Label
-            title='GitHub'
-            as='a'
-            href='https://github.com/Vincentllxz'
-            target='_blank'
-          >
+          <Label title='GitHub' as='a' href='https://github.com/Vincentllxz' target='_blank'>
             <Icon name='github' class='size-5' slot='icon' />
           </Label>
         </div>
       </div>
-
     </section>
 
     <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
       <Section title='About'>
         <p class='text-muted-foreground'>CS Student / Developer</p>
         <p class='text-muted-foreground'>
-        我是 VinSong，本來其實都喜歡叫 Vincent 的，但這名字好像太菜市場了一直被用掉，所以只好自己取一個別的名字。
-        </br>
-        </br>
+          我是 VinSong，本來其實都喜歡叫 Vincent
+          的，但這名字好像太菜市場了一直被用掉，所以只好自己取一個別的名字。
+          <br />
+          <br />
           我很喜歡紀錄生活，無論是用文字、照片還是影片，只要能留下什麼，我就會想做做看。架設這個網站，其實最初只是心血來潮的想法，但希望未來能一直延續下去，把生活的點點滴滴、一點一滴的成長，都留在這裡，也分享給願意停下來看看的人。
         </p>
         <Button title='More about me' class='w-fit self-end' href='/about' variant='ahead' />
@@ -331,7 +309,6 @@ const structuredData = {
           href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
         />
       </Section>
-
 
       <Section title='Skills'>
         <SkillLayout title='Languages' skills={languages} />
@@ -398,20 +375,42 @@ const structuredData = {
   }
 
   @keyframes home-code-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 0.55; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 0.55;
+      transform: translateY(0);
+    }
   }
   @keyframes home-code-drift {
-    0%, 100% { transform: translateY(0)    rotate(-2deg); }
-    50%      { transform: translateY(-10px) rotate(2deg); }
+    0%,
+    100% {
+      transform: translateY(0) rotate(-2deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(2deg);
+    }
   }
   @keyframes home-code-drift-alt {
-    0%, 100% { transform: translateY(-2px) rotate(2deg); }
-    50%      { transform: translateY(-12px) rotate(-2deg); }
+    0%,
+    100% {
+      transform: translateY(-2px) rotate(2deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(-2deg);
+    }
   }
   @keyframes home-code-caret {
-    0%, 49%   { opacity: 1; }
-    50%, 100% { opacity: 0; }
+    0%,
+    49% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0;
+    }
   }
 
   /* === "VinSong" signature above the avatar — clean single-ink writing === */
@@ -453,10 +452,14 @@ const structuredData = {
       home-signature-fill 0.55s ease-out 2.05s forwards;
   }
   @keyframes home-signature-draw {
-    to { stroke-dashoffset: 0; }
+    to {
+      stroke-dashoffset: 0;
+    }
   }
   @keyframes home-signature-fill {
-    to { fill: currentColor; }
+    to {
+      fill: currentColor;
+    }
   }
 
   /* Iridescent-ink layer, revealed through a cursor-following radial mask. */
@@ -491,7 +494,9 @@ const structuredData = {
       home-signature-glow-fill 0.55s ease-out 2.05s forwards;
   }
   @keyframes home-signature-glow-fill {
-    to { fill-opacity: 1; }
+    to {
+      fill-opacity: 1;
+    }
   }
 
   /* Halo + floating avatar — main visual on /. */
@@ -516,9 +521,9 @@ const structuredData = {
     background: conic-gradient(
       from 0deg,
       hsl(193 70% 62% / 0.6),
-      hsl(205 82% 74% / 0.0) 30%,
+      hsl(205 82% 74% / 0) 30%,
       hsl(186 72% 54% / 0.6) 60%,
-      hsl(193 70% 62% / 0.0) 90%,
+      hsl(193 70% 62% / 0) 90%,
       hsl(193 70% 62% / 0.6)
     );
     filter: blur(16px);
@@ -553,8 +558,7 @@ const structuredData = {
   /* During the gate the signature is held full-screen (JS-measured transform). */
   .home-main.intro .home-signature {
     transform-origin: 50% 50%;
-    transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px))
-      scale(var(--intro-scale, 1));
+    transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px)) scale(var(--intro-scale, 1));
   }
   /* Scrolled down → it shrinks back into the page flow. */
   .home-main.intro.entering .home-signature {
@@ -562,16 +566,19 @@ const structuredData = {
   }
   @keyframes home-sig-shrink {
     from {
-      transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px))
-        scale(var(--intro-scale, 1));
+      transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px)) scale(var(--intro-scale, 1));
     }
     to {
       transform: none;
     }
   }
   @keyframes home-intro-fade {
-    from { opacity: 1; }
-    to   { opacity: 0; }
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 
   /* "Scroll down to enter" hint — bottom-center, only while the gate is up. */
@@ -610,16 +617,31 @@ const structuredData = {
     animation: home-hint-out 0.3s ease-out forwards;
   }
   @keyframes home-hint-in {
-    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   }
   @keyframes home-hint-out {
-    from { opacity: 1; }
-    to   { opacity: 0; }
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
   @keyframes home-hint-bounce {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(5px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(5px);
+    }
   }
 
   /* Hero entrance: stagger the avatar and meta blocks. */
@@ -629,8 +651,12 @@ const structuredData = {
     transform: translateY(14px);
     animation: home-fade-up 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  #content-header .home-avatar-wrap { animation-delay: 0.15s; }
-  #content-header .home-hero-meta   { animation-delay: 0.35s; }
+  #content-header .home-avatar-wrap {
+    animation-delay: 0.15s;
+  }
+  #content-header .home-hero-meta {
+    animation-delay: 0.35s;
+  }
   /* Gate: keep them hidden; the scroll plays them in. */
   .home-main.intro #content-header .home-avatar-wrap,
   .home-main.intro #content-header .home-hero-meta {
@@ -649,10 +675,18 @@ const structuredData = {
     transform: translateY(18px);
     animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  #content > section:nth-child(1) { animation-delay: 0.45s; }
-  #content > section:nth-child(2) { animation-delay: 0.6s; }
-  #content > section:nth-child(3) { animation-delay: 0.75s; }
-  #content > section:nth-child(4) { animation-delay: 0.9s; }
+  #content > section:nth-child(1) {
+    animation-delay: 0.45s;
+  }
+  #content > section:nth-child(2) {
+    animation-delay: 0.6s;
+  }
+  #content > section:nth-child(3) {
+    animation-delay: 0.75s;
+  }
+  #content > section:nth-child(4) {
+    animation-delay: 0.9s;
+  }
   /* Gate: hold the sections; the scroll plays them in, staggered. */
   .home-main.intro #content > section {
     animation: none;
@@ -676,22 +710,44 @@ const structuredData = {
   }
 
   @keyframes home-fade-up {
-    to { opacity: 1; transform: translateY(0); }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes home-float {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-6px); }
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
   }
   @keyframes home-halo-spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
   @keyframes home-halo-pulse {
-    0%, 100% { opacity: 0.55; filter: blur(16px); }
-    50%      { opacity: 0.9;  filter: blur(20px); }
+    0%,
+    100% {
+      opacity: 0.55;
+      filter: blur(16px);
+    }
+    50% {
+      opacity: 0.9;
+      filter: blur(20px);
+    }
   }
   @keyframes home-highlight-breathe {
-    0%, 100% { opacity: 0.22; }
-    50%      { opacity: 0.32; }
+    0%,
+    100% {
+      opacity: 0.22;
+    }
+    50% {
+      opacity: 0.32;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

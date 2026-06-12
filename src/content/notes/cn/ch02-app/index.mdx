@@ -20,7 +20,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 <Aside type="note" title="">
 做出一個 app 我們只需要知道 API (Application layer Interface) 如何操作，以及他與 Transport Layer 的溝通關係就好了
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/fig.png" style="width: 60%;" />
+  <img src="/images/cn/ch02-app/fig.webp" style="width: 60%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      figure
@@ -71,7 +71,7 @@ P2P 會交換
 - **Security**
 - 以下是常見服務隊各種屬性的要求
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/available-in-transport-layer.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/available-in-transport-layer.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Available in Transport Layer
@@ -127,7 +127,7 @@ Accept-language: fr
 - 大致結構如下
     - request 下面是 header 資訊
   <div style="text-align: center;">
-    <img src="/images/cn/ch02-app/http-request-message.png" style="width: 100%;" />
+    <img src="/images/cn/ch02-app/http-request-message.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        HTTP Request message
@@ -168,7 +168,7 @@ Content-Type: text/html
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/cookie.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/cookie.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Cookie
@@ -198,7 +198,7 @@ Server 可以用 Control header 對 Cache 下指令
 
 <Aside type="tip" title="">
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/web-caches-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/web-caches-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Web Caches 1
@@ -227,7 +227,7 @@ $$
 
 <Aside type="caution" title="Solution 2：Buy a **Web Cache**">
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/web-caches-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/web-caches-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Web Caches 2
@@ -255,7 +255,7 @@ $$
 - 會進行以下機制，自動排除寄送 `304 Not Modified`
     - 加入一行 header `If-modified-since: <date>`
   <div style="text-align: center;">
-    <img src="/images/cn/ch02-app/conditional-get.png" style="width: 100%;" />
+    <img src="/images/cn/ch02-app/conditional-get.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Conditional GET
@@ -267,7 +267,7 @@ $$
 - 把資料分解成 frame 去做 HOL Blocking
 - 如果 $O_1$ 必須一起送出，那 $O_2 \to O_4$ 會 delay 非常嚴重，但分段就可以讓 delay 只存在 $O_1$
 - <div style="text-align: center;">
-    <img src="/images/cn/ch02-app/http-2.png" style="width: 100%;" />
+    <img src="/images/cn/ch02-app/http-2.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        HTTP/2
@@ -282,7 +282,7 @@ Email 分為三個部分
 - **SMTP protocol**: 推送信件到另一個 Server
 
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/email-smtp-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/email-smtp-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Email, SMTP 1
@@ -309,7 +309,7 @@ Email 分為三個部分
   ```
 
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/email-smtp-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/email-smtp-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Email, SMTP 2
@@ -345,7 +345,7 @@ Email 分為三個部分
 
 ### A Distributed, Hierarchical Database
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/a-distributed-hierarchical-database.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/a-distributed-hierarchical-database.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      A Distributed, Hierarchical Database
@@ -363,7 +363,7 @@ Email 分為三個部分
 ### Iterated Query
 - 要一層一層訪問才能獲得真正的網域，可能會造成 congestion
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/iterated-query.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/iterated-query.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Iterated Query
@@ -373,7 +373,7 @@ Email 分為三個部分
 ### Recursive Query
 - 同樣一層一層訪問，但不用每次都回到 local DNS server
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/recursive-query.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/recursive-query.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Recursive Query
@@ -395,14 +395,14 @@ Email 分為三個部分
 
 ### DNS protocol message
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/dns-protocol-message-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/dns-protocol-message-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      DNS protocol message 1
   </span>
 </div>
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/dns-protocol-message-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/dns-protocol-message-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      DNS protocol message 2
@@ -411,7 +411,7 @@ Email 分為三個部分
 
 ## P2P
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/p2p-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/p2p-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      P2P 1
@@ -427,7 +427,7 @@ D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}}, \frac{NF}{u_s + \sum u_i
 $$
 這兩個公式在人數多的時候會體現出非常大的差異
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/p2p-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/p2p-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      P2P 2
@@ -456,7 +456,7 @@ $$
 
 <Aside type="note" title="Streaming">
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/video-stream-and-cdn-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/video-stream-and-cdn-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Video Stream &amp; CDN 1
@@ -467,7 +467,7 @@ $$
 
 <Aside type="note" title="Playout Buffering">
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/video-stream-and-cdn-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/video-stream-and-cdn-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Video Stream &amp; CDN 2
@@ -494,7 +494,7 @@ $$
     - content 並不是 internet 但是使用了 Internet
 - 運作原理是可以讓 Server 根據 Congestion 情況判斷應該從哪個 CDN 拿取資料。
 <div style="text-align: center;">
-  <img src="/images/cn/ch02-app/cdn.png" style="width: 100%;" />
+  <img src="/images/cn/ch02-app/cdn.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      CDN

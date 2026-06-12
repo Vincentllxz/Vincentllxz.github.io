@@ -32,7 +32,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - `inetd`: 管理 remote login 會 fork surface process 出來像是 `telnetdaemon`
 - **`PID 2`**: `pagedaemon`
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/bootstrapping.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/bootstrapping.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Bootstrapping
@@ -48,7 +48,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - Ready
     - Terminated
 - <div style="text-align: center;">
-    <img src="/images/sp/ch06-process/process-control-block-1.png" style="width: 100%;" />
+    <img src="/images/sp/ch06-process/process-control-block-1.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Process Control Block 1
@@ -64,7 +64,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 紀錄任何時間參數
 - I/O status information
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/process-control-block-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/process-control-block-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Control Block 2
@@ -77,7 +77,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Context switch
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/context-switch-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/context-switch-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Context switch 1
@@ -90,7 +90,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **Ready queue**: 準備好在 main memory 的 process
 - **Device queues**: 準備 I/O 的
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/context-switch-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/context-switch-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Context switch 2
@@ -102,7 +102,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Process Content & Metadata
 - **Content**: Virtual memory 
 - <div style="text-align: center;">
-    <img src="/images/sp/ch06-process/process-content-and-metadata.png" style="width: 100%;" />
+    <img src="/images/sp/ch06-process/process-content-and-metadata.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Process Content &amp; Metadata
@@ -116,7 +116,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Process Creation & Termination
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/process-creation-and-termination-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/process-creation-and-termination-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Creation &amp; Termination 1
@@ -135,7 +135,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **只 call fork 是不會執行 process**
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/process-creation-and-termination-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/process-creation-and-termination-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Creation &amp; Termination 2
@@ -149,7 +149,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 對應在 `p_ldt` 上的 table
     - Virtual Memory 用不完的，所以會有洞，但這樣浪費空間
     - <div style="text-align: center;">
-        <img src="/images/sp/ch06-process/process-creation-and-termination-3.png" style="width: 100%;" />
+        <img src="/images/sp/ch06-process/process-creation-and-termination-3.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Process Creation &amp; Termination 3
@@ -157,7 +157,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
       </div>
 - **Copy-on-write**
     - <div style="text-align: center;">
-        <img src="/images/sp/ch06-process/process-creation-and-termination-4.png" style="width: 100%;" />
+        <img src="/images/sp/ch06-process/process-creation-and-termination-4.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Process Creation &amp; Termination 4
@@ -258,7 +258,7 @@ void forkfunc() {
 
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/normal-cases-in-fork.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/normal-cases-in-fork.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Normal cases in fork
@@ -341,7 +341,7 @@ int main(void) {
 ### Process Termination
 - **Normal termination**
     - <div style="text-align: center;">
-        <img src="/images/sp/ch06-process/process-termination-1.png" style="width: 100%;" />
+        <img src="/images/sp/ch06-process/process-termination-1.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Process Termination 1
@@ -372,7 +372,7 @@ int main(void) {
 <Aside type="note" title="Terminate Status">
 可以透過一系列 macro 去獲得死亡訊息
  <div style="text-align: center;">
-   <img src="/images/sp/ch06-process/process-termination-2.png" style="width: 100%;" />
+   <img src="/images/sp/ch06-process/process-termination-2.webp" style="width: 100%;" />
    <br />
    <span style="color: grey; font-size: 16px;">
       Process Termination 2
@@ -463,7 +463,7 @@ int main(void) {
 **Double fork**
 - 不想呼叫 `wait()` 但也不希望有 zombie process
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/orphan.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/orphan.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Orphan
@@ -580,7 +580,7 @@ output from parent
 - 真正要進行 I/O 才會創建 buffer，並且決定 type
     - 在執行真正 I/O 前設定 buffer 就有效 
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/race-condition-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/race-condition-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Race Condition 1
@@ -613,7 +613,7 @@ output from parent
     - `PATH` 會按照 `PATH=/bin:/usr/bin:/usr/local/bin \0` 的順序，因為 ls 是 internal command，要看要執行哪裡的 `ls` 這個順序就是他找的順序
     - 通常會被放在 stack 的上層
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/race-condition-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/race-condition-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Race Condition 2
@@ -621,7 +621,7 @@ output from parent
 </div>
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/race-condition-3.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/race-condition-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Race Condition 3
@@ -637,7 +637,7 @@ output from parent
 
 <Aside type="note" title="">
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/race-condition-4.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/race-condition-4.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Race Condition 4
@@ -648,7 +648,7 @@ output from parent
 
 **Close on exec**
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/race-condition-5.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/race-condition-5.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Race Condition 5
@@ -671,7 +671,7 @@ output from parent
 
 - 一端寫一端讀，不一定多少人
 - <div style="text-align: center;">
-    <img src="/images/sp/ch06-process/pipe-1.png" style="width: 100%;" />
+    <img src="/images/sp/ch06-process/pipe-1.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Pipe 1
@@ -683,14 +683,14 @@ output from parent
     - Multiplexing 就 `poll` 就好了，因為也是 file
     - pipe 完畢再 fork 就可以繼承 pipe
 - <div style="text-align: center;">
-    <img src="/images/sp/ch06-process/pipe-2.png" style="width: 100%;" />
+    <img src="/images/sp/ch06-process/pipe-2.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Pipe 2
     </span>
   </div>
 - <div style="text-align: center;">
-    <img src="/images/sp/ch06-process/pipe-3.png" style="width: 100%;" />
+    <img src="/images/sp/ch06-process/pipe-3.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Pipe 3
@@ -806,7 +806,7 @@ static void charatatime(char *str) {
 }
 ```
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/pipe-4.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/pipe-4.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Pipe 4
@@ -832,7 +832,7 @@ static void charatatime(char *str) {
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/fifo-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/fifo-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      FIFO 1
@@ -843,7 +843,7 @@ static void charatatime(char *str) {
  
 <Aside type="tip" title="Socket">
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/fifo-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/fifo-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      FIFO 2
@@ -853,7 +853,7 @@ static void charatatime(char *str) {
 - pipe 無法單端讀寫，因此 response 需要這樣送，如下圖
     - client 的會是 specific 的，不然會混淆
 <div style="text-align: center;">
-  <img src="/images/sp/ch06-process/fifo-3.png" style="width: 100%;" />
+  <img src="/images/sp/ch06-process/fifo-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      FIFO 3

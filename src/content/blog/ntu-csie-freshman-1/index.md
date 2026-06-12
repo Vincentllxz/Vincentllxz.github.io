@@ -1,15 +1,16 @@
 ---
-title: "台大資工大一上 修課心得"
-description: "我真的活著。"
-publishDate: "2025-06-16T22:26:48+08:00"
+title: '台大資工大一上 修課心得'
+description: '我真的活著。'
+publishDate: '2025-06-16T22:26:48+08:00'
 tags:
-  - "修課心得"
-  - "NTU"
-  - "CSIE"
-language: "zh-TW"
+  - '修課心得'
+  - 'NTU'
+  - 'CSIE'
+language: 'zh-TW'
 heroImage: { src: './back.png', color: '#4891B2' }
 comment: true
 ---
+
 ## 前言
 
 因為是分科生，大一上入學前我超級緊張，到處找資料，結果發現怎麼都是真強者們在寫資料，好不容易找到一個比較親民的學長就只能參考他寫的[資料](https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8B%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/)，看完一輪就覺得自己獲益良多，所以想說來讓一個「普通人」寫修課心得應該也很有價值（我應該比上面那篇的學長更弱XD）
@@ -35,18 +36,18 @@ comment: true
 
 ## 課表
 
-|     | 一    | 二   | 三           | 四             | 五           |
-|-----|------ |------|------|------|------|
-| 1   |       |      |              |                |        |
-| 2   | 計程 |  |        |    |              |
-| 3   | 計程 | 國文 |   普化甲   | 體適能   |    普化甲    |
-| 4   | 計程 | 國文 |    普化甲    | 體適能 |     普化甲   |
-| 5   |     |  國文  |  |               |              |
-| 6   |       |     | 微積分 |                | 微積分 |
-| 7   |       | 計概 | 微積分|  | 微積分 |
-| 8   |       | 計概 |  邏輯思考  | 英文 | |
-| 9   |       | 計概 | 邏輯思考  | 英文 |  |
-| 10  |  微積分  |      |       |  英文              |              |
+|     | 一     | 二   | 三       | 四     | 五     |
+| --- | ------ | ---- | -------- | ------ | ------ |
+| 1   |        |      |          |        |        |
+| 2   | 計程   |      |          |        |        |
+| 3   | 計程   | 國文 | 普化甲   | 體適能 | 普化甲 |
+| 4   | 計程   | 國文 | 普化甲   | 體適能 | 普化甲 |
+| 5   |        | 國文 |          |        |        |
+| 6   |        |      | 微積分   |        | 微積分 |
+| 7   |        | 計概 | 微積分   |        | 微積分 |
+| 8   |        | 計概 | 邏輯思考 | 英文   |        |
+| 9   |        | 計概 | 邏輯思考 | 英文   |        |
+| 10  | 微積分 |      |          | 英文   |        |
 
 ---
 
@@ -58,12 +59,12 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 劉邦鋒  
-- **學分：** 3  
+- **授課教授：** 劉邦鋒
+- **學分：** 3
 
-- **甜度：** 1.5/5  
-- **涼度：** 2/5  
-- **收穫：** 4/5  
+- **甜度：** 1.5/5
+- **涼度：** 2/5
+- **收穫：** 4/5
 - **課後學習時數：** 20小時
 
 </div>
@@ -76,10 +77,10 @@ comment: true
 
 以下節錄自學長的Blog:
 
->「停修」是大學才有的概念，中途退出就不算學分也不計入 GPA，等於一種保命手段。  
+> 「停修」是大學才有的概念，中途退出就不算學分也不計入 GPA，等於一種保命手段。  
 > 這門課就非常鼓勵你**認真評估自己的狀態，該停就停**。
 
-課程內容是以 C 語言為主，基本跟著老師寫的《由片語學習 C 程式設計》這本書進度來教，自己買來看一看或是去圖書館借都可以  
+課程內容是以 C 語言為主，基本跟著老師寫的《由片語學習 C 程式設計》這本書進度來教，自己買來看一看或是去圖書館借都可以
 
 整門課都是用一個叫做 **JudgeGirl** 的 Online Judge 平台。上面有題庫、分章節、還有歷年考古題。
 
@@ -106,19 +107,17 @@ comment: true
 
 </details>
 
-
-
 ### 微積分12
 
 <div class="course-info-card">
 
-- **授課教授：** ~~蘇瑋柏~~ 蔡國榮  
+- **授課教授：** ~~蘇瑋柏~~ 蔡國榮
 - **學分：** 2/2
 - **等第：** A+/A
 
-- **甜度：** 3/5  
-- **涼度：** 5/5  
-- **收穫：** 5/5 (蔡國榮)   
+- **甜度：** 3/5
+- **涼度：** 5/5
+- **收穫：** 5/5 (蔡國榮)
 - **課後學習時數：** 1小時
 
 </div>
@@ -133,34 +132,34 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 蔡蘊明  
+- **授課教授：** 蔡蘊明
 - **學分：** 3
 - **等第：** A
 
-- **甜度：** 2/5  
-- **涼度：** 3/5  
-- **收穫：** 4/5 
-- **課後學習時數：** 1小時   
+- **甜度：** 2/5
+- **涼度：** 3/5
+- **收穫：** 4/5
+- **課後學習時數：** 1小時
 
 </div>
 
 從化學史開始接著是高中化學的延伸
 
 > 1. Chemists and Chemistry
-> 2. Atoms, Molecules, and Ions. 
-> 3. Stoichiometry  
+> 2. Atoms, Molecules, and Ions.
+> 3. Stoichiometry
 > 4. Types of Chemical Reactions and Solution Stoichiometry
 > 5. Gases
-> 6. Chemical Equilibrium 
+> 6. Chemical Equilibrium
 > 7. Acids and Bases
 > 8. Applications of Aqueous Equilibria
-> 9.  Energy, Enthalpy, and Thermochemistry
+> 9. Energy, Enthalpy, and Thermochemistry
 > 10. Spontaneity, Entropy, and Free Energy
 > 11. Electrochemistry
 
 最後因為各種原因1\~7期中範圍，8\~11是期末範圍，期中習題講解改成線上，第八章 Equilibra 後半內容改為期末
 
-老師上課用自編投影片 （應該就夠用了）啊課本是 *Chemical Principles by S. S. Zumdahl and D. J. DeCoste, 8th ed.; 2017, CENGAGE Learning* 投影片上課前會放到 COOL 上，老師投影片很有系統性，基本不需要讀課本就可以了解整個章節的內容，老師上課語速很慢，是放 1.5 倍速剛剛好那種，老師會把上課影片上傳到 COOL，很多人都沒來上課，但實體上課還是比較有感覺。
+老師上課用自編投影片 （應該就夠用了）啊課本是 _Chemical Principles by S. S. Zumdahl and D. J. DeCoste, 8th ed.; 2017, CENGAGE Learning_ 投影片上課前會放到 COOL 上，老師投影片很有系統性，基本不需要讀課本就可以了解整個章節的內容，老師上課語速很慢，是放 1.5 倍速剛剛好那種，老師會把上課影片上傳到 COOL，很多人都沒來上課，但實體上課還是比較有感覺。
 
 兩次考試各一百分，作業總分為 50，三者加總排序，老師最近幾年很喜歡用書商 Cengage 給的線上題庫系統，上面有各種精美的動畫，還有每一題的詳解可以幫助你打穩基礎觀念，真的很不錯，一次作業會是一個章節，有時候章節內容太多會分成兩次作業，基本上需要你坐在電腦前面 30min~1hr 不等才能寫完，我作業分數是全滿。期中期末都是 13 題左右手寫，我期中腦攤，有效位數被扣了 10 幾分，還去跟助教問了一堆有效位數的問題，期末有注意就考得不戳，考題不難，但要熟練。我的總成績是 74 + 94 + 50，總等第 A，本來以為期末夠高就可以 A+，對不起蘊明，下次一定記得有效位數。
 
@@ -176,67 +175,67 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 莊永裕  
-- **學分：** 3  
+- **授課教授：** 莊永裕
+- **學分：** 3
 - **等第：** A+
 
-- **甜度：** 5/5  
-- **涼度：** 4/5  
-- **收穫：** 5/5 
-- **課後學習時數：** 0.5小時 
+- **甜度：** 5/5
+- **涼度：** 4/5
+- **收穫：** 5/5
+- **課後學習時數：** 0.5小時
 
 </div>
 
 從最底層開始了解電腦，對電腦運作有初步認識。課程設計是一步步帶你從邏輯閘組出整台電腦：
 
-- Combinational circuits  
-- Sequential circuits  
-- TOY architecture  
-- TOY programming  
+- Combinational circuits
+- Sequential circuits
+- TOY architecture
+- TOY programming
 - Assembly language fundamentals  
-（期中大概到這，後面其實不用聽（沒  
-- Hack architecture  
-- virtual machine  
-- High-level language, Jack  
-- compiler（老師放影片在 COOL 上）  
-- operating system  
+  （期中大概到這，後面其實不用聽（沒
+- Hack architecture
+- virtual machine
+- High-level language, Jack
+- compiler（老師放影片在 COOL 上）
+- operating system
 
 這是 2024Fall 的課程網：  
 👉 [課程網頁](https://www.csie.ntu.edu.tw/~cyy/courses/introCS/24fall/overview/)
 
-課本是 *The Elements of Computing Systems* by Noam Nisan and Shimon Schocken。但基本上都靠老師自編的投影片，教科書不一定會看。老師上課會在投影片上畫圖與標記，會錄音與螢幕錄影上傳到 COOL。很多人都不來上課，但老師上課邏輯非常清楚、內容連貫，常常出現預料之外的笑點，可以感受到老師很用心在規劃這門課。
+課本是 _The Elements of Computing Systems_ by Noam Nisan and Shimon Schocken。但基本上都靠老師自編的投影片，教科書不一定會看。老師上課會在投影片上畫圖與標記，會錄音與螢幕錄影上傳到 COOL。很多人都不來上課，但老師上課邏輯非常清楚、內容連貫，常常出現預料之外的笑點，可以感受到老師很用心在規劃這門課。
 
 老師也很願意回答問題，不論上課下課都可以問。雖然這學期老師一直出國（真的一直出國），但還是莫名其妙教完了所有內容。老師不喜歡上課吵，會直接停下來等你安靜，很恐怖（真的）。
 
-評分方式如下：  
+評分方式如下：
 
-- 50% Assignments  
-- 5% Class participation  
-- 20% Midterm quiz  
-- 25% Final project  
+- 50% Assignments
+- 5% Class participation
+- 20% Midterm quiz
+- 25% Final project
 
-真的是甜的。  
+真的是甜的。
 
-作業總共六份：  
+作業總共六份：
 
-- 4 份用 HDL 寫邏輯電路  
-- 1 份 Hack 組語  
+- 4 份用 HDL 寫邏輯電路
+- 1 份 Hack 組語
 - 1 份手寫期中練習（模擬考）
 
 作業來自課本，Judge 系統完整，照做基本都能拿滿分，但如果你繳交格式錯了會被扣爆，學期初很多人被扣 20 分。~~網路上有各路大神解答，基本不怕卡關。~~期中考和手寫作業內容幾乎一樣，可以帶一張大抄（規定只有一張是因為之前有人印整本）。我期中考 98 分，錯的是 107 轉 2 進制這種白癡題，真的很簡單不用擔心。
 
-期末 project 可以：  
-1. 用 Jack 寫個小遊戲或小程式  
+期末 project 可以：
+
+1. 用 Jack 寫個小遊戲或小程式
 2. 做課本的 project 6~10（但老師比較希望你寫遊戲）
 
 我作業全滿、期中 98、期末做小遊戲，拿了 A+，供參。這課不強調出席，全簽，0 基礎的最適合來修。這是一門很棒的課，可以學到許多關於電腦運作的知識，真的很推薦想入門電腦科學領域的人們來聽，你會有新的認識。這門課有螢幕錄影錄音，真的很讚。101 教室真的很不通風，坐個半小時 100% 會睡著。
 
-最受用的是老師的分組哲學：  
+最受用的是老師的分組哲學：
 
-- 兩人組：一人美工、一人寫 code  
+- 兩人組：一人美工、一人寫 code
 - 三人組：一人美工、一人寫 code、一人買早餐  
-買早餐也是一門學問 （一樣我有在ptt上打[原文連結](https://www.ptt.cc/bbs/NTUcourse/M.1736263953.A.FAA.html)
-
+  買早餐也是一門學問 （一樣我有在ptt上打[原文連結](https://www.ptt.cc/bbs/NTUcourse/M.1736263953.A.FAA.html)
 
 ## 校定必修
 
@@ -246,25 +245,25 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 周德賢  
-- **學分：** 1  
-- **等第：** A+  
+- **授課教授：** 周德賢
+- **學分：** 1
+- **等第：** A+
 
-- **甜度：** 3.5/5  
-- **涼度：** 2/5  
+- **甜度：** 3.5/5
+- **涼度：** 2/5
 - **收穫：** 3/5
 
 </div>
 
 （~~照抄~~借鑑自[學長](https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8A%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/)）資工系會根據學號後兩碼 mod 3 分配體育課老師，餘數是 0 的人就會被分到德賢的班。這班的學期成績中有 **20 分是體育活動加分**，而且不是參加一項就夠，要湊到滿分 20 分，才能保分穩定。
-  
-以下是我實際拿分組合：  
 
-- 大隊接力（5 分）  
-- 拔河（5 分）  
+以下是我實際拿分組合：
+
+- 大隊接力（5 分）
+- 拔河（5 分）
 - 校運會繞場（5 分）
 - 游泳（5 分）（下水就有五分，也最多五分）
-上限是 20 分，超過不再加
+  上限是 20 分，超過不再加
 
 其中校運會繞場是個蠻輕鬆的分數。但當天下雨，不知道是台大的PU跑道有問題還是本來就會這樣，我的白鞋直接變成藍鞋，還踩泥土地，我的鞋子直接報廢（雖然我還是一直穿，老師現在除了在台大教課，也是輔大棒球隊教練，老師有三四次都停課，因為要帶隊去打棒球。
 
@@ -274,7 +273,7 @@ comment: true
 <summary>&nbsp;棒球卡</summary>
 
 <figure class="custom-figure">
-    <img src="/images/得閒.jpeg" alt="圖片描述">
+    <img src="/images/得閒.webp" alt="圖片描述">
     <figcaption>棒球卡</figcaption>
 </figure>
 
@@ -284,13 +283,13 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 胥嘉陵  
-- **學分：** 3  
+- **授課教授：** 胥嘉陵
+- **學分：** 3
 - **等第：** A+
 
-- **甜度：** 4.5/5  
-- **涼度：** 2/5  
-- **收穫：** 4/5  
+- **甜度：** 4.5/5
+- **涼度：** 2/5
+- **收穫：** 4/5
 - **課後學習時數：** 1小時（寫作業）
 
 </div>
@@ -299,26 +298,26 @@ comment: true
 
 以下節錄自 NTU COOL：
 
-> This class is designed for students who are motivated to challenge themselves in the learning of English as global citizens as well as in the development of their independent and critical thinking skills as intellectuals. Theme-based English reading and listening materials are used to develop students’ skills in reading, listening, writing, and speaking. Topics covered in this semester are as follows:  
+> This class is designed for students who are motivated to challenge themselves in the learning of English as global citizens as well as in the development of their independent and critical thinking skills as intellectuals. Theme-based English reading and listening materials are used to develop students’ skills in reading, listening, writing, and speaking. Topics covered in this semester are as follows:
 >
-> 1. Cross-cultural communication (Verbal and nonverbal)  
-> 2. University education and schooling (It's true that Asians can't think?)  
-> 3. University students survival skills (time management, stress management, and assertiveness)  
-> 4. English as an international language (No English, no job—a reality many of Asia's workers face)  
-> 5. Love and dating (Why him, why her?)  
+> 1. Cross-cultural communication (Verbal and nonverbal)
+> 2. University education and schooling (It's true that Asians can't think?)
+> 3. University students survival skills (time management, stress management, and assertiveness)
+> 4. English as an international language (No English, no job—a reality many of Asia's workers face)
+> 5. Love and dating (Why him, why her?)
 > 6. A world of internet and AI (What is AI, is it dangerous, and what jobs are at risk?)
 
 老師的課程非常緊跟時事。
 
 上課教材是一本 reading packet + 一本 oral packet + 滿滿的 online 資源。前半段會是老師示範教學，後半段會是同學們上台報告。
 
-評分方式如下：  
+評分方式如下：
 
-- 46% Written exams（midterm & final 各一半）  
-- 28% Listening Assignments（小組分工，看你組員罩不罩）  
-- 15% Oral Presentation（上台報告）  
-- 6% three pieces of writing（老師還會給什麼 120、130 的分數）  
-- 5% Class Attendance & Participation  
+- 46% Written exams（midterm & final 各一半）
+- 28% Listening Assignments（小組分工，看你組員罩不罩）
+- 15% Oral Presentation（上台報告）
+- 6% three pieces of writing（老師還會給什麼 120、130 的分數）
+- 5% Class Attendance & Participation
 
 絕對不涼，但你願意花時間就很甜。聽力作業會需要聽音檔、看影片、回答問題，是分組分工的，不會很難。報告是讓同學上台講課，同樣要分組，還要寫單字表給全班。考試主要考單字，都不是很難，最後會有兩題申論。老師會在考前一週說會考什麼，基本上就是寫對特定文章的心得，非常好準備。老師不在意文法正不正確，但一定要有自己的想法。小心手可能會斷掉。寫作作業就是寫 300 字以內的文章，基本上很簡單，但別用 ChatGPT，老師很會抓。但有用心老師分數都沒在手軟的給。老師上課不點名，你請假就去 myNTU 上請就好。上課氛圍很輕鬆，老師會跟同學聊天，不要害怕講英文，上課前會有一支麥克風傳全班，要大家分享這週的大小事，你講中文老師也接受，老師人真的很好。同學上台報告的時候，因為老師真的對他的教材非常熟悉，如果你沒有按照他的意思報告的話，很可能會被他一直打斷，你可能要重複跟老師說很多次你這樣安排的理由，老師才會同意。
 
@@ -328,14 +327,14 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 劉少雄  
-- **學分：** 3  
+- **授課教授：** 劉少雄
+- **學分：** 3
 - **等第：** A
 
-- **甜度：** 4/5  
-- **涼度：** 3/5  
-- **收穫：** 5/5 
-- **課後學習時數：** 0.5小時 
+- **甜度：** 4/5
+- **涼度：** 3/5
+- **收穫：** 5/5
+- **課後學習時數：** 0.5小時
 
 </div>
 
@@ -343,36 +342,39 @@ comment: true
 
 > 課程從《詩經》到現代詩，討論作家所使用的文體與閱讀文學的關聯性。  
 > 前半學期以主題分章節，後半以作家劃分：
-> 1. 課程簡介─兼論文學的功能  
-> 2. 樂而不淫，哀而不傷─論詩經裡建構的愛情模式  
-> 3. 中秋節（放假）  
-> 4. 所謂伊人，在水一方─談一種追求而失落的悲劇意識【交抒情小品】  
-> 5. 同心而離居，憂傷以終老─古詩中女性的悲歌  
-> 6. 同是天涯淪落人─唐人閨怨詩的性別書寫  
-> 7. 人生自是有情痴─宋詞的陰柔之美與不渝之情【交心得寫作一】  
-> 8. 此中有真意─陶淵明與王維的人間詩境  
-> 9. 欲上青天攬明月─李白天才的寂寞  
-> 10. 此情可待成追憶─李商隱的無題詩  
-> 11. 也無風雨也無晴─蘇軾的人生體悟【交心得寫作二】  
-> 12. 蘇東坡的抉擇─由《念奴嬌》到《赤壁賦》  
-> 13. 李清照的自覺─出入兩種聲音之間  
-> 14. 古典與現代─從胡適到余光中  
-> 15. 一首詩的完成─楊牧的啟示【交心得寫作三】  
-> 16. 期末考試  
+>
+> 1. 課程簡介─兼論文學的功能
+> 2. 樂而不淫，哀而不傷─論詩經裡建構的愛情模式
+> 3. 中秋節（放假）
+> 4. 所謂伊人，在水一方─談一種追求而失落的悲劇意識【交抒情小品】
+> 5. 同心而離居，憂傷以終老─古詩中女性的悲歌
+> 6. 同是天涯淪落人─唐人閨怨詩的性別書寫
+> 7. 人生自是有情痴─宋詞的陰柔之美與不渝之情【交心得寫作一】
+> 8. 此中有真意─陶淵明與王維的人間詩境
+> 9. 欲上青天攬明月─李白天才的寂寞
+> 10. 此情可待成追憶─李商隱的無題詩
+> 11. 也無風雨也無晴─蘇軾的人生體悟【交心得寫作二】
+> 12. 蘇東坡的抉擇─由《念奴嬌》到《赤壁賦》
+> 13. 李清照的自覺─出入兩種聲音之間
+> 14. 古典與現代─從胡適到余光中
+> 15. 一首詩的完成─楊牧的啟示【交心得寫作三】
+> 16. 期末考試
 
 教材為老師自編講義。老師從詩經一路講到現代詩，內容非常陶醉，但如果你是那種早上上課會想睡的人建議別選。因為老師的麥克風常常會偏離嘴巴，聲音忽大忽小，很容易催眠。上課方式以老師講授為主，有時會在黑板補充，基本沒什麼發言機會，有問題可以課後或寄信問，老師非常樂意回答。
 
-評分方式如下：  
-- 10% 抒情小品（第 4 週）  
-- 60% 心得寫作（三篇）  
-- 30% 期末考試（第 6–13 週內容）
-考古題可以在 NTUExam 上找到。期末考是手寫申論題，難度不高。心得寫作 1000 字以上，但老師說長度不是重點，有內容才是。
+評分方式如下：
 
-老師挺注重出席（雖然期中期末都沒點過），但學期成績規定如下：  
-- 請假達三次降一等第  
-- 請假達四次降兩等第  
+- 10% 抒情小品（第 4 週）
+- 60% 心得寫作（三篇）
+- 30% 期末考試（第 6–13 週內容）
+  考古題可以在 NTUExam 上找到。期末考是手寫申論題，難度不高。心得寫作 1000 字以上，但老師說長度不是重點，有內容才是。
+
+老師挺注重出席（雖然期中期末都沒點過），但學期成績規定如下：
+
+- 請假達三次降一等第
+- 請假達四次降兩等第
 - 五次以上直接不及格  
-（但其實老師學期末才發現自己幾乎沒點名，於是才開始補點名）
+  （但其實老師學期末才發現自己幾乎沒點名，於是才開始補點名）
 
 真的是門超棒的課。
 
@@ -390,13 +392,13 @@ comment: true
 
 <div class="course-info-card">
 
-- **授課教授：** 王銀國  
-- **學分：** 2  
+- **授課教授：** 王銀國
+- **學分：** 2
 - **等第：** A+
 
-- **甜度：** 5/5  
-- **涼度：** 5/5  
-- **收穫：** 3/5  
+- **甜度：** 5/5
+- **涼度：** 5/5
+- **收穫：** 3/5
 - **課後學習時數：** 0小時
 
 </div>
@@ -404,9 +406,10 @@ comment: true
 這門課是我同學在群組說老師說還有加簽名額，我剛好缺通識所以才寫信去拿加簽碼的，所以我是第三周才開始去上課，老師的上課內容就是邏輯學，從邏輯學的歷史到到理論，老師很會舉生活中的例子講解，上課起來不會很無聊，認真上課的話也可以學到很多邏輯學的知識。
 
 成績計算如下：
-- 出席成績	20%
-- 期中考	 40%
-- 期末考	 40%
+
+- 出席成績 20%
+- 期中考 40%
+- 期末考 40%
 
 基本不用擔心不會A+，有在聽老師~~偷洩題~~畫重點應該都很容易，出席成績是掃描google表單來登記，每堂課都會有一份google表單，期中期末都是線上NTUCOOL考試，很輕鬆，我自己是出席拿滿、期中98、期末91（滿分114），最後A+。
 
@@ -416,4 +419,3 @@ comment: true
 我沒有真的認真上過課，我都是去點名而已，甚至有時候只去掃描表單就從普通103後門溜走，去上蔡國榮微積分，真的很抱歉，期中期末我就當天前一個小時開始看PPT，啊考試也開著PPT考，所以就......真的很抱歉。
 
 </details>
-

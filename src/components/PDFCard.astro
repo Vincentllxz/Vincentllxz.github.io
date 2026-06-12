@@ -48,10 +48,7 @@ const accent = props.accent ?? '193 70% 50%'
 >
   {/* 封面：有截圖用截圖，否則用主題色生成 */}
   <div
-    class:list={[
-      'relative aspect-[2/1] overflow-hidden',
-      imageSrc ? 'bg-muted' : 'pdfcard-cover'
-    ]}
+    class:list={['relative aspect-[2/1] overflow-hidden', imageSrc ? 'bg-muted' : 'pdfcard-cover']}
   >
     {
       imageSrc ? (
@@ -122,8 +119,8 @@ const accent = props.accent ?? '193 70% 50%'
         stroke-linecap='round'
         stroke-linejoin='round'
       >
-        <line x1='5' y1='12' x2='19' y2='12' />
-        <polyline points='12 5 19 12 12 19' />
+        <line x1='5' y1='12' x2='19' y2='12'></line>
+        <polyline points='12 5 19 12 12 19'></polyline>
       </svg>
     </div>
   </div>

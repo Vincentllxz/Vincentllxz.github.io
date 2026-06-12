@@ -62,17 +62,15 @@ const pct = total > 0 ? Math.round((done / total) * 100) : 0
               >
                 {c.title}
               </span>
-              {
-                c.href ? (
-                  <span class='shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1'>
-                    →
-                  </span>
-                ) : (
-                  <span class='shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground'>
-                    整理中
-                  </span>
-                )
-              }
+              {c.href ? (
+                <span class='shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1'>
+                  →
+                </span>
+              ) : (
+                <span class='shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground'>
+                  整理中
+                </span>
+              )}
             </Element>
           </li>
         )

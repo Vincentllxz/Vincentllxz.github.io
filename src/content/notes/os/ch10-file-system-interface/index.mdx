@@ -115,7 +115,7 @@ public class LockingExample {
 各種 File type 會有各種不同的功能，我們就會用各種方法去解讀
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/file-types.png" style="width: 80%;" />
+  <img src="/images/os/ch10-file-system-interface/file-types.webp" style="width: 80%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Table of File types
@@ -146,7 +146,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 - `reset()`: 回到檔案頭
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/sequential-access.png" style="width: 70%;" />
+  <img src="/images/os/ch10-file-system-interface/sequential-access.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Sequential Access
@@ -184,7 +184,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 - OpenVMS index and relative files
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/openvms.png" style="width: 70%;" />
+  <img src="/images/os/ch10-file-system-interface/openvms.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      OpenVMS
@@ -207,7 +207,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 一種最簡單的方法，把所有檔案都放在同一個資料夾底下，包含不同 User
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/single-level-directory.png" style="width: 70%;" />
+  <img src="/images/os/ch10-file-system-interface/single-level-directory.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Single-Level Directory
@@ -228,7 +228,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 **search path** 是一個 sequence of directories searched，當呼叫了這個名字的時候，我應該先找誰再找誰，因為有些 system file 是共用的，我們可能可以定義好就不用再自己 User directory 也 create
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/two-level-directory.png" style="width: 70%;" />
+  <img src="/images/os/ch10-file-system-interface/two-level-directory.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Two-Level Directory
@@ -246,7 +246,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 - **Relative path name**: 從 `cwd` 開始寫
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/tree-structured-directories.png" style="width: 60%;" />
+  <img src="/images/os/ch10-file-system-interface/tree-structured-directories.webp" style="width: 60%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Tree-Structured Directories
@@ -260,7 +260,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 是一種無環狀結構，可以指向同一個 file，但不能出現 A to B to C to A，這並不是一種樹狀結構
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/acyclic-graph-directories.png" style="width: 60%;" />
+  <img src="/images/os/ch10-file-system-interface/acyclic-graph-directories.webp" style="width: 60%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Acyclic-Graph Directories
@@ -295,7 +295,7 @@ OS 跟 Program 可以決定 file structure 做讀取
 **Garbage collection** 就會變得非常重要
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/general-graph-directory.png" style="width: 60%;" />
+  <img src="/images/os/ch10-file-system-interface/general-graph-directory.webp" style="width: 60%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      General Graph Directory
@@ -357,7 +357,7 @@ chmod 761 <name>
 這樣的方法也支持 copy-on-write，也就是先 share 一個 read only 的 file，當某個 process 想改的時候，再做 copy 就好
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/copy-on-write.png" style="width: 80%;" />
+  <img src="/images/os/ch10-file-system-interface/copy-on-write.webp" style="width: 80%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Copy-on-Write
@@ -367,7 +367,7 @@ chmod 761 <name>
 因為 memory-mapping file 本身就是一個 memory，只要兩個 process share 那個 file 就好了
 
 <div style="text-align: center;">
-  <img src="/images/os/ch10-file-system-interface/share-memory.png" style="width: 70%;" />
+  <img src="/images/os/ch10-file-system-interface/share-memory.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Share memory

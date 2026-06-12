@@ -25,7 +25,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Transport Layer action
 - **Sender**: 把 Application Layer message 封裝，加上 Transport layer header，往下送到 IP
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/transport-layer-action-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/transport-layer-action-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Transport Layer action 1
@@ -33,7 +33,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </div>
 - **Receiver**: Check header value，然後 Demultiplex message 到正確的 process
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/transport-layer-action-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/transport-layer-action-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Transport Layer action 2
@@ -47,7 +47,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - 一台主機可能要接收很多 request，為了分別他們，將 response send 到正確的 client process 上，我們的可以使用 Multiplexing & Demultiplexing
 - **Multiplexing**: 加上 header 幫助辨認傳送的地方
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Multiplexing &amp; Demultiplexing 1
@@ -55,7 +55,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 </div>
 - **demultiplexing**: 解讀 header 傳送到正確的 socket
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Multiplexing &amp; Demultiplexing 2
@@ -66,7 +66,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Multiplexing & Demultiplexing for UDP
 - header 的架構必須有這些東西
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-1.png" style="width: 50%;" />
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-1.webp" style="width: 50%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Multiplexing &amp; Demultiplexing for UDP 1
@@ -80,7 +80,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - 機制如下
     - Request 跟 Response 只需要交換 Source port, Destination port 就好了
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-udp-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Multiplexing &amp; Demultiplexing for UDP 2
@@ -97,7 +97,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - 即便是同一個 port 還是會被開到不同的 socket 裡面
 - 一樣交換兩端資訊即可送回
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-tcp.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/multiplexing-and-demultiplexing-for-tcp.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Multiplexing &amp; Demultiplexing for TCP
@@ -122,14 +122,14 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
  
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/use-of-udp-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/use-of-udp-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Use of UDP 1
   </span>
 </div>
    <div style="text-align: center;">
-     <img src="/images/cn/ch03-transport/use-of-udp-2.png" style="width: 100%;" />
+     <img src="/images/cn/ch03-transport/use-of-udp-2.webp" style="width: 100%;" />
      <br />
      <span style="color: grey; font-size: 16px;">
         Use of UDP 2
@@ -143,7 +143,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - Length: include header
 - **Checksum**
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/udp-structure.png" style="width: 50%;" />
+  <img src="/images/cn/ch03-transport/udp-structure.webp" style="width: 50%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      UDP structure
@@ -162,7 +162,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - 加起來後把第一位 wraparound 加到尾巴，在算一次
 - 做 complement 
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/udp-check-sum-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/udp-check-sum-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      UDP Check Sum 1
@@ -173,7 +173,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 <Aside type="caution" title="Checksum is a WEAK PROTECTION">
 - 在這個例子裡 Checksum 沒變但裡面被 flip 了
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/udp-check-sum-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/udp-check-sum-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      UDP Check Sum 2
@@ -184,7 +184,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 ## Reliable Data Transfer (RDT)
 我們想像中是左圖，但實際上是右邊，並沒有真正的 reliable channel  
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/reliable-data-transfer-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/reliable-data-transfer-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Reliable Data Transfer 1
@@ -194,7 +194,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - 要設計出一對這樣的 protocol 而且要可以雙向溝通
 - 實際上的 interface 其實長這樣
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/reliable-data-transfer-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/reliable-data-transfer-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Reliable Data Transfer 2
@@ -202,7 +202,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 </div>
 - 我們後面都用這種形式來表示狀態轉移
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/reliable-data-transfer-3.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/reliable-data-transfer-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Reliable Data Transfer 3
@@ -215,7 +215,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - **Sender** 只要寄出，就回到原始狀態
 - **Receiver** 只要接收後讀取，就回到原始狀態
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/rdt-1-0-reliable-transfer-with-reliable-channel.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/rdt-1-0-reliable-transfer-with-reliable-channel.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      rdt 1.0: Reliable transfer with Reliable channel
@@ -230,7 +230,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - Sender 收到 NAKs 後 retransmit
 - 上述過程可以畫成這個 FSM 
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/rdt-2-0-channel-with-bits-error.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/rdt-2-0-channel-with-bits-error.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      rdt 2.0: Channel with bits error
@@ -245,7 +245,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - 在送出 packet 後，跟前者一樣，但當 `corrupt()` 時要在原地等待
     - 在 `make_pkt()` 的時候要送 sequence 進去（0, 1）
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      rdt 2.1: Handling Garble ACKs/NAKs 1
@@ -255,7 +255,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - 當收到並非自己 sequence number 的時候，也要在原地等待，並且送出 `ACKs` 的資訊
     - 要檢查是否是自己的 sequence number
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/rdt-2-1-handling-garble-acks-naks-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      rdt 2.1: Handling Garble ACKs/NAKs 2
@@ -266,7 +266,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 - 其實 `NAK` 可以用 `udt_send()` 非自己 sequence number 來取代
 - 可以簡化 FSM 成
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/rdt-2-2-free-naks-protocol.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/rdt-2-2-free-naks-protocol.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      rdt 2.2: Free NAKs Protocol
@@ -279,7 +279,7 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
     - retransmission 可能會導致 duplicate packet 但是 sequence number 就可以 handle 了
 - 要有 timeout checker 來檢查是否超過時間，超過則重新發送 pkt
    <div style="text-align: center;">
-     <img src="/images/cn/ch03-transport/rdt-3-0-channels-with-errors-and-loss.png" style="width: 100%;" />
+     <img src="/images/cn/ch03-transport/rdt-3-0-channels-with-errors-and-loss.webp" style="width: 100%;" />
      <br />
      <span style="color: grey; font-size: 16px;">
         rdt 3.0 channels with errors and loss
@@ -290,14 +290,14 @@ UDP Multiplexing/Demultiplexing 不紀錄 IP address 只紀錄 port number，因
 
 #### Action of rdt 3.0
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/action-of-rdt-3-0-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/action-of-rdt-3-0-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Action of rdt 3.0 1
   </span>
 </div>
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/action-of-rdt-3-0-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/action-of-rdt-3-0-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Action of rdt 3.0 2
@@ -325,7 +325,7 @@ $$
 D_{trans} = \frac{L}{R} = \frac{8000 \text{ bits}}{10^9 \ \text{bits/sec}} = 8 \text{ ms }
 $$
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/performance-of-rdt-3-0.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/performance-of-rdt-3-0.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Performance of rdt 3.0
@@ -342,7 +342,7 @@ $$
     - 需要更多 sequence number
     - 需要更多 buffer space
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/pipeline-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/pipeline-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Pipeline 1
@@ -351,7 +351,7 @@ $$
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/pipeline-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/pipeline-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Pipeline 2
@@ -366,7 +366,7 @@ $$
 ### Go-Back-N sender/receiver (GBN)
 **Sender**
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Go-Back-N sender/receiver 1
@@ -401,7 +401,7 @@ $$
 
 **Receiver**
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-3.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Go-Back-N sender/receiver 3
@@ -412,7 +412,7 @@ $$
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-4.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/go-back-n-sender-receiver-4.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Go-Back-N sender/receiver 4
@@ -427,7 +427,7 @@ $$
 ### Selective Repeat (SR)
 Receiver 會 individually `ACK`
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/selective-repeat-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/selective-repeat-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Selective Repeat 1
@@ -455,7 +455,7 @@ Receiver 會 individually `ACK`
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/selective-repeat-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/selective-repeat-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Selective Repeat 2
@@ -491,7 +491,7 @@ Receiver 會 individually `ACK`
 
 <Aside type="note" title="TCP segment structure">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/tcp-segment-structure.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/tcp-segment-structure.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      TCP segment structure
@@ -508,7 +508,7 @@ Receiver 會 individually `ACK`
     - 若遇到 out-of-order 每個 TCP 不一定做什麼
 - sender/receiver view
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/tcp-seq-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/tcp-seq-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      TCP seq \# 1
@@ -517,7 +517,7 @@ Receiver 會 individually `ACK`
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/tcp-seq-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/tcp-seq-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      TCP seq \# 2
@@ -537,7 +537,7 @@ $$
 $$
     - $\alpha \approx 0.125$ 通常為最佳
     - <div style="text-align: center;">
-        <img src="/images/cn/ch03-transport/timer.png" style="width: 100%;" />
+        <img src="/images/cn/ch03-transport/timer.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Timer
@@ -569,7 +569,7 @@ $$
 
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/sender-event.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/sender-event.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Sender event
@@ -592,7 +592,7 @@ $$
 - 用 **duplicate ACK** 來得知要趕快 retransmit
 - 發現出現 **triple duplicate ACK**，必定有前位 segment 沒收到，要重新發送
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/fast-retransmit.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/fast-retransmit.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      fast retransmit
@@ -605,7 +605,7 @@ $$
 - 寫入 buffer 速度過快會產生資料丟失，要根據剩餘 avalible space 來決定 control
 - 有一個 `rwnd` 參數，就是剩下的 free，不設定 `RcvBuffer` 的話 default 是 4096
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/tcp-flow-control.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/tcp-flow-control.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      TCP Flow Control
@@ -616,7 +616,7 @@ $$
 - **"handshake"** 要讓兩邊的 data sync 一下
     - initial, `rwnd`, 是否 accept, `seq #`
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/tcp-connection-managment.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/tcp-connection-managment.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      TCP connection managment
@@ -628,7 +628,7 @@ $$
 <Aside type="caution" title="2-way 不行">
 雙方都看不到對方，現實中可以看到對方，等於是 reliable 的，但 Internet 中大家都看不到，所以會產生問題（rdt 是建立在 data 都 sync 完畢，但此處是討論連線建立）
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/3-way-handshake-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/3-way-handshake-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      3-way handshake 1
@@ -640,7 +640,7 @@ $$
 
 
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/3-way-handshake-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/3-way-handshake-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      3-way handshake 2
@@ -668,14 +668,14 @@ $$
 - 一個 router, infinite buffer
 - no-retransmission
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-1-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-1-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 1 1
   </span>
 </div>
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-1-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-1-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 1 2
@@ -695,14 +695,14 @@ $$
 - 假設 sender 有 perfect knowledge，知道啥時 overflow 就不送
 - 假設 sender 知道 pkt loss.  
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-2-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-2-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 2 1
   </span>
 </div>
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-2-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-2-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 2 2
@@ -710,7 +710,7 @@ $$
 </div>
 - $\lambda'_\text{in}$ 傳送 $R/2$ 的資料但裡面有一些是重複無效資料，因此 $\lambda_\text{out}$ 達不到 $R/2$
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-2-3.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-2-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 2 3
@@ -726,14 +726,14 @@ $$
 > - $R$：output link capacity
 - 四者互為對方的 sender/receiver
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-3-1.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-3-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 3 1
   </span>
 </div>
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/senario-3-2.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/senario-3-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Senario 3 2
@@ -788,7 +788,7 @@ $$
 - 初始化 $\text{cwnd} = 1\ \text{MSS}$
 - 每輪次 $\text{RTT}$ double $\text{cwnd}$，直到 `loss` 發生
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/tcp-slow-start.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/tcp-slow-start.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      TCP slow start
@@ -800,7 +800,7 @@ $$
     - $\text{ssthresh}$ 每次 `loss` event 前更新
 ### FSM of TCP congestion control
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/fsm-of-tcp-congestion-control.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/fsm-of-tcp-congestion-control.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      FSM of TCP congestion control
@@ -813,7 +813,7 @@ $$
 - Router 發現 congestion 會在 IP header (ToS 欄位) 放入 `11` 原始為 `10`
 - Destination 收到這個 header 後會 sets ECE 為 `1`（在 Transport Layer）
 <div style="text-align: center;">
-  <img src="/images/cn/ch03-transport/explicit-congestion-notification.png" style="width: 100%;" />
+  <img src="/images/cn/ch03-transport/explicit-congestion-notification.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Explicit Congestion Notification

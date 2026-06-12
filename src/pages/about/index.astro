@@ -1,124 +1,42 @@
-<!-- ---
-
-import PageLayout from '@/layouts/CommonPage.astro'
-
-
-const headings = [
-  { depth: 2, slug: 'story', text: '我的故事' },
-  { depth: 2, slug: 'contact', text: 'Contact' }
-]
-
-const contactLinks = [
-  { label: 'GitHub', icon: '/images/github.png', href: 'https://github.com/Vincentllxz' },
-  { label: 'Email', icon: '/images/mail.png', href: 'mailto:vincent.950313@gmail.com' },
-  { label: 'Facebook', icon: '/images/FB.png', href: 'https://www.facebook.com/vincent.hu.3532/' },
-  { label: 'Instagram', icon: '/images/instagram.svg', href: 'https://www.instagram.com/vincent_hu313_/' },
-  {
-    label: 'LinkedIn',
-    icon: '/images/linkedin.png',
-    href: 'https://www.linkedin.com/in/%E5%85%81%E5%8D%87-%E8%83%A1-275aa6376/'
-  }
-]
 ---
-<PageLayout title='About' {headings} comment>
-  <section class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'>
-    <div class='mx-auto shrink-0 rounded-full border-4 border-background/60 p-2 shadow-md md:mx-0'>
-      <Image src={avatar} alt='VinSong portrait' class='h-40 w-40 rounded-full object-cover' loading='eager' />
-    </div>
-    <div class='space-y-4'>
-      <div>
-        <p class='text-sm uppercase tracking-[0.3em] text-muted-foreground'>Hello, I am</p>
-        <h1 class='text-3xl font-semibold'>VinSong</h1>
-        <p class='text-muted-foreground'>NTU CSIE · Curious builder · Story collector</p>
-      </div>
-      <p>
-        我喜歡嘗試各種新奇的點子，從新技術、新趨勢到看似無厘頭的小計畫，只要能讓生活多一點火花我都願意跳下去玩。也喜歡認識新朋友、聊聊不同領域的故事，學會從日常的小事裡觀察自己。這就是我想記錄的「普通大學生」版本的日常。
-      </p>
-      <div class='flex flex-wrap items-center gap-3 text-sm text-muted-foreground'>
-        <span class='rounded-full border px-4 py-1'>Taiwan</span>
-        <span class='rounded-full border px-4 py-1'>Computer Science</span>
-        <span class='rounded-full border px-4 py-1'>Creativity & curiosity</span>
-      </div>
-    </div>
-  </section>
+import { Image } from 'astro:assets'
 
-  <section id='story' class='prose prose-zinc max-w-4xl dark:prose-invert'>
-    <p>
-      以前我都用 Vincent 這個名字，但這名字太常見，每次帳號都被人先註冊走，只好自己取了一個 VinSong。現在的我就讀於台大資工，最開心的事情就是把腦袋裡那些一閃而過的靈感紀錄下來。不管是用文字、照片還是影片，只要能留下什麼，我就想試試看。
-    </p>
-    <p>
-      其實我原本超喜歡化學，還夢想當化學家；沒想到在某個時間點突然轉彎，從此投入電腦科學的世界，還越走越開心。這個網站也是在那個時期誕生的——一個興之所至、想把生活點滴堆疊起來的念頭。現在回頭看，這些紀錄就像充滿細節的便利貼，提醒著曾經的熱忱和那些平凡但珍貴的小冒險。
-    </p>
-    <p>
-      如果你剛好看到這裡，很開心在這裡遇見你，希望這些文字、照片或影像能讓你稍微停下腳步，跟我一起看看這些故事。
-    </p>
-  </section>
-
-  <section id='contact' class='mt-12'>
-    <h2 class='text-2xl font-semibold'>Contact</h2>
-    <p class='text-muted-foreground'>歡迎來打聲招呼，或是直接寫信給我聊聊。</p>
-    <div class='mt-6 flex flex-wrap items-center justify-center gap-6'>
-      {contactLinks.map(({ href, icon, label }) => (
-        <a
-          href={href}
-          target='_blank'
-          rel='noreferrer'
-          class='flex flex-col items-center gap-2 rounded-xl border bg-card/70 px-5 py-4 text-sm transition hover:-translate-y-1 hover:shadow-lg'
-        >
-          <img src={icon} alt={label} class='h-10 w-10 rounded-lg object-contain shadow-sm' />
-          <span>{label}</span>
-        </a>
-      ))}
-    </div>
-  </section>
-</PageLayout> -->
-
-
----
 import { Button, Collapse, Spoiler, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
 import avatar from '@/assets/avatar.png'
-import { Image } from 'astro:assets'
 
 const headings = [
   { depth: 2, slug: 'education', text: 'Education' },
   { depth: 2, slug: 'experience', text: 'Experience' },
   { depth: 2, slug: 'hobbies', text: 'Hobbies' },
-  { depth: 2, slug: 'tools', text: 'Tools' },
+  // Tools 區塊目前是註解狀態；重新啟用時記得把 { slug: 'tools' } 加回 TOC
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
-  { depth: 2, slug: 'gossips', text: 'Gossips' },
-  { depth: 2, slug: 'about-blog', text: 'About Blog' }
+  { depth: 2, slug: 'gossips', text: 'Gossips' }
 ]
 ---
 
 <PageLayout title='About' {headings} comment>
-  <link
-    rel='stylesheet'
-    href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'
-  />
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap' />
 
   {/* Signature — same cursive "Vinsong" as the homepage hero, drawn-in then filled. */}
   <div class='about-signature' aria-label='VinSong'>
-    <svg
-      class='about-signature-svg'
-      viewBox='0 0 560 180'
-      role='img'
-      aria-label='VinSong'
-    >
-      <text
-        x='50%'
-        y='126'
-        text-anchor='middle'
-        class='about-signature-text'
-      >Vinsong</text>
+    <svg class='about-signature-svg' viewBox='0 0 560 180' role='img' aria-label='VinSong'>
+      <text x='50%' y='126' text-anchor='middle' class='about-signature-text'>Vinsong</text>
     </svg>
   </div>
 
-  <section class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'>
+  <section
+    class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'
+  >
     <div class='mx-auto shrink-0 rounded-full border-4 border-background/60 p-2 shadow-md md:mx-0'>
-      <Image src={avatar} alt='VinSong portrait' class='h-40 w-40 rounded-full object-cover' loading='eager' />
+      <Image
+        src={avatar}
+        alt='VinSong portrait'
+        class='h-40 w-40 rounded-full object-cover'
+        loading='eager'
+      />
     </div>
     <div class='space-y-4'>
       <div>
@@ -142,13 +60,11 @@ const headings = [
     events={[
       {
         date: '2021-09-01',
-        content:
-          'Taipei Municipal Cheng Kung Senior High School'
+        content: 'Taipei Municipal Cheng Kung Senior High School'
       },
       {
         date: '2024-09-21',
-        content:
-          '<a href="https://www.ntu.edu.tw/" target="_blank">National Taiwan University</a>'
+        content: '<a href="https://www.ntu.edu.tw/" target="_blank">National Taiwan University</a>'
       }
     ]}
   />
@@ -158,18 +74,15 @@ const headings = [
     events={[
       {
         date: '2025-09-01',
-        content:
-          'TA of MATH4006~4009 Calculus I~IV'
+        content: 'TA of MATH4006~4009 Calculus I~IV'
       },
       {
         date: '2025-09-01',
-        content:
-          'President of NTU Balloon Design Club'
+        content: 'President of NTU Balloon Design Club'
       },
       {
         date: '2026-02-23',
-        content:
-          'TA of CSIE1210 Data Structure & Algorithm'
+        content: 'TA of CSIE1210 Data Structure & Algorithm'
       },
       {
         date: '2026-02-23',
@@ -184,7 +97,11 @@ const headings = [
   <ul>
     <li><Spoiler>滑抖音（對不起）</Spoiler></li>
     <li>
-      Play the clarinet — currently performing with <a href='https://www.youtube.com/c/BuddyClarinet' target='_blank' rel='noreferrer'>Buddy Clarinet Ensemble</a>.
+      Play the clarinet — currently performing with <a
+        href='https://www.youtube.com/c/BuddyClarinet'
+        target='_blank'
+        rel='noreferrer'>Buddy Clarinet Ensemble</a
+      >.
     </li>
     <li>Design balloon</li>
     <li>Play video games</li>
@@ -322,7 +239,7 @@ const headings = [
         platform: 'Instagram',
         icon: 'instagram',
         link: 'https://www.instagram.com/vincent_hu313_/',
-        text: 'subscribers',
+        text: 'subscribers'
       },
       {
         platform: 'Email',
@@ -335,9 +252,7 @@ const headings = [
 
   {/* gossips */}
   <h2 id='gossips'>Gossips</h2>
-  <Collapse title='我真的活著'>
-    在這裡讀書真的累～
-  </Collapse>
+  <Collapse title='我真的活著'> 在這裡讀書真的累～ </Collapse>
 
   <!-- <p>
     The smooth operation and personalized customization of website also rely on the resources and
@@ -404,10 +319,14 @@ const headings = [
       about-signature-fill 0.55s ease-out 2.05s forwards;
   }
   @keyframes about-signature-draw {
-    to { stroke-dashoffset: 0; }
+    to {
+      stroke-dashoffset: 0;
+    }
   }
   @keyframes about-signature-fill {
-    to { fill: currentColor; }
+    to {
+      fill: currentColor;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .about-signature-text {

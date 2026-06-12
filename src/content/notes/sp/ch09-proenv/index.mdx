@@ -28,7 +28,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 Linker 會幫忙把你的 program 跟 start up routine 連起來
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/main-function-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/main-function-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      main function 1
@@ -38,7 +38,7 @@ Linker 會幫忙把你的 program 跟 start up routine 連起來
 會幫忙傳各種參數跟初始化，最後 return 會幫忙做 clean up.  
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/main-function-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/main-function-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      main function 2
@@ -138,7 +138,7 @@ Compiler 再算 address 的時候其實是用相對位置算
 
 #### C language compile
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/c-language-compile.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/c-language-compile.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      C language compile
@@ -152,7 +152,7 @@ Compiler 再算 address 的時候其實是用相對位置算
 
 #### ELF object file format
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/elf-object-file-format.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/elf-object-file-format.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      ELF object file format
@@ -188,7 +188,7 @@ Compiler 再算 address 的時候其實是用相對位置算
 ### Linking
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/linking.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/linking.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Linking
@@ -206,7 +206,7 @@ int *ep = &e
 
 #### Relocation
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/relocation.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/relocation.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Relocation
@@ -228,7 +228,7 @@ int *ep = &e
 總而言之是會產生出在 memory 上的對應資料，也會對應到 virtual memory
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/memory-layout-of-process-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/memory-layout-of-process-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory Layout of Process 1
@@ -239,7 +239,7 @@ int *ep = &e
 會用 Loader 把它放進去
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/memory-layout-of-process-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/memory-layout-of-process-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory Layout of Process 2
@@ -251,7 +251,7 @@ int *ep = &e
 不可能讓他直接 map 到某個位置，記憶體根本不夠用，中間有一大段全都是洞，根本沒有存資料，就不用 map 上去
 
  <div style="text-align: center;">
-   <img src="/images/sp/ch09-proenv/virtual-memory-1.png" style="width: 100%;" />
+   <img src="/images/sp/ch09-proenv/virtual-memory-1.webp" style="width: 100%;" />
    <br />
    <span style="color: grey; font-size: 16px;">
       Virtual memory 1
@@ -261,7 +261,7 @@ int *ep = &e
 其實是用很像 copy on write 的方法，讓大家可以用同一塊 physical memory 
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/virtual-memory-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/virtual-memory-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Virtual memory 2
@@ -276,7 +276,7 @@ int *ep = &e
 必須透過軟硬體合作，才能達到好的效果
  
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/translation-of-address-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/translation-of-address-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Translation of address 1
@@ -292,7 +292,7 @@ int *ep = &e
 在 **Page table** 裡面，前面兩個 bit 是紀錄狀態，32-2-12 = 18，可以用來表示 **Physical Page Number (PPN)**，再加上 offset 就可以算出對應位置
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/translation-of-address-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/translation-of-address-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Translation of address 2
@@ -302,7 +302,7 @@ int *ep = &e
 取出來之後就直接是正確的位置了
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/translation-of-address-3.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/translation-of-address-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Translation of address 3
@@ -358,14 +358,14 @@ void func_2(void)
 7. `func_1`, `func_2` 就會一直互跳，可以一直輸出 `Hello World\n`
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/stack-frame-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/stack-frame-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Stack Frame 1
   </span>
 </div>
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/stack-frame-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/stack-frame-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Stack Frame 2
@@ -399,7 +399,7 @@ void func_2(void)
 System 如何記住這段 memory 有多長
 1. **Knowing how much to free**: 在前面一段固定長度紀錄大小
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/heap-1.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/heap-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Heap 1
@@ -407,7 +407,7 @@ System 如何記住這段 memory 有多長
 </div>
 2. Keep track of free block: 可能把 free 的 memory 用 link list 串接起來 
 <div style="text-align: center;">
-  <img src="/images/sp/ch09-proenv/heap-2.png" style="width: 100%;" />
+  <img src="/images/sp/ch09-proenv/heap-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Heap 2

@@ -1,12 +1,12 @@
 ---
-title: "ML Systems 學習路線"
-description: "我的 ML Systems 自學路線圖,邊讀邊更新進度。"
-publishDate: "2026-05-19 12:00:00"
+title: 'ML Systems 學習路線'
+description: '我的 ML Systems 自學路線圖,邊讀邊更新進度。'
+publishDate: '2026-05-19 12:00:00'
 tags:
-  - "ML"
-  - "MLSys"
-  - "學習筆記"
-language: "zh-TW"
+  - 'ML'
+  - 'MLSys'
+  - '學習筆記'
+language: 'zh-TW'
 draft: true
 ---
 

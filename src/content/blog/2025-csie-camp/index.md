@@ -1,16 +1,17 @@
 ---
-title: "台大資訊營-隊輔心得"
-description: "2025 台大資訊營隊輔心得，第一次當隊輔"
-publishDate: "2025-07-20T21:23:05+08:00"
+title: '台大資訊營-隊輔心得'
+description: '2025 台大資訊營隊輔心得，第一次當隊輔'
+publishDate: '2025-07-20T21:23:05+08:00'
 tags:
-  - "日常"
-  - "NTU"
-  - "CSIE"
-  - "Summer Vacation"
-language: "zh-TW"
+  - '日常'
+  - 'NTU'
+  - 'CSIE'
+  - 'Summer Vacation'
+language: 'zh-TW'
 heroImage: { src: './back.jpg', color: '#4891B2' }
 comment: true
 ---
+
 ## 前言
 
 三年前，因為我對台大資工充滿憧憬，參加了台大資訊營。當時我被分到了第十小隊，認識了許多志同道合的朋友，也更堅定了我對資訊系的熱忱。
@@ -74,7 +75,7 @@ comment: true
 再來說說女舞吧。本人在這次跳韓團女舞之前，完全是 0 基礎，真的可以說是被硬拖去的。先說這次跳女舞最最最大的收穫也不是學舞，是認識了好多人，首先先講負責人，本來超級擔心自己沒經驗會拖累到其他人，還想說要提前自學、自己先開始練，結果拖延症大發作，根本完全沒練，負責人也不是我們系上的同學，跟我找來的同學一樣，是來幫忙的同學，他人真的超級好，一步一步帶我們三個 0 舞蹈基礎的人慢慢練習（ 0 基礎的三個人被分到同一首個歌），而且真的超會聊天，超級幸運可以認識她，另外女舞也一樣讓我認識了很多系上平常不接觸的人們，總之這些表演讓我收穫最大的其實是認識了一群平常不會接觸到的人，非常感謝這些人，而且四個人一起在沒有冷氣的地方跳舞跳 5 個小時真的是一個很特別的體驗，非常青春熱血，補足我高中沒有參加這種社團的體驗，但最重要的還是因為這個活動又結識了負責人這個朋友，真的很幸運。
 
 <figure class="custom-figure">
-    <img src="/images/playGame.jpg" alt="圖片描述">
+    <img src="/images/playGame.webp" alt="圖片描述">
     <figcaption>練完舞去玩</figcaption>
 </figure>
 
@@ -89,7 +90,7 @@ comment: true
 小隊員們集合的地點有兩個，一個是社科院、一個是北車，第一天我被分配到北車去接小隊員，大家來的都挺準時的（聽說另一邊大家都遲到），只不過上車的方式真的有夠詭異，在馬路正中央排隊上車（？，我真的生平第一次見到這麼刺激的上車方式。
 
 <figure class="custom-figure">
-    <img src="/images/inRoad.jpg" alt="圖片描述">
+    <img src="/images/inRoad.webp" alt="圖片描述">
     <figcaption>真的很荒謬</figcaption>
 </figure>
 
@@ -98,7 +99,7 @@ comment: true
 <details class="info-box">
 <summary> 昏死</summary>
 <figure class="custom-figure">
-    <img src="/images/sleep.jpg" alt="圖片描述">
+    <img src="/images/sleep.webp" alt="圖片描述">
     <figcaption>臨近死亡時</figcaption>
 </figure>
 </details>
@@ -110,12 +111,12 @@ comment: true
 晚會的部分籌備已經講得很清楚了，就放上幾張照片吧
 
 <figure class="custom-figure">
-    <img src="/images/girl_dance.jpeg" alt="圖片描述">
+    <img src="/images/girl_dance.webp" alt="圖片描述">
     <figcaption>女舞表演</figcaption>
 </figure>
 
 <figure class="custom-figure">
-    <img src="/images/band.jpg" alt="圖片描述">
+    <img src="/images/band.webp" alt="圖片描述">
     <figcaption>樂團表演</figcaption>
 </figure>
 
@@ -129,19 +130,17 @@ comment: true
 這幾張照片都是正式演出
 
 <figure class="custom-figure">
-    <img src="/images/horse.jpg" alt="圖片描述">
-    <img src="/images/horse2.jpg" alt="圖片描述">
+    <img src="/images/horse.webp" alt="圖片描述">
+    <img src="/images/horse2.webp" alt="圖片描述">
     <figcaption>賽馬ing</figcaption>
 </figure>
 
 <figure class="custom-figure">
-    <img src="/images/judge.jpg" alt="圖片描述">
+    <img src="/images/judge.webp" alt="圖片描述">
     <figcaption>這是我劇本裡的裁判，我真的覺得他們超像</figcaption>
 </figure>
 
-
 </details>
-
 
 接下來要講講斜咖組，這絕對是我這次最~~後悔~~接下的工作沒有之一。雖然工作內容和賽馬差不多，都是要編劇本，但因為主要目的是公布每天的分數，所以劇本量多得多。前幾天都還算順利，就不多提了，重點來到第三天。
 
@@ -149,12 +148,10 @@ comment: true
 
 於是我臨時現編，甚至把我在愛現大會吹豎笛的段子都搬了出來，硬湊成一齣無厘頭拼裝車劇本。沒想到最後效果意外的好，甚至是幾天下來反應最好的一次。果然，靈光乍現的即興才是最有味道的，雖然編劇時間不長，但我們在主題上真的想了很久。
 
-
 <figure class="custom-figure">
-    <img src="/images/host.jpg" alt="圖片描述">
+    <img src="/images/host.webp" alt="圖片描述">
     <figcaption>斜咖ing（手不知道在尬麻）</figcaption>
 </figure>
-
 
 ### Challenge
 
