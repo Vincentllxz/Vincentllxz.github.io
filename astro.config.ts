@@ -28,6 +28,9 @@ export default defineConfig({
   // base: '/astro-pure/',
   trailingSlash: 'never',
   build: { format: 'file' },
+  // /note merged into /notes; static build emits a meta-refresh page Google
+  // treats as a permanent redirect (GitHub Pages can't serve real 301s).
+  redirects: { '/note': '/notes' },
 
   // Adapter
   // https://docs.astro.build/en/guides/deploy/

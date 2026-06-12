@@ -1,34 +1,78 @@
 ---
-import type { CollectionEntry } from 'astro:content'
-
-import { getBlogCollection } from 'astro-pure/server'
-import { Card } from 'astro-pure/user'
+import PDFCard from '@/components/PDFCard.astro'
 import PageLayout from '@/layouts/CommonPage.astro'
 
 export const prerender = true
 
-// A "series" is a top-level note — its id has no slash (e.g. `sp`). Chapters (`sp/ch01-...`) are nested.
-const series = ((await getBlogCollection('notes')) as CollectionEntry<'notes'>[])
-  .filter((note) => !note.id.includes('/'))
-  .sort(
-    (a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf()
-  )
+const notes = [
+  {
+    title: 'Algorithm Design and Analysis',
+    subtitle: '演算法設計與分析 呂學一 教授',
+    href: '/pdf/ADA_cut.pdf',
+    abbr: 'ADA',
+    accent: '27 92% 50%'
+  },
+  {
+    title: 'Linear Algebra',
+    subtitle: '線性代數 李明穗 教授',
+    href: '/pdf/LinearAlgebra.pdf',
+    abbr: 'LA',
+    accent: '174 65% 38%'
+  },
+  {
+    title: 'Introduction to Computation Theory',
+    subtitle: '自動機與形式語言 林智仁 教授',
+    href: '/pdf/IntroComputation.pdf',
+    abbr: 'TOC',
+    accent: '262 65% 56%'
+  },
+  {
+    title: 'System Programming',
+    subtitle: '系統程式設計 鄭卜壬 教授',
+    href: '/notes/sp',
+    abbr: 'SP',
+    accent: '217 85% 54%',
+    type: 'note' as const
+  },
+  {
+    title: 'Computer Networking',
+    subtitle: '計算機網路 逄愛君 教授',
+    href: '/notes/cn',
+    abbr: 'CN',
+    accent: '145 60% 38%',
+    type: 'note' as const
+  },
+  {
+    title: 'Operating System',
+    subtitle: '作業系統 林忠緯 教授',
+    href: '/notes/os',
+    abbr: 'OS',
+    accent: '350 72% 52%',
+    type: 'note' as const
+  },
+  {
+    title: 'Numerical Method',
+    subtitle: '數值方法 林智仁 教授',
+    href: '/pdf/NumericalMethod.pdf',
+    abbr: 'NM',
+    accent: '192 90% 38%'
+  },
+  {
+    title: '東坡詞',
+    subtitle: '劉少雄 教授',
+    href: '/pdf/東坡詞.pdf',
+    abbr: '東坡詞',
+    accent: '14 68% 48%'
+  }
+]
 ---
 
 <PageLayout title='Notes'>
-  <p class='text-muted-foreground'>課程筆記系列，每個系列底下有各自的章節目錄。</p>
+  <p class='text-muted-foreground'>
+    這裡放一些我修課時整理的筆記，點擊卡片即可開啟。
+  </p>
 
-  <div class='not-prose mt-6 flex flex-col gap-4' data-reveal>
-    {
-      series.map((s) => (
-        <Card
-          as='a'
-          href={`/notes/${s.id}`}
-          heading={s.data.title}
-          subheading={s.data.description}
-        />
-      ))
-    }
-    {series.length === 0 && <p class='text-muted-foreground'>還沒有筆記。</p>}
+  <div class='not-prose mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
+    {notes.map((note) => <PDFCard {...note} />)}
   </div>
 </PageLayout>

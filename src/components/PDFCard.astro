@@ -1,17 +1,41 @@
 ---
 interface Props {
   title: string
-  subtitle: string
-  href: string
-  imageSrc: string
+  subtitle?: string
+  href?: string
+  /** Legacy aliases (older blog posts pass these instead of subtitle/href). */
+  description?: string
+  link?: string
+  /** Screenshot cover (legacy); omit it to get the generated accent cover. */
+  imageSrc?: string
+  /** Course shorthand drawn large on the generated cover, e.g. `ADA`, `OS`. */
+  abbr?: string
+  /** Accent color as an hsl triple `H S% L%`, e.g. `'217 85% 54%'`. */
+  accent?: string
   /** `pdf` opens a PDF file in a new tab; `note` links to an in-site notes page. */
   type?: 'pdf' | 'note'
 }
 
-const { title, subtitle, href, imageSrc, type = 'pdf' } = Astro.props
+const props = Astro.props
+const { title, imageSrc, type = 'pdf' } = props
+const subtitle = props.subtitle ?? props.description
+const href = props.href ?? props.link ?? '#'
 const isPdf = type === 'pdf'
 const badgeLabel = isPdf ? 'PDF' : 'NOTE'
 const ctaLabel = isPdf ? 'Open PDF' : 'Open Note'
+
+// Generated-cover fallbacks: short first word, otherwise up-to-3 initials.
+const words = title.split(/\s+/)
+const abbr =
+  props.abbr ??
+  ((words[0] ?? '').length <= 5
+    ? (words[0] ?? '')
+    : words
+        .map((w) => w[0])
+        .join('')
+        .slice(0, 3)
+        .toUpperCase())
+const accent = props.accent ?? '193 70% 50%'
 ---
 
 <a
@@ -19,17 +43,34 @@ const ctaLabel = isPdf ? 'Open PDF' : 'Open Note'
   target={isPdf ? '_blank' : undefined}
   rel={isPdf ? 'noreferrer' : undefined}
   data-astro-prefetch={isPdf ? undefined : true}
-  class='group not-prose block overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10'
+  class='pdfcard group not-prose block overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1'
+  style={`--ac: ${accent}`}
 >
-  {/* 封面 */}
-  <div class='relative aspect-[2/1] overflow-hidden bg-muted'>
-    <img
-      src={imageSrc}
-      alt={title}
-      class='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
-    />
+  {/* 封面：有截圖用截圖，否則用主題色生成 */}
+  <div
+    class:list={[
+      'relative aspect-[2/1] overflow-hidden',
+      imageSrc ? 'bg-muted' : 'pdfcard-cover'
+    ]}
+  >
+    {
+      imageSrc ? (
+        <img
+          src={imageSrc}
+          alt={title}
+          class='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
+        />
+      ) : (
+        <>
+          <span class='pdfcard-abbr-ghost' aria-hidden='true'>
+            {abbr}
+          </span>
+          <span class='pdfcard-abbr'>{abbr}</span>
+        </>
+      )
+    }
     <span
-      class='absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-primary shadow-sm backdrop-blur'
+      class='pdfcard-badge absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow-sm backdrop-blur'
     >
       {
         isPdf ? (
@@ -66,13 +107,11 @@ const ctaLabel = isPdf ? 'Open PDF' : 'Open Note'
 
   {/* 內容 */}
   <div class='space-y-2 p-5'>
-    <h3
-      class='break-words text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-primary'
-    >
+    <h3 class='break-words text-lg font-semibold leading-snug text-foreground transition-colors'>
       {title}
     </h3>
-    <p class='break-words text-sm text-muted-foreground'>{subtitle}</p>
-    <div class='inline-flex w-fit items-center gap-1.5 pt-1 text-sm font-medium text-primary'>
+    {subtitle && <p class='break-words text-sm text-muted-foreground'>{subtitle}</p>}
+    <div class='pdfcard-cta inline-flex w-fit items-center gap-1.5 pt-1 text-sm font-medium'>
       <span>{ctaLabel}</span>
       <svg
         class='size-4 transition-transform duration-300 group-hover:translate-x-1'
@@ -89,3 +128,74 @@ const ctaLabel = isPdf ? 'Open PDF' : 'Open Note'
     </div>
   </div>
 </a>
+
+<style>
+  .pdfcard {
+    --accent: hsl(var(--ac));
+  }
+  /* Lift the accent in dark mode so mid-lightness hues stay readable. */
+  :global(html.dark) .pdfcard {
+    --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
+  }
+  .pdfcard:hover {
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow: 0 14px 36px -14px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .pdfcard:hover h3 {
+    color: var(--accent);
+  }
+  .pdfcard-badge,
+  .pdfcard-cta {
+    color: var(--accent);
+  }
+
+  /* === Generated cover: accent gradient + dot grid + course shorthand === */
+  .pdfcard-cover {
+    background:
+      radial-gradient(120% 150% at 85% 8%, hsl(var(--ac) / 0.28), transparent 60%),
+      linear-gradient(135deg, hsl(var(--ac) / 0.14), hsl(var(--ac) / 0.03));
+  }
+  .pdfcard-cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(hsl(var(--ac) / 0.5) 1px, transparent 1.4px);
+    background-size: 18px 18px;
+    opacity: 0.4;
+    -webkit-mask-image: linear-gradient(115deg, #000 25%, transparent 78%);
+    mask-image: linear-gradient(115deg, #000 25%, transparent 78%);
+  }
+  .pdfcard-abbr {
+    position: absolute;
+    left: 1.4rem;
+    bottom: 1rem;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: clamp(2.3rem, 4.5vw, 3.1rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .pdfcard-abbr-ghost {
+    position: absolute;
+    right: -0.06em;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: clamp(5.5rem, 11vw, 8rem);
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    color: hsl(var(--ac) / 0.09);
+    pointer-events: none;
+    user-select: none;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .pdfcard:hover .pdfcard-abbr {
+    transform: translateX(5px);
+  }
+  .pdfcard:hover .pdfcard-abbr-ghost {
+    transform: translateY(-50%) translateX(-6px) scale(1.04);
+  }
+</style>

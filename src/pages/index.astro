@@ -91,28 +91,93 @@ const structuredData = {
         <span class='home-code home-code-r'>&gt;<span class='home-code-caret'>_</span></span>
       </div>
       <div class='home-signature' aria-label='VinSong'>
-        <svg
-          class='home-signature-svg'
-          viewBox='0 0 560 180'
-          role='img'
-          aria-label='VinSong'
-        >
-          <text
-            x='50%'
-            y='126'
-            text-anchor='middle'
-            class='home-signature-text'
-          >VinSong</text>
-        </svg>
+        <div class='home-signature-tilt'>
+          <svg
+            class='home-signature-svg'
+            viewBox='0 0 560 180'
+            role='img'
+            aria-label='VinSong'
+          >
+            <text
+              x='50%'
+              y='126'
+              text-anchor='middle'
+              class='home-signature-text'
+            >VinSong</text>
+          </svg>
+          <svg
+            class='home-signature-svg home-signature-glow-svg'
+            viewBox='0 0 560 180'
+            aria-hidden='true'
+          >
+            <defs>
+              <linearGradient id='sig-ink' x1='0%' y1='0%' x2='100%' y2='100%'>
+                <stop offset='0%' stop-color='#a8dcea' />
+                <stop offset='55%' stop-color='#b3c4f2' />
+                <stop offset='100%' stop-color='#d9bdee' />
+              </linearGradient>
+            </defs>
+            <text
+              x='50%'
+              y='126'
+              text-anchor='middle'
+              class='home-signature-text home-signature-glow-text'
+            >VinSong</text>
+          </svg>
+        </div>
       </div>
 
       <script is:inline>
         ;(() => {
           try {
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
             const main = document.querySelector('.home-main')
             const sig = document.querySelector('.home-signature')
+            const tilt = document.querySelector('.home-signature-tilt')
+            const glow = document.querySelector('.home-signature-glow-svg')
             if (!main || !sig) return
+
+            // Ink glow + magnetic 3D tilt: the signature reacts to the pointer
+            // both on the cover and after entering the page.
+            if (!reduced && tilt && glow) {
+              let tx = 0
+              let ty = 0
+              let cx = 0
+              let cy = 0
+              let raf = 0
+              const step = () => {
+                cx += (tx - cx) * 0.12
+                cy += (ty - cy) * 0.12
+                tilt.style.transform =
+                  'rotateX(' + cy.toFixed(2) + 'deg) rotateY(' + cx.toFixed(2) + 'deg)'
+                raf = Math.abs(tx - cx) + Math.abs(ty - cy) > 0.02 ? requestAnimationFrame(step) : 0
+              }
+              const onPointer = (e) => {
+                const r = sig.getBoundingClientRect()
+                const pad = 90
+                if (
+                  e.clientX > r.left - pad &&
+                  e.clientX < r.right + pad &&
+                  e.clientY > r.top - pad &&
+                  e.clientY < r.bottom + pad
+                ) {
+                  tx = ((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * 7
+                  ty = ((r.top + r.height / 2 - e.clientY) / (r.height / 2)) * 6
+                  // Percentages stay correct even while the gate scales the signature.
+                  glow.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%')
+                  glow.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%')
+                  glow.classList.add('glow-on')
+                } else {
+                  tx = 0
+                  ty = 0
+                  glow.classList.remove('glow-on')
+                }
+                if (!raf) raf = requestAnimationFrame(step)
+              }
+              window.addEventListener('pointermove', onPointer, { passive: true })
+            }
+
+            if (reduced) return
             const r = sig.getBoundingClientRect()
             if (!r.width || !r.height) return
             const vw = window.innerWidth
@@ -356,6 +421,13 @@ const structuredData = {
     color: hsl(var(--foreground));
     /* push the signature clear of the avatar below it */
     margin-bottom: clamp(1.5rem, 4vw, 3rem);
+    perspective: 900px;
+  }
+  /* Magnetic 3D tilt lives on an inner wrapper so it never fights the
+     gate's translate/scale transform on .home-signature itself. */
+  .home-signature-tilt {
+    position: relative;
+    will-change: transform;
   }
   .home-signature-svg {
     width: clamp(340px, 66vw, 620px);
@@ -385,6 +457,41 @@ const structuredData = {
   }
   @keyframes home-signature-fill {
     to { fill: currentColor; }
+  }
+
+  /* Iridescent-ink layer, revealed through a cursor-following radial mask. */
+  .home-signature-glow-svg {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.45s ease-out;
+    pointer-events: none;
+    filter: drop-shadow(0 0 10px hsl(193 60% 75% / 0.35));
+    -webkit-mask-image: radial-gradient(
+      circle 150px at var(--mx, 50%) var(--my, 50%),
+      #000 30%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(
+      circle 150px at var(--mx, 50%) var(--my, 50%),
+      #000 30%,
+      transparent 78%
+    );
+  }
+  .home-signature-glow-svg.glow-on {
+    opacity: 1;
+  }
+  .home-signature-glow-text {
+    fill: url(#sig-ink);
+    fill-opacity: 0;
+    stroke: url(#sig-ink);
+    stroke-width: 1.7;
+    animation:
+      home-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
+      home-signature-glow-fill 0.55s ease-out 2.05s forwards;
+  }
+  @keyframes home-signature-glow-fill {
+    to { fill-opacity: 1; }
   }
 
   /* Halo + floating avatar — main visual on /. */
@@ -603,6 +710,9 @@ const structuredData = {
       animation: none !important;
       stroke-dashoffset: 0 !important;
       fill: currentColor !important;
+    }
+    .home-signature-glow-svg {
+      display: none !important;
     }
     .home-code,
     .home-code-caret {
