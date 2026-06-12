@@ -75,7 +75,7 @@ $$
 1. Ask for permission 在進入 critical section 之前的 **entry section**
 2. 在 critical section 後的 **exit section** and then **remainder section**，這裡的 code 要把 permission 釋放
 
-```c
+```c title="Code structure"
 Do {
     entry section
     critical section
@@ -111,7 +111,7 @@ Low level language 裡面有 `load` 跟 `store` 指令，這兩個指令是 atom
 
 假設下面這隻 program 是 process $P_i$ 的 code
 
-```c
+```c title="software.c"
 while (true){
     turn = i;
     while (turn == j) ;
@@ -131,7 +131,7 @@ while (true){
 
 但如果 code 長這樣
 
-```c
+```c title="software.c"
 while (true){
     while (turn == j) ;
     /* critical section */
@@ -150,7 +150,7 @@ while (true){
 
 - `flag[i] = true` 表示 process i 準備進入 critical section 了
 
-```c
+```c title="peterson.c"
 while (true){
     flag[i] = true; // [!code highlight]
     turn = j;
@@ -278,7 +278,7 @@ flag = true
 
 首先是定義
 
-```c
+```c title="test_and_set.c"
 bool test_and_set (boolean *target) {
     bool rv = *target;
     *target = true;
@@ -294,7 +294,7 @@ bool test_and_set (boolean *target) {
 
 以下是一個 solution 例子，假設我們有一個 share variable `lock` 被初始化成 `false`
 
-```c
+```c title="peterson.c"
 do {
     while (test_and_set(&lock))
         ; /* do nothing */
@@ -312,7 +312,7 @@ do {
 
 首先是定義
 
-```c
+```c title="compare_and_swap.c"
 int compare_and_swap(int *value, int expected, int new_value) {
     int temp = *value;
     if (*value == expected)
@@ -345,7 +345,7 @@ while (true) {
 
 以下是符合 Bound-Waiting 的 implementation
 
-```c
+```c title="bounded-waiting.c"
 while (true) {
     waiting[i] = true;
     key = 1;
@@ -378,7 +378,7 @@ while (true) {
 - `increment()` 是一個對 `sequence` 的操作
 - `increment(&sequence)` 是一個 atomic operation
 
-```c
+```c title="atomic-variable.c"
 void increment(atomic_int *v) {
     int temp;
     do {
@@ -501,7 +501,7 @@ typedef struct {
 
 以下則是 `wait()` operation，用 `sleep()` 來 implement 的樣子
 
-```c
+```c title="wait.c"
 wait(semaphore *S) {
     S->value--;
     if (S->value < 0) {
@@ -513,7 +513,7 @@ wait(semaphore *S) {
 
 以下是 `signal()` 的 implementation，主要是要從 list remove 一個 waiting 的 process 然後 awake 他
 
-```c
+```c title="signal.c"
 signal(semaphore *S) {
     S->value++;
     if (S->value <= 0) {
