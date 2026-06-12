@@ -9,7 +9,7 @@ dist/
 [._]*.un~
 
 ### VisualStudioCode ###
-.vscode/*
+.vscode/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -40,8 +40,8 @@ bunfig.toml
 /src/content/blog/test.*
 /test/
 
-CLAUDE.md
-convert.md
+*.md
 
 # macOS/iCloud sync conflict copies ("name 2.ext") — must never be committed
 * [0-9].*
+
