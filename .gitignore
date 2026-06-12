@@ -42,3 +42,6 @@ bunfig.toml
 
 CLAUDE.md
 convert.md
+
+# macOS/iCloud sync conflict copies ("name 2.ext") — must never be committed
+* [0-9].*
