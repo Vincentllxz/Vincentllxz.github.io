@@ -1,0 +1,576 @@
+---
+title: "NTU-OS 作業系統 Ch7 Synchronization Examples"
+description: "NTU Operating System 作業系統:Ch7 Synchronization Examples"
+publishDate: "2026-06-14 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "OS"
+  - "note"
+language: "zh-TW"
+comment: true
+draft: false
+---
+import { Aside } from 'astro-pure/user'
+
+# Synchronization Examples
+
+## Classic Problems of Synchronization
+
+### Bounded-Buffer Problem
+
+採用 Producer-Consumer model 的時候，為了防止 Producer 在 buffer 滿的時候繼續寫，也不希望 Consumer 在沒有 data 的時候繼續讀，我們可以用 semaphore 的概念來完成 Bounded-buffer 的 requirement
+
+假設我們有 $n$ 個 buffers，並且每個 buffer 的大小都是 `1`，我們設定
+- Semaphore `mutex` 來表示是否可以 access buffer，n 個 buffer 都用這個控制（**binary**），初始為 `1`
+- Semaphore `full` 有多少 buffer 裡面有東西，初始為 `0`
+- Semaphore `empty` 有多少個 buffer 是空的，初始為 `n`
+
+```c title="Producer.c"
+while (true) {
+    ...
+    /* produce an item in next_produced */
+    ...
+    wait(empty);
+    wait(mutex);
+    ...
+    /* add next_produced to the buffer */
+    ...
+    signal(mutex);
+    signal(full);
+}
+```
+
+比較不一樣的事要先等 `empty` 再等 `mutex`，我們先確定有位子，再去 access critical section，`mutex` 是為了保持 mutual exclusive 才做的，結束之後再 `signal(full)` 去 +1
+
+```c title="Consumer.c"
+while (true) {
+    wait(full);
+    wait(mutex);
+    ...
+    /* remove an item from buffer to next_consumed */
+    ...
+    signal(mutex);
+    signal(empty);
+    ...
+    /* consume the item in next_consumed */
+    ...
+}
+```
+
+剛好跟 Producer 相反
+
+### Readers-Writers Problem
+
+假設現在有好多個 process 再 concurrently 的 access 某個 data set，我們可以初步把他們分成兩種
+1. **Readers**
+    - 只會 read **不會 update**
+2. **Writers**
+    - 可以 read 也可以 write
+
+我們可以允許同時 multiple readers 一起 read 這個 data set，但只有一個 writer 可以 access 這個 data
+
+> 當有 writer 在 access data 的時候，其他 reader, writer 也不能 access 這個 data
+
+這類型的問題有一些變形，通常會牽涉到 **priority** 的問題，我們介紹三種
+1. **First readers–writers problem**：除非一個 writer 拿到 share object 的 permission，不然 readers 都不應該要 waiting，我們又叫他 reader-preference
+2. **Second readers–writers problem**：Writer 要有最高的 priority，想寫的時候應該要馬上可以寫，又稱 writer-preference
+3. **Third readers–writers problem**: no starvation
+
+我們介紹 First readers–writers problem，首先我們需要定義
+- Share data set
+- Semaphore `rw_mutex` (binary) 初始為 `1`
+- Semaphore `mutex` (binary) 初始為 `1`，拿來保護 `reader_count`
+- Integer `reader_count` 初始為 `0` 紀錄 reader 數量
+
+```c title="writer.c"
+while (true) {
+    wait(rw_mutex);
+    ...
+    /* writing is performed */
+    ...
+    signal(rw_mutex);
+}
+```
+
+在有 permission 的時候做，做完之後把 permission 還回去，很單純
+
+```c title="reader.c"
+while (true){
+    wait(mutex);
+    read_count++;
+    if (read_count == 1) /* first reader */
+        wait(rw_mutex);
+    signal(mutex);
+    ...
+    /* reading is performed */
+    ...
+    wait(mutex);
+    read_count--;
+    if (read_count == 0) /* last reader */
+        signal(rw_mutex);
+    signal(mutex);
+}
+```
+
+首先需要更改 `read_count` 所以需要先拿到 `mutex`，然後我們分成兩個 case 討論
+1. **當 writer 未持有 `rw_mutex` 時**：
+第一個 reader 必須先取得 `rw_mutex` 才能開始讀取，後續的 reader 則無需再次獲取即可直接讀取。讀取結束時，最後一個離開的 reader 需負責釋放 `rw_mutex`，讓其他等待的 writer 得以繼續執行。
+2. **當 writer 已持有 `rw_mutex` 時**：
+第一個 reader 會等待 `rw_mutex`，而後續的其他 reader 則會等待 mutex。這是因為第一個 reader 必須成功取得 `rw_mutex` 後，才會釋放 `mutex` 讓後續 reader 進入。換言之，`mutex` 除了保護 `read_count` 之外，也變相阻擋了後續 reader 在 writer 尚未結束存取前就進入讀取狀態。
+
+> 只有最後一個 reader 會去 `signal(rw_mutex)`，只有這時候會發生控制權轉換，而 writer 放掉 `rw_mutex` 後，接到 permission 的也可能是下個 writer 而非是 reader，也就是有可能會造成 starvation
+
+#### Reader-Writer Locks
+
+這類問題的 solution 可以幫我們完成 **Reader-Writer Locks**，也就是我們提供不同 mode 的 lock
+- **Read mode**: 可以允許多個 read mode lock 同時上在某個 data 上
+- **Write mode**: 在一個 data 上只能一次有一個，因為要做 update
+
+> 這樣的東西特別有用，我們可以做非常清楚的區分，哪些 process 需要 read, 哪些需要 write 就可以做 optimize，而 reader 多的 program 使用這種方法，雖然有 overhead，但 parallel 的 read 可以更有效率
+
+### Dining-Philosophers Problem
+
+假設有 5 格 philosophers，每個人左邊都有一隻筷子，必須拿到兩隻筷子才能吃飯，吃完要放回桌上
+
+<div style="text-align: center;">
+  <img src="/images/os/ch14-synchronization-examples/dining-philosophers-problem.webp" style="width: 50%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Dining-Philosophers Problem
+  </span>
+</div>
+
+想成一個系統問題就是
+- Share data (飯)
+- Semaphore `chopstick[5]` (binary) 初始為 `1`，但表這隻叉子現在是否可用
+
+#### Semaphore Solution
+
+```c title="semaphore.c"
+while (true){
+    wait (chopstick[i]);
+    wait (chopstick[(i+1)%5]);
+    ... /* eat for awhile */ ...
+    signal (chopstick[i]);
+    signal (chopstick[(i+1)%5]);
+    ... /* think for awhile */ ...
+}
+```
+
+用 semaphore 概念比較簡單，我們每次吃飯就需要自己旁邊的兩個 semaphore，所以就要拿他們兩個
+
+> 這種方法有一個問題，如果在兩個 `wait()` 之間有其他 process 先拿走了這個 process 需要的 semaphore，最後就會連環效應卡成一圈 **deadlock**
+
+#### Monitor Solution
+
+```c title="monitor.c"
+monitor DiningPhilosophers
+{
+    enum {THINKING, HUNGRY, EATING} state[5];
+    condition self[5];
+    void pickup(int i){
+        state[i] = HUNGRY;
+        test(i);
+        if(state[i] != EATING) self[i].wait();
+    }
+    void putdown(int i){
+        state[i] = THINKING;
+        // test left and right neighbors
+        test((i + 4) % 5);
+        test((i + 1) % 5);
+    }
+    void test(int i){
+        if((state[(i + 4) % 5] != EATING) &&
+            (state[i] == HUNGRY) &&
+            (state[(i + 1) % 5] != EATING)
+        ) {
+            state[i] = EATING;
+            self[i].signal();
+        }
+    }
+    initialization_code(){
+        for(int i = 0; i < 5; i++)
+            state[i] = THINKING;
+    }
+}
+```
+
+我們定義
+- 三種 state `THINKING`, `HUNGRY`, `EATING`，來區分我們他們的狀態
+- `condition self[5]` 知道到底是在指哪個 process
+
+而操作也有三種
+1. `pickup()` 就是試著要拿到 permission，先把自己的狀態設定成 `HUNGRY`，再 call `test()` 如果發現自己狀態變 `EATING` 就可以執行，不行就等待，`self[i]` 這時候就可以知道到底是哪個 process 在等
+2. `putdown()` 則是把 permission 放掉，讓左右鄰居去試試看他們有沒有要 `EATING`
+3. `test()` 必須要是 **atomic operation**，我們有兩種 call 這個 function 的情況
+    - 某個 process `i` 想吃了
+    - 某個 process 剛做完，想知道他旁邊兩個有沒有要吃
+
+    當我們看到三個條件都滿足就可以讓自己的狀態變成 `EATING`，第一個第三個條件代表的是旁邊兩個 process 都沒有在 `EATING`，第二個則代表自己想吃了
+
+構造完後我們就可以用以下方法調用
+
+```c title="monitor_eg.c"
+...
+DiningPhilosophers.pickup(i);
+/* eat */
+DiningPhilosophers.putdown(i);
+...
+```
+
+這樣的方法不會有 deadlock，因為只有在左右都空的時候才能拿起 semaphore，但 starvation 還是可能發生的
+
+## Synchronization within the Kernel
+
+### Synchronization in Windows
+
+Windows 的做法可以分成 kernel 裡面跟 kernel 外面來看，而 kernel 要 access global resource 的時候又可以分成 single processor 跟 multiprocessors
+- Single processor: 直接把 resource lock 起來就好
+- Multiprocessors: 用 spinlock 做 global 的 lock，在 windows 上 spinlock 只會用來保護比較短的區域，而且擁有 spinlock 的 thread 不會被 preempt
+
+如果是在 kernel 外的 thread，則提供了 **dispatcher objects**，用了這個東西就可以順帶使用 mutex lock, semaphores, events, timers，來完成 synchronization
+- 使用某個 resource 前要先 require 一個 mutex，結束後要歸還
+- 使用 event 則比較像 condition variable，結束後會 trigger 某個事件
+- Timers 用時間來決定
+
+每個 dispatcher object 都有兩種狀態
+- signaled
+- nonsignaled
+
+就跟 wait, signal 的概念一樣，當 require 的 object 是 signaled 的時候就可以拿到，然後我們把它變成 nonsignaled
+
+<div style="text-align: center;">
+  <img src="/images/os/ch14-synchronization-examples/states-of-dispatcher-object.webp" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     States of dispatcher object
+  </span>
+</div>
+
+### Synchronization in Linux
+
+在 Version 2.6 前是 non-preemptive，後面改成 preemptive 的，有提供 **atomic integer** 的操作，所有對他的操作都是 atomic 的
+
+```c title="atomic.c"
+atomic_t counter;
+int value;
+atomic_set(&counter,5); // counter = 5
+atomic_add(10,&counter); // counter = counter + 10
+atomic_sub(4,&counter); // counter = counter - 4
+atomic_inc(&counter); // counter = counter + 1
+value = atomic_read(&counter); // value = 12
+```
+
+對於 single processor Linux 會看是否可以 preemtive，而 multiprocessor 則使用 spin lock
+
+## POSIX Synchronization
+
+### POSIX Mutex Locks
+
+```c title="pthread_mutex_init.c"
+#include <pthread.h>
+pthread_mutex_t mutex;
+/* create and initialize the mutex lock */
+pthread_mutex_init(&mutex, NULL);
+```
+
+```c title="pthread_mutex_acq_rel.c"
+/* acquire the mutex lock */
+pthread_mutex_lock(&mutex);
+/* critical section */
+/* release the mutex lock */
+pthread_mutex_unlock(&mutex);
+```
+
+### POSIX Semaphores
+
+POSIX 提供的 semaphore 並不是一個 standard，而是一個 extension，分成兩種
+- **Named semaphores** 可以被 unrelated processes access
+- **Unnamed semaphores** 不能被 unrelated processes access
+
+#### POSIX Named Semaphores
+
+```c title="init.c"
+#include <semaphore.h>
+sem_t *sem;
+/* Create the semaphore & initialize it to 1 */
+sem = sem_open("SEM", O_CREAT, 0666, 1);
+```
+
+`sem_open()` 第一個參數 `SEM` 是 semaphore name，後面參數參照 SP 筆記
+
+> 如果其他 unrelated process 想要 acquire 這個 semaphore 就只需要用相同的 name 去 call 就可以了
+
+```c title="acq_rel.c"
+/* acquire the semaphore */
+sem_wait(sem);
+/* critical section */
+/* release the semaphore */
+sem_post(sem);
+```
+
+#### POSIX Unnamed Semaphores
+
+```c title="init.c"
+#include <semaphore.h>
+sem_t sem;
+/* Create the semaphore & initialize it to 1 */
+sem_init(&sem, 0, 1);
+```
+
+可以透過第二個參數來決定 sharing 的 level
+
+```c title="acq_rel.c"
+/* acquire the semaphore */
+sem_wait(&sem);
+/* critical section */
+/* release the semaphore */
+sem_post(&sem);
+```
+
+### POSIX Condition Variables
+
+POSIX 標準之下的 condition variable 是跟著 mutex lock 的，所以可以保證 mutual exclusive
+
+```c title="init.c"
+pthread_mutex_t mutex;
+pthread_cond_t cond_var;
+pthread_mutex_init(&mutex,NULL);
+pthread_cond_init(&cond_var,NULL);
+```
+
+用 `pthread_cond_t` 宣告
+
+```c title="wait.c"
+pthread_mutex_lock(&mutex);
+while(a != b)
+    pthread_cond_wait(&cond_var,&mutex)
+pthread_mutex_unlock(&mutex);
+```
+
+`pthread_cond_wait()` 用來等 condition `a == b`，所以當沒有相等的時候就要 call `pthread_cond_wait()` 繼續等，用 `while` 是為了防止 thread 醒了但 resource 又被人搶走
+
+```c title="signal.c"
+pthread_mutex_lock(&mutex);
+a = b;
+pthread_cond_signal(&cond_var);
+pthread_mutex_unlock(&mutex);
+```
+
+要自己在某個地方先把 `a = b` 設定好後，才能去 call `pthread_cond_signal()`
+
+> 操作 conditional variable 的時候都需要 mutex lock 的所有權，因為這個操作必須要在 critical section 才不會造成 race condition 或 deadlock
+
+## Synchronization in Java
+
+### Java Monitors
+
+Java 裡面有使用到 monitor，每個 object 都會連結到一個 lock，在 object 的 method 裡面我們都能加上 **`synchronized`**，就代表這個 method 一定要在擁有這個 obj 的 lock 的時候才能 call
+- `BoundedBuffer` class 裡面的 `insert()`, `remove()` method 都宣告了 synchronized，所以需要 lock 才能 call
+
+如果 call 這個 method 的時候 lock 已經被其他 thread 使用的時候，現在的 caller thread 就會被放進 obj 的 **entry set**，表示這個 caller thread 正在 wait 這個 obj 的 lock
+
+> 用完要記得 release
+
+<div style="text-align: center;">
+  <img src="/images/os/ch14-synchronization-examples/java-monitor.webp" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Entry set and wait set
+  </span>
+</div>
+
+剛剛提到要進入的 **entry set** 等待 acquiring lock，但其實還有一些 thread 本來有這個 lock，中間需要等一些 I/O 或其他 thread 的結果，需要先放掉 lock，這時候他就會 call `wait()`，也就是讓 thread 進入到 obj 的 **wait set** 等待
+
+Call `wait()` 後 lock 會先被 release，然後把 thread 的狀態設定成 **blocked**，要注意 entry set 跟 wait set 是不一樣的，因為去 `wait()` 的 thread 是去等其他條件了，我們會用 `notify()` 去叫醒他，但 `notify()` 的運作有點特殊，會先
+- 從 wait set 裡面隨機選一個 thread `T`
+- 把他從 wait set 裡面放到 entry set
+- 把 `T` 設定成 **runnable**
+
+> call `notify()` 不保證是哪個 thread 被叫醒，也不保證叫醒後可以直接跑
+
+#### Java Monitors: Bounded-Buffer
+
+我們用 Bounded-Buffer 當例子:
+- `buffer` 就是 Bounded-Buffer 本人
+- `in` producer 要放的位置
+- `out` consumer 要讀的位置
+- `count` 代表 buffer 裡有幾個 item
+
+下面兩個 method 我們都宣告成 `synchronized`
+
+```java title="BoundedBuffer.java"
+public class BoundedBuffer<E> {
+    private static final int BUFFER_SIZE = 5;
+    private int count, in, out;
+    private E[] buffer;
+    public BoundedBuffer() {
+        count = 0;
+        in = 0;
+        out = 0;
+        buffer = (E[]) new Object[BUFFER_SIZE];
+    }
+    /* Producers call this method */
+    public synchronized void insert(E item) {
+        while (count == BUFFER_SIZE) {
+            try {
+                wait();
+            }
+            catch (InterruptedException ie) { }
+        }
+        buffer[in] = item;
+        in = (in + 1) % BUFFER_SIZE;
+        count++;
+        notify();
+    }
+    /* Consumers call this method */
+    public synchronized E remove() {
+        E item;
+        while (count == 0) {
+            try {
+                wait();
+            }
+            catch (InterruptedException ie) { }
+        }
+        item = buffer[out];
+        out = (out + 1) % BUFFER_SIZE;
+        count--;
+        notify();
+        return item;
+    }
+}
+```
+
+> `wait()` 是在 wait set 等而不是 entry set 等，因為你已經 call 了 method 表示 lock 已經拿到了才會開始執行，但因為某些原因你不能被執行（此處是 buffer 滿了）
+
+### Java Reentrant Locks
+
+Java 的 Reentrant Locks 用 `ReentrantLock` class 實現，用 `lock()` 去 call
+
+> 如果 lock 已經被 own 了也沒關係，重複 call 不會造成 deadlock 或 race condition，詳見 SP 筆記
+
+```java title="lock.c"
+Lock key = new ReentrantLock();
+key.lock();
+try {
+    /* critical section */
+}
+finally {
+    key.unlock();
+}
+```
+
+`finally` 的作用是讓任何 exception 發生的時候，會直接 call 這裡面的 program 執行回收，也就是說，我們把 `unlock()` 放在這就可以防止 deadlock
+
+### Java Semaphores
+
+用以下方法做 construct
+
+```java
+Semaphore(int value);
+```
+
+先拿到 semaphore 後才能進入 critical section，finally 要確保 exception 發生的時候還是得要 release lock
+
+```java
+Semaphore sem = new Semaphore(1);
+try {
+    sem.acquire();
+    /* critical section */
+}
+catch (InterruptedException ie) {}
+finally {
+    sem.release();
+}
+```
+
+### Java Condition Variables
+
+在 java 裡面要 create 一個 condition variable 可以
+- Create 一個 `ReentrantLock`
+- 對那個 `ReentrantLock` call `newCondition()` method 產生他的對應 `Condition` object
+
+以下是用法
+
+```java
+Lock key = ReentrantLock();
+Condition condVar = key.newCondition();
+```
+
+用 `await()`, `signal()` 來做使用
+
+<Aside type="tip">
+
+假設我們有
+- `0`~`4` 編號的 thread
+- share 一個 `turn` 來決定現在是誰可以執行
+- 想要做事的時候 call `doWork()`
+    - 如果不是自己的 turn 就 wait
+    - 如果是自己的 turn 就直接做
+    - 如果結束就 notify 下一個 turn 的 thread 去做事
+
+需要以下的 data structure 設定好所有 condition variable
+
+```java
+Lock lock = new ReentrantLock();
+Condition[] condVars = new Condition[5];
+for (int i = 0; i < 5; i++)
+    condVars[i] = lock.newCondition();
+```
+
+在 signal 的階段，可以透過 turn 來控制下一個要叫醒的 thread
+
+```java
+/* threadNumber is the thread wishing to do some work */
+public void doWork(int threadNumber) {
+    lock.lock();
+    try {
+        /* If not my turn, then wait until signaled */
+        if (threadNumber != turn)
+            condVars[threadNumber].await();
+        /* Do some work for awhile */
+        /* Now signal to the next thread */
+        turn = (turn + 1) % 5;
+        condVars[turn].signal();
+    }
+    catch (InterruptedException ie) { }
+    finally {
+        lock.unlock();
+    }
+}
+```
+
+</Aside>
+
+## Alternative Approaches
+
+### Transactional Memory
+
+**memory transaction** 也就是把一連串的 memory 全都包起來 atomically 執行，call `atomic{S}` 讓 `S` 這一連串的操作都能 atomically 執行
+
+```c
+void update() {
+    atomic {
+        /* modify shared data */
+    }
+}
+```
+
+### OpenMP
+
+可以用 `#pragma omp critical` 來指定哪一段要成為 critical section，會 atomically 執行
+
+```c
+void update(int value)
+{
+    #pragma omp critical
+    {
+        count += value
+    }
+}
+```
+
+### Functional Programming Languages
+
+可以把 variable 當成 immutable 的，也就是初始化設定後就不能變動了，會影響 performance，但最終希望解決 data race 的問題
