@@ -20,12 +20,81 @@ const headings = [
 <PageLayout title='About' {headings} comment>
   <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap' />
 
-  {/* Signature — same cursive "VinSong" as the homepage hero, drawn-in then filled. */}
+  {/* Signature — same cursive "VinSong" as the homepage hero: drawn-in, filled,
+      then an iridescent ink-glow + magnetic 3D tilt that follows the pointer. */}
   <div class='about-signature' aria-label='VinSong'>
-    <svg class='about-signature-svg' viewBox='0 0 560 180' role='img' aria-label='VinSong'>
-      <text x='50%' y='126' text-anchor='middle' class='about-signature-text'>VinSong</text>
-    </svg>
+    <div class='about-signature-tilt'>
+      <svg class='about-signature-svg' viewBox='0 0 560 180' role='img' aria-label='VinSong'>
+        <text x='50%' y='126' text-anchor='middle' class='about-signature-text'>VinSong</text>
+      </svg>
+      <svg
+        class='about-signature-svg about-signature-glow-svg'
+        viewBox='0 0 560 180'
+        aria-hidden='true'
+      >
+        <defs>
+          <linearGradient id='sig-ink-about' x1='0%' y1='0%' x2='100%' y2='100%'>
+            <stop offset='0%' stop-color='#a8dcea'></stop>
+            <stop offset='55%' stop-color='#b3c4f2'></stop>
+            <stop offset='100%' stop-color='#d9bdee'></stop>
+          </linearGradient>
+        </defs>
+        <text
+          x='50%'
+          y='126'
+          text-anchor='middle'
+          class='about-signature-text about-signature-glow-text'>VinSong</text
+        >
+      </svg>
+    </div>
   </div>
+
+  <script is:inline>
+    ;(() => {
+      try {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        const tilt = document.querySelector('.about-signature-tilt')
+        const glow = document.querySelector('.about-signature-glow-svg')
+        if (reduced || !tilt || !glow) return
+
+        // Ink glow + magnetic 3D tilt: the signature reacts to the pointer.
+        let tx = 0
+        let ty = 0
+        let cx = 0
+        let cy = 0
+        let raf = 0
+        const step = () => {
+          cx += (tx - cx) * 0.12
+          cy += (ty - cy) * 0.12
+          tilt.style.transform =
+            'rotateX(' + cy.toFixed(2) + 'deg) rotateY(' + cx.toFixed(2) + 'deg)'
+          raf = Math.abs(tx - cx) + Math.abs(ty - cy) > 0.02 ? requestAnimationFrame(step) : 0
+        }
+        const onPointer = (e) => {
+          const r = tilt.getBoundingClientRect()
+          const pad = 90
+          if (
+            e.clientX > r.left - pad &&
+            e.clientX < r.right + pad &&
+            e.clientY > r.top - pad &&
+            e.clientY < r.bottom + pad
+          ) {
+            tx = ((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * 7
+            ty = ((r.top + r.height / 2 - e.clientY) / (r.height / 2)) * 6
+            glow.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%')
+            glow.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%')
+            glow.classList.add('glow-on')
+          } else {
+            tx = 0
+            ty = 0
+            glow.classList.remove('glow-on')
+          }
+          if (!raf) raf = requestAnimationFrame(step)
+        }
+        window.addEventListener('pointermove', onPointer, { passive: true })
+      } catch (e) {}
+    })()
+  </script>
 
   <section
     class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'
@@ -293,6 +362,14 @@ const headings = [
     margin: 0 auto 2.5rem;
     text-align: center;
     color: hsl(var(--foreground));
+    perspective: 900px;
+  }
+  /* Magnetic 3D tilt lives on an inner wrapper; inline-block keeps it centered
+     and sized to the signature so the glow mask coordinates stay correct. */
+  .about-signature-tilt {
+    position: relative;
+    display: inline-block;
+    will-change: transform;
   }
   .about-signature-svg {
     width: clamp(280px, 50vw, 480px);
@@ -328,6 +405,44 @@ const headings = [
       fill: currentColor;
     }
   }
+
+  /* Iridescent-ink layer, revealed through a cursor-following radial mask. */
+  .about-signature-glow-svg {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.45s ease-out;
+    pointer-events: none;
+    filter: drop-shadow(0 0 10px hsl(193 60% 75% / 0.35));
+    -webkit-mask-image: radial-gradient(
+      circle 150px at var(--mx, 50%) var(--my, 50%),
+      #000 30%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(
+      circle 150px at var(--mx, 50%) var(--my, 50%),
+      #000 30%,
+      transparent 78%
+    );
+  }
+  .about-signature-glow-svg.glow-on {
+    opacity: 1;
+  }
+  .about-signature-glow-text {
+    fill: url(#sig-ink-about);
+    fill-opacity: 0;
+    stroke: url(#sig-ink-about);
+    stroke-width: 1.7;
+    animation:
+      about-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
+      about-signature-glow-fill 0.55s ease-out 2.05s forwards;
+  }
+  @keyframes about-signature-glow-fill {
+    to {
+      fill-opacity: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .about-signature-text {
       animation: none;
