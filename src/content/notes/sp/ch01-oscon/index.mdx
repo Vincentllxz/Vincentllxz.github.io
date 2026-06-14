@@ -14,51 +14,66 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 # OS concept
 
-<Aside type="note" title="OS function">
-**Vetical**: 把硬體 kernel 包裝
-- 有分成 kernel mode 跟 user mode => kernel space 跟 user space
-- 用 system call 去 access kernel
-
-**Horizontal**: 資源管理
-</Aside>
+OS 的功能可以分為 vertical 和 horizontal 兩種：
+- **Vetical**: 把硬體 kernel 包裝
+  - 有分成 kernel mode 跟 user mode => kernel space 跟 user space
+  - 用 system call 去 access kernel
+- **Horizontal**: 資源管理
 
 ## System call v.s Function call
 
+Function call 是把 callee 跟 caller 的資料放在 process 裡面，然後直接跳到 callee 的 code 執行，最後再回來 caller 繼續執行
+
+System call 則是要把的 caller 的資料放在 process 裡面，但 callee 的 code 是在 kernel 裡面，所以要先切換到 kernel mode，然後再跳到 callee 的 code 執行，最後再切回 user mode 回來 caller 繼續執行
+
 <div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/system-call-v-s-function-call.webp" style="width: 100%;" />
+  <img src="/images/sp/ch01-oscon/system-call-v-s-function-call.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      System call v.s Function call
   </span>
 </div>
 
-### User mode v.s. Kernel mode
+### User space v.s. Kernel space
+
+System memory 通常會被分成兩個區域：user space 跟 kernel space
+- **User space**: 普通 process execution 的地方，除非有 system call，否則 process 只能 access user space
+- **Kernel space**: OS kernel execution 的地方，process 可以透過 system call 去 access kernel space，但不能直接 access kernel space
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/user-mode-v-s-kernel-mode.png" style="width: 100%;" />
+  <img src="/images/sp/ch01-oscon/user-mode-v-s-kernel-mode.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     User mode v.s. Kernel mode
+     User space v.s. Kernel space
   </span>
 </div>
 
-- Hardware always in **Kernel Mode**
+> Hardware 運行指令永遠在 kernel mode
 
-### Horizontal
+### Horizontal OS services
 
-- **Services for Application Programs**: User Identification, Process Management,
-Memory Management, File/Directory Management,
-Inter-process Communication, Signal, I/O Management
-(e.g., Terminal, Network, etc), …
-- **OS Kernel**: CPU Scheduling, Virtual Memory, File System,
-Protection, Security, Synchronization, I/O Control, …
+Horizontal 的功能可以分成很多種
+- 給 Application Programs 的: 
+  - User Identification
+  - Process Management
+  - Memory Management
+  - File/Directory Management
+  - Inter-process Communication
+  - Signal
+  - I/O Management (e.g., Terminal, Network, etc), …
+- 對 OS Kernel 內部的服務: 
+  - CPU Scheduling
+  - Virtual Memory
+  - File System
+  - Protection
+  - Security
+  - Synchronization
+  - I/O Control, …
 
 
 ## User identification
 
-> User 是一種權限，不一定是真實使用者
-
-在 `/etc/passwd`（local host or NIS DB）裡面記錄
+**User 是一種權限，不一定是真實使用者**，通常在 `/etc/passwd`（local host or NIS DB）裡面記錄
 ```bash
 cat /etc/passwd
 ```
@@ -75,113 +90,144 @@ _networkd:*:24:24:Network Services:/var/networkd:/usr/bin/false
 _installassistant:*:25:25:Install Assistant:/var/empty:/usr/bin/false
 ```
 
-<Aside type="note" title="關於Shell">
-若出現 `/usr/bin/false` 等類似，即為無法 login，只能使用 Super-user 改變身分
+若出現 `/usr/bin/false` 等類似，即為無法 login，只能使用 Super-user 改變身分，並且**Unix 系統不認名字，只認ID（`User-id` = 0 為 Super-User）**
 
-- **Unix 系統不認名字，只認ID（`User-id` = 0 為 Super-User）**
-</Aside>
-
-- `crypt()`
-    - 是一個 one-way func，用於登入帳號
-    - 第一個參數 `{passwd}` 是真正的密碼
-    - 第二個參數 `{salt bit}` 是為了製造同樣 common word 隨機性，System 會選擇 time-base 的參數
-    - ```bash
-      crypt("apple", "am") → "amADBMNoVAZpc"
-      crypt("water", "pm") → "pmRarHxhhU34U"
-      ```
-    - 系統使用你的帳號跟你輸入的密碼放入比對
-    - ```man 3 crypt``` 可以查看
+User 會通過 `crypt()` 來驗證密碼
+- 是一個 one-way func，用於登入帳號
+- 第一個參數 `{passwd}` 是真正的密碼
+- 第二個參數 `{salt bit}` 是為了製造同樣 common word 隨機性，System 會選擇 time-base 的參數
+- ```bash
+  crypt("apple", "am") → "amADBMNoVAZpc"
+  crypt("water", "pm") → "pmRarHxhhU34U"
+  ```
+- 系統使用你的帳號跟你輸入的密碼放入比對
+- ```man 3 crypt``` 可以查看
 
 
 ## Process Management
 
-- **Program** is a executable file
+- **Program** 是一個 executable file
 - **Process** is an executing instance of a program
     - ```ps``` is a snapshot of the current process
     - ```top``` is display processes
 
 ### CPU Scheduling
 
-<Aside type="tip" title="Multitasking">
-Only one core of CPU, but want to make **multitasking**.
-</Aside>
+假設 CPU 只有一個 core 的話，但我們的電腦還是可以執行多個 process，這時候我們就需要用到 **multitasking**，而以下就是 Mult
 
-- **Time Sharing**: the rate is too fast that user won't realize that they are sharing
+#### Example of CPU scheduling
+
+我們可以利用 CPU 的速度來實現 **Time Sharing**，因為 CPU 切換的速度太快了，所以我們可以讓每個 process 都有一個 time slice，當 time slice 用完的時候，CPU 就會切換到下一個 process，這樣就可以讓多個 process 好像同時執行了
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/cpu-scheduling-1.webp" style="width: 100%;" />
+  <img src="/images/sp/ch01-oscon/cpu-scheduling-1.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     CPU Scheduling 1
+     CPU Scheduling Original setting
   </span>
 </div>
 
-- Event can be DISK
-- **(IMPROTANT)** A process want to inline of ready queue, it has to put every data into the memory.
+這個 **Event** 就是一個慢速事件，當 CPU 在執行 process A 的時候，突然有一個 Event 發生了，這時候 CPU 就會把 process A 暫停，然後去處理這個 Event，等到 Event 處理完了之後，再回來繼續執行 process A
+- Event 可能是 I/O event、timer event、signal event 等等
 
-<div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/cpu-scheduling-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     CPU Scheduling 2
-  </span>
+換句話說當我們把一個 process 放到 ready queue 的時候，那個 process 的所有 data 應該要已經被 load 到 memory 裡面了
+
+1. CPU 會從 ready queue 裡面選擇一個 process 來執行
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-2.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      A process is going to be scheduled
+    </span>
+  </div>
+2. CPU 正在執行 process
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-3.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      A process is running on CPU
+    </span>
+  </div>
+3. CPU 把正在執行的 task 踢掉
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-4.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      A process is push out from CPU
+    </span>
 </div>
+4. 在這個 time slice，Process A 會被放回 ready queue 裡面，等待下一次被 CPU 選中來執行，同一時間，CPU 會從 ready queue 裡面選擇下一個 process 來執行
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-5.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      The next process is running on CPU
+    </span>
+  </div>
 
-**Context Switch**
-- **Time Slice** maybe just a nano second
-- We have to **store** the status of last process before kicking.
-- Then we have to **restore** the status of the next process. 
-- Memory is too slow, so we have **L1, L2 cahce** on CPU.
-- If one process want to ask DISK, CPU will kick out this process into event, but not time slice.
+剛剛這個把 CPU 上的 process 抽換成另一個 process 的過程就叫做 **Context Switch**
+- **Time Slice** 可能只有一個 nano second
+- 為了下次再執行這個 process 我們必須存下這個 process 被踢出時的狀態，我們成為 **store**
+- 再次執行 process 時，我們必須 **restore** 所有存下來的 status
+- 因為 Memory 的速度不夠快，這個步驟通常會在 **L1, L2 cache** 內運作
 
- 
-<div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/cpu-scheduling-3.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     CPU Scheduling 3
-  </span>
-</div>
+5. 如果這個 process 被踢出是因為 Event 的話，那麼這個 process 就不會在那個 time slice 裡面被放回 ready queue 裡面，而是會被放到 waiting queue 裡面，等到 Event 處理完了之後，再把這個 process 放回 ready queue 裡面等待下一次被 CPU 選中來執行
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-6.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      A process is waiting for an event
+    </span>
+  </div>
 
-- Exit have many kind.
+6. 當 event 來的時候，這個 process 就會自行對 event 做出反應
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-7.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      A process is executing an event
+    </span>
+  </div>
 
-<div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/cpu-scheduling-4.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     CPU Scheduling 4
-  </span>
-</div>
+7. 當 event 處理完了之後，這個 process 就會被放回 ready queue 裡面等待下一次被 CPU 選中來執行
+  <div style="text-align: center;">
+    <img src="/images/sp/ch01-oscon/cpu-scheduling-8.webp" style="width: 90%;" />
+    <br />
+    <span style="color: grey; font-size: 16px;">
+      A process is back to ready queue
+    </span>
+  </div>
+  在這張圖上我們也可以看到，如果一個 process 執行完畢就會在 CPU 運行完後被踢出這個循環，我們成為 **exit**，而 exit 分成很多種
 
-<Aside type="note" title="About Mode switch and Context switch">
-**Mode switch may not lead to Context switch**
-- Data can be catch into memory first.
+<Aside type="note" title="Mode switch and Context switch">
+**Mode switch** 不一定會造成 **Context switch**，我們可能可以把需要用到的資料先 catch 到 memory 裡面，不用等 disk I/O event
 </Aside>
 
 ### UNIX Process
+
+在 Unix 系統裡面所有 process 都是用 `fork()` 這個 system call 來創建的，當 `fork()` 被呼叫的時候，OS 會複製一個新的 process 出來，這個新的 process 就叫做 child process，而原本的 process 就叫做 parent process，這兩個 process 會有相同的 code、data、stack，但是他們的 process ID 是不同的
+
 <div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/unix-process-1.webp" style="width: 100%;" />
+  <img src="/images/sp/ch01-oscon/unix-process-1.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     UNIX Process 1
+     UNIX Process creation
   </span>
 </div>
 
-From "init" prcess use **fork** to build a process tree.
+以 Unix system 為例，除了 `init` process 之外，其他 process 都是由 `init` process 透過 `fork()` 來創建的，這樣就形成了一個 process tree
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/unix-process-2.webp" style="width: 100%;" />
+  <img src="/images/sp/ch01-oscon/unix-process-2.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     UNIX Process 2
+     UNIX Process tree
   </span>
 </div>
 
+接下來介紹 **Pipe**，pipe 是一種可以把某個 process 的 input 轉換成另一個 process 的 input 的方法
 
-**Pipe**
-- A way to send the output of one command to the input of another
-**Filter**
-- A program that takes input and transforms it in some way
+**Filter** 則是一種可以對 input 做轉換的 program
 - `wc-` gives a count of words/lines/chars
 - `grep-` searches for lines with a given string 
 - `more`
@@ -209,8 +255,10 @@ From "init" prcess use **fork** to build a process tree.
 
 ## Memory Management
 
+Linux 內的 memory 都是以這種 layout 來進行 process 管理的
+
 <div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/memory-management.webp" style="width: 100%;" />
+  <img src="/images/sp/ch01-oscon/memory-management.webp" style="width: 50%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory Management
@@ -219,38 +267,36 @@ From "init" prcess use **fork** to build a process tree.
 
 ## File/Directory Management
 
-<Aside type="note" title="File System">
-**File**
-- A sequence of bytes
-
-**Directory**
-- A file that includes info on how to find other files.
-
-更多內容會在 Ch4 File & Directory 裡面介紹
-</Aside>
+**File** 是一個 sequence of bytes，用不同的解讀方式可以被解釋為不同的資料，而 **Directory** 則是一個包含怎麼找到其他 file 的資訊的 file，這個資訊包含了 file name、file type、file size、file owner、file permission、file creation time、file modification time、file access time 等等
 
 ### File Structure
 
-<div style="text-align: center;">
-  <img src="/images/sp/ch01-oscon/file-structure-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     File Structure 1
-  </span>
-</div>
-
+Unix 系統裡面的 file structure 是一個 tree structure，最上面是 root directory，下面是各個 subdirectory，subdirectory 裡面可以包含 file 或者其他 subdirectory
 - **root** `/`: all unix like system's root.
 - **lib**: library, the include path
 - **bin**: binary, in the system genuinly
 - **var**: dynamic file
 
 <div style="text-align: center;">
+  <img src="/images/sp/ch01-oscon/file-structure-1.webp" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     File Structure in Unix
+  </span>
+</div>
+
+用 `ls` 指令可以看到
+
+<div style="text-align: center;">
   <img src="/images/sp/ch01-oscon/file-structure-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     File Structure 2
+     File in Unix
   </span>
 </div>
+
+```chmod```,```chown```,```touch```
+
 
 ```bash
 chmod <mode> <file(s)>
@@ -258,9 +304,6 @@ chmod 700 file.txt
 
 chmod g+rw file.txt
 ```
-
-```chmod```,```chown```,```touch```
-
 ---
 
 <Card
