@@ -134,7 +134,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     
     <Aside type="tip" title="">
     <div style="text-align: center;">
-      <img src="/images/sp/ch05-file/gid-uid-1.webp" style="width: 100%;" />
+      <img loading="lazy" decoding="async" src="/images/sp/ch05-file/gid-uid-1.webp" style="width: 100%;" />
       <br />
       <span style="color: grey; font-size: 16px;">
          GID, UID 1
@@ -148,7 +148,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
   
     <Aside type="tip" title="">
     <div style="text-align: center;">
-      <img src="/images/sp/ch05-file/gid-uid-2.webp" style="width: 100%;" />
+      <img loading="lazy" decoding="async" src="/images/sp/ch05-file/gid-uid-2.webp" style="width: 100%;" />
       <br />
       <span style="color: grey; font-size: 16px;">
          GID, UID 2
@@ -236,7 +236,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
         - **Data blocks**
         - **Data blocks map**
     - <div style="text-align: center;">
-        <img src="/images/sp/ch05-file/structure-1.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch05-file/structure-1.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Structure 1
@@ -244,7 +244,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
       </div>
 - **i-node list** (fix list)
     - <div style="text-align: center;">
-        <img src="/images/sp/ch05-file/structure-2.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch05-file/structure-2.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Structure 2
@@ -256,7 +256,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **Per file**，不同的 filename 用 **hard link** 連接
         - 裡面有一個 `st_nlink` 紀錄 link count 類似於 Reference count
     - <div style="text-align: center;">
-        <img src="/images/sp/ch05-file/structure-3.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch05-file/structure-3.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Structure 3
@@ -267,7 +267,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - delete 就是 link count -1 
 - Example: 4.4BSD i-node
     - <div style="text-align: center;">
-        <img src="/images/sp/ch05-file/structure-4.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch05-file/structure-4.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Structure 4
@@ -279,7 +279,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - triple indirect，指向一個blcok，其中都是 double indirect blocks
     - **lock**: 會在 i-node table 底下串 lock 對 process 的資料
 <div style="text-align: center;">
-  <img src="/images/sp/ch05-file/structure-5.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch05-file/structure-5.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Structure 5
@@ -290,7 +290,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 只有 SU 可以對一個 directory create 一個 hard link
     - 不能 Cross file system
     - <div style="text-align: center;">
-        <img src="/images/sp/ch05-file/hard-link-and-soft-link-1.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch05-file/hard-link-and-soft-link-1.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Hard link &amp; Soft link 1
@@ -304,7 +304,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
         - 紀錄 i-node number 解決
         - 紀錄 走過幾次 soft-link 解決  
     - <div style="text-align: center;">
-        <img src="/images/sp/ch05-file/hard-link-and-soft-link-2.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch05-file/hard-link-and-soft-link-2.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Hard link &amp; Soft link 2

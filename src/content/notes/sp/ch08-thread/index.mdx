@@ -24,7 +24,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 <Aside type="note" title="Virtual Memory Layout (虛擬記憶體配置)">
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/process-model.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/process-model.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Model
@@ -47,7 +47,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Thread Model
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread-model.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-model.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread Model
@@ -97,7 +97,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **但並非沒用**：它依然能透過重疊 I/O 等待時間與 CPU 運算時間，有效減少 Response time 並提升系統整體效率。
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread
@@ -114,7 +114,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 ### Implementing of Thread (User Space)
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/implementing-of-thread-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/implementing-of-thread-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Implementing of Thread 1
@@ -136,7 +136,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Implementing of Thread (Kernel Space)
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/implementing-of-thread-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/implementing-of-thread-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Implementing of Thread 2
@@ -152,7 +152,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Hybrid Implementation
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/hybrid-implementation.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/hybrid-implementation.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Hybrid Implementation
@@ -178,7 +178,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - 只分成 main thread 跟 spawned thread，而且並非主從關係
 - Normal function call
   <div style="text-align: center;">
-    <img src="/images/sp/ch08-thread/thread-creation-1.webp" style="width: 100%;" />
+    <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-creation-1.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Thread creation 1
@@ -186,7 +186,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
   </div>
 - Threaded function call
   <div style="text-align: center;">
-    <img src="/images/sp/ch08-thread/thread-creation-2.webp" style="width: 100%;" />
+    <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-creation-2.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Thread creation 2
@@ -489,7 +489,7 @@ thr_fn2(void *arg)
 
 <Aside type="note" title="">
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread-cancel.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-cancel.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread Cancel
@@ -503,7 +503,7 @@ thr_fn2(void *arg)
 ## Thread Synchronization
 - Share memory 太常出現，所以我們必須要產生同步，不然會出現問題，因為一個高階語言指令可能是四五個低階語言指令
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread-synchronization.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-synchronization.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread Synchronization
@@ -547,7 +547,7 @@ thr_fn2(void *arg)
 
 <Aside type="note" title="Error/Deadlock Check">
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/mutexes.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/mutexes.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Mutexes
@@ -615,7 +615,7 @@ int getcount(int *countp) {
 - **`void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);`**
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/memory-mapped-i-o-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/memory-mapped-i-o-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory-mapped I/O 1
@@ -627,7 +627,7 @@ int getcount(int *countp) {
 - 對 system call 一個 `malloc()` 會返回一個可以任意轉換 type 的 address，但對於 align 方法有要求
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/memory-mapped-i-o-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/memory-mapped-i-o-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory-mapped I/O 2
@@ -649,7 +649,7 @@ int getcount(int *countp) {
 - mapping 多大就只能寫多大的檔案，不能動態增生
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/memory-mapped-i-o-3.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/memory-mapped-i-o-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory-mapped I/O 3
@@ -731,7 +731,7 @@ int main() {
 - 用 `MAP_ANONYMOUS` 創造出一個 virtual file 來創造 share memory 的感覺
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/memory-mapped-i-o-4.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/memory-mapped-i-o-4.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory-mapped I/O 4
@@ -743,7 +743,7 @@ int main() {
     - 在 process 裡面才去爭 lock
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/memory-mapped-i-o-5.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/memory-mapped-i-o-5.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory-mapped I/O 5
@@ -788,7 +788,7 @@ int main() {
 - A master thread: 負責排工作，給 ID，把工作分配好後排進 link list
 - A pool of worker threads: 真正做事的 thread，定期去 link list 上看一下有沒有自己的工作，然後改一下 list，自己去做事
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread-pool.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-pool.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread Pool
@@ -1164,7 +1164,7 @@ size_t nbytes, off_t offset);`**
 - 以下這些 function 並不保證是 thread-safe（但其實也可以找到 thread safe 的版本）
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread-safe-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-safe-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread safe 1
@@ -1173,7 +1173,7 @@ size_t nbytes, off_t offset);`**
 
 <Aside type="note" title="">
 <div style="text-align: center;">
-  <img src="/images/sp/ch08-thread/thread-safe-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch08-thread/thread-safe-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Thread safe 2

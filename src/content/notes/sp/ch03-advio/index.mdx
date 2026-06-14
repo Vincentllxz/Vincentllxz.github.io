@@ -27,7 +27,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - 是 forever block 的（像是要等 user input），如果前面不給資料，後面就不用動了
     - Reads or writes on pipes, terminal devices, and network devices
 - <div style="text-align: center;">
-    <img src="/images/sp/ch03-advio/fig-1.webp" style="width: 100%;" />
+    <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-1.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        figure 1
@@ -66,7 +66,7 @@ void set_fl(int fd, int flags)
     - output 是 memory to I/O **慢**
     - 若是 mode Non-blocking: **polling** (busy waiting; a waste of CPU time on a multiuser system) 因為要不停 query 詢問 queue 是否有空
 <div style="text-align: center;">
-  <img src="/images/sp/ch03-advio/fig-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      figure 2
@@ -92,7 +92,7 @@ Problem of blocking I/O: 會卡死，一直等
 - `writefds` 有興趣要寫的 fd，，用 bits string 代表，有興設定為 `1`
 - `readfds`, `writefds` 的 type 是 `fd_set` 因為是 system depending 的
 - <div style="text-align: center;">
-    <img src="/images/sp/ch03-advio/i-o-multiplexing.webp" style="width: 100%;" />
+    <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/i-o-multiplexing.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        I/O Multiplexing
@@ -119,7 +119,7 @@ Problem of blocking I/O: 會卡死，一直等
 ## File Lock
 - 本來有 1000，藍色 program 先提了 100 然後綠色 提出 100，但 write 的 process 是藍色，他會寫入 900 而非 800
 <div style="text-align: center;">
-  <img src="/images/sp/ch03-advio/file-lock.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/file-lock.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      File Lock
@@ -132,7 +132,7 @@ Problem of blocking I/O: 會卡死，一直等
 
 ### Type of Lock
 <div style="text-align: center;">
-  <img src="/images/sp/ch03-advio/type-of-lock-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Type of Lock 1
@@ -176,7 +176,7 @@ lock 與 fd 無關，跟 process, file 有關
 
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch03-advio/type-of-lock-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Type of Lock 2
@@ -216,7 +216,7 @@ close(fd2);
     - **Client**: 提出 request
     - **Server**: 處理 request
 <div style="text-align: center;">
-  <img src="/images/sp/ch03-advio/networking-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Networking 1
@@ -225,7 +225,7 @@ close(fd2);
 
 **Socket Programming**
 <div style="text-align: center;">
-  <img src="/images/sp/ch03-advio/networking-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Networking 2

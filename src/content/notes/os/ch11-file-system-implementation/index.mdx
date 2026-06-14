@@ -313,7 +313,7 @@ NVM 依然比 CPU memory 慢，所以處理不一樣會造成 bottle neck，以�
 我們現在有 Memory-I/O (Page Cache) 也有 File-system-I/O (Buffer cache)，在這樣的 I/O 情況下會產生下面的情況
 
 <div style='text-align: center;'>
-  <img src='/images/os/ch11-file-system-implementation/double-caching.webp' style='width: 60%;' />
+  <img loading="lazy" decoding="async" src='/images/os/ch11-file-system-implementation/double-caching.webp' style='width: 60%;' />
   <br />
   <span style='color: grey; font-size: 16px;'>Double Caching</span>
 </div>
@@ -383,7 +383,7 @@ File 是 sequence read 的時候，我們必須保證不使用 LRU (Least recent
 通常的 protocol (NFS, CIFS) 會先做 read operation 的 cache 可以做 optimization，但 write 操作就無法做到 optimization，WAFL file system 會有 write cache 可以做 optimize
 
 <div style='text-align: center;'>
-  <img src='/images/os/ch11-file-system-implementation/wafl-file-system.webp' style='width: 90%;' />
+  <img loading="lazy" decoding="async" src='/images/os/ch11-file-system-implementation/wafl-file-system.webp' style='width: 90%;' />
   <br />
   <span style='color: grey; font-size: 16px;'>WAFL File System</span>
 </div>
@@ -395,7 +395,7 @@ File 是 sequence read 的時候，我們必須保證不使用 LRU (Least recent
 這個 system 還有一個 powerful 的地方，就是他的 snapshot，下面是一個例子
 
 <div style='text-align: center;'>
-  <img src='/images/os/ch11-file-system-implementation/wafl-snapshot.webp' style='width: 100%;' />
+  <img loading="lazy" decoding="async" src='/images/os/ch11-file-system-implementation/wafl-snapshot.webp' style='width: 100%;' />
   <br />
   <span style='color: grey; font-size: 16px;'>Snapshot of WAFL File System</span>
 </div>

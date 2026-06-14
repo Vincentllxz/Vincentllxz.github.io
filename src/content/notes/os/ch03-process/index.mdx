@@ -27,7 +27,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Memory Layout
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/memory-layout-1.webp" style="width: 50%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/memory-layout-1.webp" style="width: 50%;" />
 </div>
 
 - Text section
@@ -45,7 +45,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/memory-layout-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/memory-layout-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory Layout 2
@@ -67,7 +67,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 <Aside type="tip" title="Example">
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/memory-layout-3.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/memory-layout-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Memory Layout 3
@@ -80,7 +80,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Process State
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/process-state.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/process-state.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process State
@@ -126,7 +126,7 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
 - 會用 `current` pointer 來處理現在 executing 的 process
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/process-control-block.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/process-control-block.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Control Block
@@ -160,7 +160,7 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
     - 可以被執行的 Process
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/scheduling-queue.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/scheduling-queue.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Scheduling Queue
@@ -173,7 +173,7 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
 - 假設是 I/O 結束，我要抓 Process 出來就會找的比較快
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/queuing-diagram.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/queuing-diagram.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Queuing Diagram
@@ -197,7 +197,7 @@ Linux Kernel 會用 **Doubly Link List** 來記錄所有 PCB（`task_struct`）
  - **Context**: Value of CPU register, Process State, Memory Management information
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/context-switch.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/context-switch.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Context Switch
@@ -225,7 +225,7 @@ Context Switch 的時候是 Pure overhead，所以必須要很快完成，和 Co
 
 Linux System 的 Tree of Process
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/process-creation.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/process-creation.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Creation
@@ -280,7 +280,7 @@ int main() {
 
 上面的程式執行大概是這樣
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/process-creation-using-unix-fork.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/process-creation-using-unix-fork.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Creation Using UNIX fork
@@ -382,7 +382,7 @@ Process 有分成
     - 常用在 distributed system
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/interprocess-communication.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/interprocess-communication.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Interprocess Communication
@@ -658,7 +658,7 @@ mach_msg(&message.header, // message header
 有 define 一些 subsystem，各自有各自的 port，可以用 port 做連接
 
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/windows.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/windows.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Windows
@@ -796,7 +796,7 @@ public class DateClient
     - Predetermined
     - Dynamic
 <div style="text-align: center;">
-  <img src="/images/os/ch03-process/remote-procedure-calls.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/os/ch03-process/remote-procedure-calls.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Remote Procedure Calls

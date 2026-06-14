@@ -14,64 +14,48 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 # Unbuffered I/O 
 
+以下是一個 unbuffered I/O 的程式，做的事情是把 data 從 standard input (`STDIN`) 讀到 buffer 後再寫到 standard output (`STDOUT`)，其中 `read()` 和 `write()` 是 unbuffered I/O 的 system call
+
+```c= title="unbufio.c"
+#include <unistd.h>
+
+int main(void) {
+    char buf[100];
+    ssize_t n;
+
+    while ((n = read(STDIN_FILENO, buf, 100)) > 0)
+        write(STDOUT_FILENO, buf, n);
+    return 0;
+}
+```
+
+## UNIX Standardization
+- 這個標準讓不同的 OS 都可以使用同一個 C program，讓程式碼具有 portability
+- **ANSI C** (`stdio.h`, `stdlib.h`, `string.h`, `math.h`, `time.h`,…)
+    - 具有 portability 的 C library，提供很多 function
+- **POSIX** (`unistd.h`, `pwd.h`, `dirent.h`, `grp.h`, `fcntl.h`, …)
+    - 提供每個 OS 都可以用來 call system call 的 **API**
+
+以下就是 unbuffered I/O 的 system call，在 POSIX.1 的標準裡面，每個 `read()`, `write()` 操作都會 invoke disk I/O，這樣的效率非常低
+
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/fig-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/fig-2.webp" style="width: 80%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     figure 1
+     Unbuffered I/O
   </span>
 </div>
 
-**UNIX Standardization**
-- Let every OS can run C language.
-- ANSI C (stdio.h, stdlib.h, string.h, math.h, time.h,…)
-    - Provide portability of conforming C programs to a wide variety of OS’s
-- POSIX (unistd.h, pwd.h, dirent.h, grp.h, fcntl.h, …)
-    - Provide **API** to let every OS to call system call.
+- 因為 DISK's (HDD) 的特性，每次的 read 操作都是以 "**block**" 為單位，也就是 the cylinder of a section，而不是用 "**byte**".
+- 而 SSD 的特性是以 page 為單位，通常是 4KB，因此每次的 read 操作都是以 page 為單位，速度比 HDD 快很多，但跟 memory 的速度還是有差距，因此仍然需要 buffer cache 來提高效率
 
-<Aside type="tip" title="">
-**Buffer is the Memory**
-</Aside>
+> SSD/HDD 特性詳見 [NTU-OS Chapter 11 Mass Storage](https://vinsong.csie.org/notes/os/ch09-mass-storage)
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/fig-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/fig-5.webp" style="width: 80%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     figure 2
-  </span>
-</div>
-
-- Trapping system everytime.
-- Due to the DISK's (HDD) movement, it will read a "**block**" which is the cylinder of a section instead of "**byte**".
-
-    <div style="text-align: center;">
-      <img src="/images/sp/ch02-unbufio/fig-3.webp" style="width: 100%;" />
-      <br />
-      <span style="color: grey; font-size: 16px;">
-         figure 3
-      </span>
-    </div>
-
-- For SSD, it have read the data from page to page
-    - Write Amplification
-    - 讀寫成本極高
-    - 速度快
-
-    <div style="text-align: center;">
-      <img src="/images/sp/ch02-unbufio/fig-4.webp" style="width: 100%;" />
-      <br />
-      <span style="color: grey; font-size: 16px;">
-         figure 4
-      </span>
-    </div>
-
----
-
-<div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/fig-5.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     figure 5
+     Unbuffered I/O with Buffer Cache
   </span>
 </div>
 
@@ -80,9 +64,9 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - (1) `read()` need Context Switch due to DISK movement
     - (5) `read()` don't need due to the buffer memory
 
-## (IMPORTANT) Process Structure
+## Process Structure
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/process-structure-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/process-structure-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Structure 1
@@ -96,7 +80,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **The term “unbuffered I/O” refers to the lack of automatic buffering in the user process**
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/process-structure-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/process-structure-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Process Structure 2
@@ -130,10 +114,10 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - `2`: `STDERR_FILENO`
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/process-structure-3.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/process-structure-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Process Structure 3
+     Metadata, Content, Reference Count
   </span>
 </div>
 
@@ -217,18 +201,18 @@ e.g. `open(pathname, O_WRONLY | O_CREAT | O_TRUNC, mode)`
     - 開 `0777` 時會變成 `0755`
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Blocking vs. Synchronization 1
+     Two process open the same file
   </span>
 </div>
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-2.webp" style="width: 70%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Blocking vs. Synchronization 2
+      Successive of parent process and child process
   </span>
 </div>
 
@@ -245,17 +229,17 @@ e.g. `open(pathname, O_WRONLY | O_CREAT | O_TRUNC, mode)`
 - 無法 `lseek()` 到往前 beginning 前面，但可以到 end 之後，甚至可以寫入
     - 這可能導致，因為寫入時中間有洞，因為 `lseek()` 到 end 後了，所以有可能 「實體大小 < 邏輯大小（`ls` 大小）」
     - 給的硬碟空間太，可能造成相反情況「邏輯大小 < 實體大小」
-- <div style="text-align: center;">
-    <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-3.webp" style="width: 100%;" />
+  <div style="text-align: center;">
+    <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-3.webp" style="width: 70%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
-       Blocking vs. Synchronization 3
+       The operation on a file, and current file offset
     </span>
   </div>
 - pipe 無法進行 `lseek`，有些有名稱的 pipe 會以檔案形式呈現
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-4.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-4.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Blocking vs. Synchronization 4
@@ -283,7 +267,7 @@ e.g. `open(pathname, O_WRONLY | O_CREAT | O_TRUNC, mode)`
     - 有的話會讓資料去排 block queue (event queue) 排隊回去寫入 DISK
 - 不同步沒關係，terminal 會先跟 buffer cache 要資料，不會直接跟 DISK 要資料
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-5.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-5.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Blocking vs. Synchronization 5
@@ -297,7 +281,7 @@ e.g. `open(pathname, O_WRONLY | O_CREAT | O_TRUNC, mode)`
 - 為何不直接執行 `lseek()` 到檔尾寫而要使用 `O_APPEND`？
 - 萬一出現這種情況就會發生問題
   <div style="text-align: center;">
-    <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-6.webp" style="width: 100%;" />
+    <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-6.webp" style="width: 100%;" />
     <br />
     <span style="color: grey; font-size: 16px;">
        Blocking vs. Synchronization 6
@@ -377,7 +361,7 @@ int main(int argc, char **argv, char **envp)
 **`sync()`, `fsync()`, `fdatasync()`**
 - Open with `O_DSYNC` 就不會 delay `write()`，Context swtich  的時候會直接把 kernel buffer 的 i-node table attribute 寫到 DISK i-node 去
     - <div style="text-align: center;">
-        <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-7.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-7.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Blocking vs. Synchronization 7
@@ -385,7 +369,7 @@ int main(int argc, char **argv, char **envp)
       </div>
 - Open with `O_SYNC` 對 return time 更加嚴格
     - <div style="text-align: center;">
-        <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-8.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-8.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Blocking vs. Synchronization 8
@@ -393,7 +377,7 @@ int main(int argc, char **argv, char **envp)
       </div>
 - Open with `O_RSYNC` 會在 `read()` 的時候進行同步
     - <div style="text-align: center;">
-        <img src="/images/sp/ch02-unbufio/blocking-vs-synchronization-9.webp" style="width: 100%;" />
+        <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-9.webp" style="width: 100%;" />
         <br />
         <span style="color: grey; font-size: 16px;">
            Blocking vs. Synchronization 9
@@ -480,7 +464,7 @@ int main(void) {
     - 理論上我只要把這個 buffer 宣告的超大，我也可以搬動次數超級少
     - 但最大是 **Disk block size**，因為 random access 只保證 block 內的檔案連續，並不保證同檔案連續
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/i-o-efficiency.webp" style="width: 50%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/i-o-efficiency.webp" style="width: 50%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      I/O Efficiency
@@ -489,7 +473,7 @@ int main(void) {
 
 ### Read ahead
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/read-ahead-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/read-ahead-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Read ahead 1
@@ -501,7 +485,7 @@ int main(void) {
 - 如果 Buffer size 太大了，做 read ahead 的時間就被稀釋了  
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch02-unbufio/read-ahead-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/read-ahead-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Read ahead 2

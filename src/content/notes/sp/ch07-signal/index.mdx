@@ -198,7 +198,7 @@ int main() {
 
 <Aside type="note" title="收到 Signal 後">
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/system-call.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/system-call.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      System call
@@ -215,7 +215,7 @@ int main() {
 - `exec()` 不一定，以下是轉換圖
     - 除了 **Ignore** 其餘全都 **Default**
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/signal-succeed.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/signal-succeed.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Signal succeed
@@ -255,7 +255,7 @@ again:
 ### Reentrant Function
 <Aside type="tip" title="Example">
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/reentrant-function-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/reentrant-function-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Reentrant Function 1
@@ -304,7 +304,7 @@ char *strtoupper(char *string) {
 - 以下都是 non-reentrant function
     - 雖然 `printf()` 是 non-reentrant 但是 debug 的時候不要複雜化問題，直接寫就好
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/reentrant-function-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/reentrant-function-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Reentrant Function 2
@@ -354,7 +354,7 @@ char *strtoupper(char *string) {
 ### Reliable Signals
 - 紀錄時間，把它分成兩個 phase 
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/reliable-signals.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/reliable-signals.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Reliable Signals
@@ -638,7 +638,7 @@ globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
 - `volatile`：易揮發（易變）
     - 易改變的 variable 就不要讓 compiler 做這種優化
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/nonlocal-jump.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/nonlocal-jump.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      nonlocal jump
@@ -659,7 +659,7 @@ globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
 <Aside type="tip" title="Problem of Nonlocal Jumps">
 ### Idea: 必定由深層到淺層跳
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/idea-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/idea-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Idea: 必定由深層到淺層跳 1
@@ -668,7 +668,7 @@ globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
 - 這個 code 可以 call 因為他的 stack 順序是正確的
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/idea-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/idea-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Idea: 必定由深層到淺層跳 2
@@ -680,7 +680,7 @@ globval = 95, autoval = 2, regival = 3, volaval = 98, statval = 99
 <Aside type="note" title="Co-routine">
 - 雖然理論上不能從淺層往深層 jump，但實務上我們會用這個方法做 co-routine
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/idea-3.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/idea-3.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Idea: 必定由深層到淺層跳 3
@@ -720,7 +720,7 @@ unsigned int sleep2(unsigned int nsecs)
 
 <Aside type="caution" title="Problem of sleep v.2.">
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/idea-4.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/idea-4.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Idea: 必定由深層到淺層跳 4
@@ -842,7 +842,7 @@ struct  sigaction {
     - `SA_RESETHAND`：退化成註冊一次一次有效（兼容）
 - 新版 handler `void handler(int signo, siginfo_t *info, void *context);` 可以 call 很多新的功能，取用裡面資訊得知錯誤訊息
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/signal-mask-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/signal-mask-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Signal mask 1
@@ -942,7 +942,7 @@ main(void)
 - 必須設定成 `sig_atomic_t` 雖然在高階語言，設定變數是一個動作，但是在 assembly 中是好多個動作，必須設定為 atomic 防止變數改變不完全
 
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/signal-mask-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/signal-mask-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Signal mask 2
@@ -1131,7 +1131,7 @@ charatatime(char *str)
 ### IPC with signal
 **Wrong case**
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/ipc-with-signal-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/ipc-with-signal-1.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      IPC with signal 1
@@ -1142,7 +1142,7 @@ charatatime(char *str)
 
 **Right case**
 <div style="text-align: center;">
-  <img src="/images/sp/ch07-signal/ipc-with-signal-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch07-signal/ipc-with-signal-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      IPC with signal 2
