@@ -214,6 +214,42 @@ figcaption {
   color: hsl(var(--foreground) / 0.85);
 } */
 
+/* Center every prose table (blog + notes) horizontally within the content
+   column. UnoCSS typography defaults tables to `width: 100%`, so we shrink them
+   to their content (capped at the column width) before margin-auto can center
+   them. `.not-prose` descendants opt out.
+   NB: `table` is kept OUT of `:where()` on purpose — UnoCSS's own table rule is
+   `:where()`-wrapped (0,1,0 specificity), so we need a real element selector
+   (0,1,1) to win regardless of stylesheet order. */
+.prose table:not(:where([class~='not-prose'] *)) {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Inline red emphasis: <span class="red">…</span> in notes — often wrapping
+   `**bold**`. Prose sets an explicit `color` on `strong`/`a`/`code`, so we must
+   re-color those descendants too; the `.red <el>` selectors (0,1,1) outrank
+   prose's `:where()`-wrapped rules (0,1,0) regardless of stylesheet order. The
+   dark-mode variant is lightened for contrast on the dark background. */
+.red,
+.red strong,
+.red b,
+.red em,
+.red a,
+.red code {
+  color: hsl(0 72% 51%);
+}
+.dark .red,
+.dark .red strong,
+.dark .red b,
+.dark .red em,
+.dark .red a,
+.dark .red code {
+  color: hsl(0 80% 68%);
+}
+
 /* === Reading rhythm — bump line-height for all prose content (blog + notes)
    and add generous breathing room around images. === */
 .prose :where(p, li, blockquote, dd, dt, td, th):not(:where([class~='not-prose'] *)) {

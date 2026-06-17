@@ -108,6 +108,20 @@ span.katex-display {
     }
   }
 
+  /* Opt out of line numbers: ```lang noLineNumbers (added by toggleLineNumbers transformer).
+     Blank out the digits and shrink BOTH the per-line box and the grey gutter strip
+     (code::before) to the same small width, so a short indent is kept and the gutter
+     background matches it. */
+  &.no-line-numbers pre code {
+    & .line::before {
+      content: '';
+      width: 0.5rem;
+    }
+    &::before {
+      width: 1.25rem;
+    }
+  }
+
   /* Shiki transformer */
   &:has(code) {
     position: relative;

@@ -141,3 +141,19 @@ export const addCopyButton = (timeout?: number): ShikiTransformer => {
     }
   }
 }
+
+// Opt out of line numbers for a single block.
+// Line numbers are on by default (see public/styles/global.css). Add the meta
+// flag `noLineNumbers` (or `no-line-numbers`) to the fence to hide them, e.g.
+// ```c title="demo.c" noLineNumbers
+export const toggleLineNumbers = (): ShikiTransformer => {
+  return {
+    name: 'shiki-transformer-toggle-line-numbers',
+    pre(node) {
+      const rawMeta = this.options.meta?.__raw ?? ''
+      if (/(?:^|\s)no-?line-?numbers(?:\s|$)/i.test(rawMeta)) {
+        this.addClassToHast(node, 'no-line-numbers')
+      }
+    }
+  }
+}
