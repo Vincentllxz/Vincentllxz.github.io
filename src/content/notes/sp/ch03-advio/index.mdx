@@ -14,12 +14,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 # Advance I/O
 
-> **Blocking / Non-blocking**:
-> - By Default Blocking 是要求全部操作都結束才能 return
->     - 中間可能發生 Context switch，可能被踢出 CPU
->     - 系統比較喜歡這個，可以讓每個 resources 獲得最好的效能
-> - Non-blocking 是有多少就要求多少，return immediately
->     - 不要被踢出 CPU
+## Blocking / Non-blocking
+
+- By Default Blocking 是要求全部操作都結束才能 return
+    - 中間可能發生 Context switch，可能被踢出 CPU
+    - 系統比較喜歡這個，可以讓每個 resources 獲得最好的效能
+- Non-blocking 是有多少就要求多少，return immediately
+    - 不要被踢出 CPU
 
 **Non-blocking**:
 - 如果一次要 100 個 bytes，第一次 OS 會先把在 buffer cache 裡面的給你，然後 OS 再默默把剩下的慢慢給你
