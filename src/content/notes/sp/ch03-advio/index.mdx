@@ -14,63 +14,115 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 # Advance I/O
 
-## Blocking / Non-blocking
+## Blocking / Non-blocking I/O
 
-- By Default Blocking 是要求全部操作都結束才能 return
-    - 中間可能發生 Context switch，可能被踢出 CPU
-    - 系統比較喜歡這個，可以讓每個 resources 獲得最好的效能
-- Non-blocking 是有多少就要求多少，return immediately
-    - 不要被踢出 CPU
+根據上一章提到的 I/O model 中，當我們在做操作的時候，有可能會遇到
+1. Data not ready，可能還在 disk 上
+2. Buffer full，沒地方寫了
 
-**Non-blocking**:
-- 如果一次要 100 個 bytes，第一次 OS 會先把在 buffer cache 裡面的給你，然後 OS 再默默把剩下的慢慢給你
-- **"Slow system calls"**: 
-    - 是 forever block 的（像是要等 user input），如果前面不給資料，後面就不用動了
-    - Reads or writes on pipes, terminal devices, and network devices
-- <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-1.webp" style="width: 100%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-       figure 1
-    </span>
-  </div>
-    - 雖然 DISK 不是傳統上會造成 Slow system call 的東東西
+Blocking 與 Non-blocking mode 是 I/O 一個處理這種問題的 property
+- **Blocking**: 一個 I/O system call 必須要執行完畢所有的操作才能 return（e.g., `write()` 必須把所有 data 都寫入才 return），在這期間不保證一直在 CPU 上，有可能會被 context switch 出去
+- **Non-blocking**: 不論做了多少事情，遇到 data not ready 或 buffer full 也不會等，會立即 return `-1`，並且把 errno 設為 `EAGAIN` 或 `EWOULDBLOCK`
 
-<Aside type="tip" title="">
+> 如果我們開 non-blocking mode 一次要 100 個 bytes（`read(fd, buf, 100)`），假設 buffer cache 裡面有 30 個 bytes，第一次 OS 會先把在 buffer cache 裡面的給你，然後 `read()` 會立即 return，但 OS 還是會默默搜集剩下的 bytes 到 buffer cache 裡面，你再次 call `read()` 就會有資料了
+
+一個普通的 process system call by default 是 Blocking mode，System 比較喜歡 blocking mode，因為可以被踢出 CPU 讓 OS 做 performance optimization，Non-blocking mode 的最大目的則是為了避免被踢出 CPU
+
+### Non-blocking
+
+#### Slow System call
+
+在 System call 裡面有一些可能會導致 forever block，我們就會稱他為 **Slow system calls**
+- `read()` operation 在一些 data 還沒準備好的 file 上（如 pipe, terminal, network socket）會導致 forever block
+- `write()` operation 在一些 buffer 已經滿了的 file 上（如 pipe, network flow control）會導致 forever block
+- 對一個沒有 readers 的 FIFO 做 `O_WRONLY` 的 `open()`
+- 對一個正在等 user input 的 terminal 做 `read()`
+- `ioctl()`
+- 一些 IPC system call
+
+面對這些 system call 我們不可能使用 blocking mode，因為他會 forever block，所以我們通常會用 non-blocking mode 來對這些 device 做 I/O，我們可以在 `open()` 的時候直接指定 `O_NONBLOCK` flag，或是之後用 `fcntl()` 把它改成 non-blocking mode
+
+<div style="text-align: center;">
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-1.webp" style="width: 100%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+      non-blocking mode for a file
+  </span>
+</div>
+
+> 雖然 Disk I/O 是很慢，但我們並不會把它歸類為 slow system call，因為它不會 forever block
+
+
+通常我們會用以下方法來改變 file status flags
 - `val | flags`: turn on flags
 - `val &= ~flags`: clear the flag
 
-```c
+```c title="set_fl.c"
+#include "apue.h"
 #include <fcntl.h>
-#include "ourhdr.h"
 
 void set_fl(int fd, int flags) 
 /* flags are file status flags to turn on */
 {
     int val;
 
-    if ( (val = fcntl(fd, F_GETFL, 0)) < 0 )
-        err_sys("fcntl F_GETFL error");
+    if ((val = fcntl(fd, F_GETFL, 0)) < 0)
+        。err_sys("fcntl F_GETFL error");
 
     val |= flags;       /* turn on flags */
 
     if (fcntl(fd, F_SETFL, val) < 0) 
         err_sys("fcntl F_SETFL error");
 }
-
 ```
-</Aside>
 
-**`Terminal Device`**: 
-- 這樣的 buffer 會是 circular 的，一端讀一端寫
-    - input 是 memory to memory **快**
-    - output 是 memory to I/O **慢**
-    - 若是 mode Non-blocking: **polling** (busy waiting; a waste of CPU time on a multiuser system) 因為要不停 query 詢問 queue 是否有空
+以下是一個 non-blocking 的範例程式，不斷不斷讀取直到全部讀完
+
+```c title="nonblocking.c"
+#include "apue.h"
+#include <errno.h>
+#include <fcntl.h>
+
+char buf[500000];
+
+int main(void) {
+  int   ntowrite, nwrite;
+  char  *ptr;
+
+  ntowrite = read(STDIN_FILENO, buf, sizeof(buf));
+  fprintf(stderr, "read %d bytes\n", ntowrite);
+  
+  set_fl(STDOUT_FILENO, O_NONBLOCK); /* set nonblocking */
+  
+  ptr = buf;
+  while (ntowrite > 0) {
+    errno = 0;
+    nwrite = write(STDOUT_FILENO, ptr, ntowrite);
+    fprintf(stderr, "nwrite = %d, errno = %d\n", nwrite, errno);
+
+    if (nwrite > 0) {
+      ptr += nwrite;
+      ntowrite -= nwrite;
+    }
+  }
+
+  clr_fl(STDOUT_FILENO, O_NONBLOCK); /* clear nonblocking */
+  
+  exit(0);
+}
+```
+
+#### Terminal Device: 
+
+Terminal Device 的 buffer 會是 circular 的，一端讀一端寫
+- input 是 memory to memory **快**
+- output 是 memory to I/O **慢**
+- 若是 mode Non-blocking: **polling** (busy waiting; a waste of CPU time on a multiuser system) 因為要不停 query 詢問 queue 是否有空
 <div style="text-align: center;">
   <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-2.webp" style="width: 100%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     figure 2
+     Terminal Circular Buffer
   </span>
 </div>
 

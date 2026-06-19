@@ -20,35 +20,6 @@ const headings = [
 <PageLayout title='About' {headings} comment>
   <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap' />
 
-  {/* Signature — same cursive "VinSong" as the homepage hero: drawn-in, filled,
-      then an iridescent ink-glow + magnetic 3D tilt that follows the pointer. */}
-  <div class='about-signature' aria-label='VinSong'>
-    <div class='about-signature-tilt'>
-      <svg class='about-signature-svg' viewBox='0 0 560 180' role='img' aria-label='VinSong'>
-        <text x='50%' y='126' text-anchor='middle' class='about-signature-text'>VinSong</text>
-      </svg>
-      <svg
-        class='about-signature-svg about-signature-glow-svg'
-        viewBox='0 0 560 180'
-        aria-hidden='true'
-      >
-        <defs>
-          <linearGradient id='sig-ink-about' x1='0%' y1='0%' x2='100%' y2='100%'>
-            <stop offset='0%' stop-color='#a8dcea'></stop>
-            <stop offset='55%' stop-color='#b3c4f2'></stop>
-            <stop offset='100%' stop-color='#d9bdee'></stop>
-          </linearGradient>
-        </defs>
-        <text
-          x='50%'
-          y='126'
-          text-anchor='middle'
-          class='about-signature-text about-signature-glow-text'>VinSong</text
-        >
-      </svg>
-    </div>
-  </div>
-
   <script is:inline>
     ;(() => {
       try {
@@ -110,7 +81,35 @@ const headings = [
     <div class='space-y-4'>
       <div>
         <p class='text-sm uppercase tracking-[0.3em] text-muted-foreground'>Hello, I am</p>
-        <h1 class='text-3xl font-semibold'>VinSong</h1>
+        <h1 class='sr-only'>VinSong</h1>
+        {/* Compact cursive signature as the name — drawn-in, filled, with an
+            iridescent ink-glow + magnetic 3D tilt that follows the pointer. */}
+        <div class='about-signature' aria-hidden='true'>
+          <div class='about-signature-tilt'>
+            <svg class='about-signature-svg' viewBox='0 0 560 180'>
+              <text x='50%' y='126' text-anchor='middle' class='about-signature-text'>VinSong</text>
+            </svg>
+            <svg
+              class='about-signature-svg about-signature-glow-svg'
+              viewBox='0 0 560 180'
+              aria-hidden='true'
+            >
+              <defs>
+                <linearGradient id='sig-ink-about' x1='0%' y1='0%' x2='100%' y2='100%'>
+                  <stop offset='0%' stop-color='#a8dcea'></stop>
+                  <stop offset='55%' stop-color='#b3c4f2'></stop>
+                  <stop offset='100%' stop-color='#d9bdee'></stop>
+                </linearGradient>
+              </defs>
+              <text
+                x='50%'
+                y='126'
+                text-anchor='middle'
+                class='about-signature-text about-signature-glow-text'>VinSong</text
+              >
+            </svg>
+          </div>
+        </div>
         <p class='text-muted-foreground'>NTU CSIE · Curious builder · Story collector</p>
       </div>
       <p>
@@ -356,26 +355,26 @@ const headings = [
 </PageLayout>
 
 <style>
-  /* Cursive "VinSong" signature — mirrors the homepage hero's draw-then-fill. */
+  /* Compact cursive "VinSong" — serves as the name inside the profile card.
+     inline-block makes it follow the card's text-align (centered on mobile,
+     left-aligned from md up). */
   .about-signature {
-    display: block;
-    margin: 0 auto 2.5rem;
-    text-align: center;
+    display: inline-block;
+    margin: 0.1rem 0 0.35rem;
     color: hsl(var(--foreground));
     perspective: 900px;
   }
-  /* Magnetic 3D tilt lives on an inner wrapper; inline-block keeps it centered
-     and sized to the signature so the glow mask coordinates stay correct. */
+  /* Magnetic 3D tilt lives on an inner wrapper; inline-block keeps it sized to
+     the signature so the glow mask coordinates stay correct. */
   .about-signature-tilt {
     position: relative;
     display: inline-block;
     will-change: transform;
   }
   .about-signature-svg {
-    width: clamp(280px, 50vw, 480px);
+    width: clamp(190px, 42vw, 270px);
     height: auto;
     display: block;
-    margin: 0 auto;
     overflow: visible;
   }
   .about-signature-text {

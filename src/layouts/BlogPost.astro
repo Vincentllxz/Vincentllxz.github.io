@@ -68,3 +68,24 @@ const primaryColor = data.heroImage?.color ?? 'hsl(var(--primary) / var(--un-tex
 </PageLayout>
 
 {integ.mediumZoom.enable && <MediumZoom />}
+
+<style is:global>
+  /* Keep the hero image from swallowing the first screen: cap its height and
+     center it. Wide banners fill the width as before; tall/square images (e.g.
+     a round logo) shrink to a centered medallion instead of a full-bleed wall. */
+  .hero-image {
+    display: flex;
+    justify-content: center;
+  }
+  .hero-image .cover-image {
+    max-height: min(42vh, 380px);
+    width: auto;
+    object-fit: contain;
+  }
+  .hero-image #blurImage {
+    max-height: min(42vh, 380px);
+    inset-inline: 0;
+    margin-inline: auto;
+    width: auto;
+  }
+</style>

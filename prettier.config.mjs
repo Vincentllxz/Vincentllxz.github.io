@@ -52,6 +52,12 @@ export default {
       options: {
         parser: 'astro'
       }
+    },
+    {
+      files: '*.mdx',
+      options: {
+        tabWidth: 4
+      }
     }
   ]
 }
