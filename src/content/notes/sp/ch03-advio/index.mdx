@@ -112,132 +112,185 @@ int main(void) {
 }
 ```
 
-#### Terminal Device: 
+#### Terminal Device
 
-Terminal Device 的 buffer 會是 circular 的，一端讀一端寫
+Terminal Device 的 buffer 會是 circular buffer，意思是我們只會使用一段固定長度的 buffer，在 blocking mode 下，當 buffer 滿了以後就要先 block 住，等待 `read()` 把 buffer 裡面的資料讀走，才會有空間可以寫入新的資料
+- 當 Process 發現 `readptr == writeptr` 就代表 buffer 滿了
+
+要有 Buffer 的原因是因為，Input, Output 的速度差太多了
 - input 是 memory to memory **快**
 - output 是 memory to I/O **慢**
-- 若是 mode Non-blocking: **polling** (busy waiting; a waste of CPU time on a multiuser system) 因為要不停 query 詢問 queue 是否有空
+
+看看以下這張圖，當我們在 terminal 上打字的時候，OS 會先把我們打的字放在 buffer 裡面，等到我們按下 `Enter` 的時候才會把 buffer 裡面的資料送到 process 裡面去，這樣就不會因為我們打字太快而來不及處理了
+
 <div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-2.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
      Terminal Circular Buffer
   </span>
 </div>
 
+Terminal 有一個特別的機制是我們打字可以非常快速的顯示在螢幕上，這是因為我們可以開啟 echo，在我們用鍵盤（Device）輸入的時候，OS 會把這份資料複製，同時放到 input queue 跟 output queue，termial 的 process 就可以從 input queue 讀取資料，Terminal 的 I/O process 則會從 output queue 讀取資料
+
+> Terminal 有時候會關掉 Echo，像是我們打 `sudo` 的時候，OS 就會關掉 Echo，這樣我們打的密碼就不會顯示在螢幕上了
+
 ## I/O Multiplexing
 
-理念就是，讓 OS 提醒 data 已經 ready 再去拿，space ready 再去寫
+有兩個理由讓我們使用 I/O Multiplexing
+1. 當我們想讓 terminal I/O 這種 slow system call 變成 non-blocking 的時候，我們會需要不停的去 query，看看 data 是不是 ready 了，這樣就會浪費很多 CPU cycles
+2. 當我們有多個 thread 或 process 都需要用到 I/O，如果我們一直 query 就會造成 IPC 的 overhead，會有 performance 問題
 
-<Aside type="caution" title="">
-Problem of blocking I/O: 會卡死，一直等
-- **Idea 1**: non-blocking I/O, huge waste of cycles (query) if data is not ready
-- **Idea 2**: multi-processes, too many processes, IPC overhead
+I/O Multiplexing 的 idea 就是說，我們可以一次性地告訴 OS 我們對哪些 `fd` 需要做管理，當這些 `fd` 裡面有任何一個變成 ready 的時候，OS 就會通知我們，這樣我們就不需要一直 query 了，Unix 提供了兩個 system call 來做 I/O Multiplexing，分別是 `select()` 跟 `poll()`
 
-都是非常耗資源的方法，所以引入 I/O Multiplexing（多功）
-</Aside>
+### I/O Multiplexing system call
 
+#### `select()`
 
-**`totalFds = select(nfds, readfds, writefds, errorfds, timeout)`**
-- `nfds` 有多少 fd
-- `readfds` 有興趣要讀的 fd，用 bits string 代表，有興設定為 `1`
-- `writefds` 有興趣要寫的 fd，，用 bits string 代表，有興設定為 `1`
-- `readfds`, `writefds` 的 type 是 `fd_set` 因為是 system depending 的
-- <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/i-o-multiplexing.webp" style="width: 100%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-       I/O Multiplexing
-    </span>
-  </div>
-- 呼叫 `select()` 後，system 就會去看 4 個，後面的就不用幫忙看，當有 partial ready 後，就會 return 一個 totalFds（幾個 ready 了），所以 `readfds`, `writefds` 同時是輸入也是輸出
+```c noLineNumbers
+int select(int maxfdp1, fd_set *restrict readfds,
+           fd_set *restrict writefds, fd_set *restrict exceptfds,
+           struct timeval *restrict tvptr);
+```
 
-**`totalFds = poll( fdarray[], nfds, timeout )`**
-- ```c
-  struct pollfd {
-     int fd; // file descriptor to check, or <0 to ignore
-     short events; // bit mask: each bit indicates an event of interest on fd
-     short revents; // bit mask: each bit indicates an event that occurred on fd
-  }
-  ```
+使用方法通常是
+
+```c title="select.c"
+totalFds = select(nfds, readfds, writefds, errorfds, timeout)
+```
+- `nfds` 代表有多少 fd
+- `readfds` 有興趣要 read 的 fd，用 bits string 代表，有興設定為 `1`
+- `writefds` 有興趣要 write 的 fd，，用 bits string 代表，有興設定為 `1`
+
+> 為了 Portability，`readfds`, `writefds` 的 type 是 `fd_set`，這樣就不用管 System 的實作細節了，Unix 會幫我們把它轉成 bits string
+
+<div style="text-align: center;">
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/i-o-multiplexing.webp" style="width: 80%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+      Illustration of select()
+  </span>
+</div>
+
+呼叫 `select()` 後，system 就會去看前面 4 個 `fd`，後面的就不用幫忙看，當有 partial ready 後，就會 return 一個 totalFds（幾個 ready 了），所以 `readfds`, `writefds` 同時會被當作輸入也會被當作輸出
+
+#### `poll()`
+
+```c noLineNumbers
+int poll(struct pollfd *fdarray, nfds_t nfds, int timeout);
+```
+
 - `nfds`: the number of items in the fds array
 - `timeout`: how long to wait before un-suspending the process
     - `-1`: wait forever, `0`: don’t wait: `>0`: wait (milliseconds)
-- `select()` 呼叫後會等待，直到 return，期間會 context switch 去其他地方
 
-`select()` 是為了在 blocking 環境下不被 block 住，但實務上，我們會做成 atomic 的，`select()` 跟 `read()` 中間會有一個 gap，我們會把它的 fd 改成 non-blocking，不然資料可能被別人讀走
+`slect()` 太複雜了，而且只能用 bits string 來代表 `fd`，這樣就會有 `fd` 數量的限制（通常是 1024），所以 `poll()` 就被提出來了，`poll()` 用陣列的方式來代表 fd，並且如果要設定一個很大的 `fd`，用 `select()` 非常不直觀，而且 `select()` 沒辦法得知你原始設定的 bitmask，因為輸入輸出是同一個
 
+```c title="poll.c"
+totalFds = poll(fdarray[], nfds, timeout)
+```
+
+以下是 `pollfd` 的 struct 定義：
+```c
+struct pollfd {
+    int   fd;       /* file descriptor to check, or <0 to ignore */
+    short events;   /* bit mask: each bit indicates an event of interest on fd */
+    short revents;  /* bit mask: each bit indicates an event that occurred on fd */
+}
+```
+
+這裡的 events，不只 `select()` 的三種
+- `POLLIN` 代表 data ready to read
+- `POLLOUT` 代表 data ready to write
+- `POLLERR` 代表 error occurred
+- `POLLHUP` 代表 hang up occurred
+- `POLLPRI` 代表 priority data ready to read
+
+`select()`, `poll()` 呼叫後會等待直到 return ，期間會 context switch 去其他地方，`select()`, `poll()` 實務上，我們會把它做成 atomic 的 `pselect()`, `ppoll()`，防止 signal 來打斷它，因為 signal 可能會導致 `select()`, `poll()` return，依然是 TOCTTOU 問題
+
+`select()` return 跟 `read()` 中間會有一個 gap，我們會把它的 `fd` 改成 non-blocking mode，不然資料可能被別的 blocking I/O 讀走
 
 ## File Lock
-- 本來有 1000，藍色 program 先提了 100 然後綠色 提出 100，但 write 的 process 是藍色，他會寫入 900 而非 800
+
+當有兩個 process 想要同時 `write()` 一個 file 的時候，一會出問題，以下是個例子
+- 從 `fd` 讀出存款到 `int_var` 裡面，假設本來有 `1000`，藍色 program 先讀到 `1000`，然後被 context switch 出去，紅色 program 讀到 `1000`，然後做 `int_var -= 200`，然後寫回 `fd`，這時候藍色 program 又被 context switch 回來，做 `int_var -= 200`，照理來說兩次提領應該要剩 `600`，但因為藍色 program 讀到的 `int_var` 是 `1000`，所以最後寫回去的還是 `800`，這樣就會有 race condition 問題了
+
 <div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/file-lock.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/file-lock.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     File Lock
+     Race condition on two processes writing a file
   </span>
 </div>
-- 只要有 process 在 `write()` File 就會被 lock 住，多個 process 會搶一個 file
-- 只有 `read()` 是可以 share 的
-- 使否上所是 Unix 決定的，因為只有系統知道其他人有沒有在讀寫，如果不行鎖，就等到可以鎖 （blocking）或 context switch 走（nonblocking） 
 
+因此我們就會需要 file lock 來解決這個問題，File lock 的概念就是說，當一個 process 在 `write()` 一個 file 的時候，OS 會幫他把這個 file lock 住，其他 process 就不能對這個 file 做任何操作了，直到這個 process 把 lock 解掉了以後，其他 process 才能對這個 file 做操作
+- 只要有 process 在 `write()` File 就會被 lock 住，多個 process 會搶一個 file
+- 是否上鎖是 Unix 決定的，因為只有 System 知道其他人有沒有在讀寫，如果不行鎖，就等到可以鎖（blocking）或 context switch 走（nonblocking） 
 
 ### Type of Lock
+
+Lock 除了 `write()` 以外，還有 `read()` 也可以上 lock，我們可以根據 lock 的性質用以下的表格來分類
+
 <div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-1.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Type of Lock 1
+      The type of lock
   </span>
 </div>
-- Shared read lock
-    - 可以多人共享
-    - 但不在鎖裡面的人都不能讀
-- Exclusive write lock
+
+- Shared **read lock**
+    - 可以多 process 共享
+    - 但上了 read lock 就不能上 write lock
+- Exclusive **write lock**
     - 只有一個 process 可以 lock
     - 上了 write lock 就不能上 read lock
-- 實務上即使可以上 read lock 也不一定會上，因為有 process 在等 write lock，而 read lock unlock 要等所有人 unlock 有公平性問題
 
-**Function**
-- `flock()`: 整個檔案鎖，不推
+實務上我們要 `read()` 即使可以上 read lock 也不一定會上，因為 lock 之間有 exclusive 的性質，如果有 process 需要 `write()` 那他必須得上 write lock，但上 write lock 的前置條件是，而 read lock unlock 要等所有人 unlock 有公平性問題
+
+### System Call of File Lock
+
+以下幾個 System call 都可以用來做 file lock
+- `flock()`: 鎖住整個 file，不推
 - `fcntl()`
-- `lockf()`: 也是 `fcntl()` 不推
+- `lockf()`: 也是 `fcntl()` 的 implementation 不推
 
-**`int fcntl (int filedes, int cmd, ... /* struct flock *flockptr */ )`**
-- `F_GETLK`: query
-- `F_SETLK`: lock
-- lock 的時候不必問，直接鎖，因為 context switch 出去會出現狀態改變，time-to-check time-to-use 不壹樣
-- `Lockptr`
-  ```c
-  struct flock {
-    short l_type; /* F_RDLCK, F_WRLCK, or F_UNLCK */
-    off_t l_start; /* offset in bytes, relative to l_whence */
-    short l_whence; /* SEEK_SET, SEEK_CUR, or SEEK_END */
-    off_t l_len; /* length, in bytes; 0 means lock to EOF */
-    pid_t l_pid; /* returned with F_GETLK */
-  }
-  ```
-  
-<Aside type="note" title="">
-lock 與 fd 無關，跟 process, file 有關
-- 所有共享 file 的 fd 都可以去關掉他，file close, process terminated 會被 release
-- lock 無法繼承，因為 write lock 是 exclusive 的
+### Record Locking `fcntl()`
 
-同一隻 file 被 read lock 又想上 write lock，OS 是不會擋住的，OS 認為是 programmer 的責任，會爆炸
-</Aside>
+```c noLineNumbers
+int fcntl(int fd, int cmd, ... /* struct flock *flockptr */);
+```
 
+- 用 `F_GETLK`: query, `F_SETLK`: lock 兩個 flag 控制 lock 的行為
+
+lock 的時候不必先做 `F_GETLK`，直接 lock，因為 context switch 出去會出現狀態改變，反而會出現 TOCTTOU 問題，Unix 採用 Advisory Lock (後續會提到)
+
+```c
+struct flock {
+  short l_type;   /* F_RDLCK, F_WRLCK, or F_UNLCK */
+  off_t l_start;  /* offset in bytes, relative to l_whence */
+  short l_whence; /* SEEK_SET, SEEK_CUR, or SEEK_END */
+  off_t l_len;    /* length, in bytes; 0 means lock to EOF */
+  pid_t l_pid;    /* returned with F_GETLK */
+}
+```
+- `l_type` 代表 lock 的類型，`F_RDLCK` (a shared read lock), `F_WRLCK` (an exclusive write lock), or `F_UNLCK` (unlocking a region)
+
+> 同一隻 file 被 read lock 又想上 write lock，OS 是不會擋住的，OS 認為是 programmer 的責任
+
+看下下面的圖片（FreeBSD System），我們可以知道，lock 與 `fd` 無關，而是跟 process, file 有關
+- 所有共享 file 的 `fd` 都可以去關掉他，file close, process terminated lock 都會被 release
+- lock 無法繼承，舉個例子 write lock 是 exclusive 的，不可能被繼承
 
 <div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-2.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Type of Lock 2
+     Process Structure and Lock in FreeBSD
   </span>
 </div>
-- 因為 i-node table 上有記錄上 lock 的 process，他只認 process 所以只要是從正確的 process 來的就可以把 lock release 掉
 
-<Aside type="note" title="">
+因為 lock structure 記錄的是 process，他只認 process 所以只要是從正確的 process 來的 release request 就可以把 lock release 掉，下面兩個 code 為例
 ```c
 fd1 = open(pathname, ...);
 read_lock(fd1, ...);
@@ -245,45 +298,72 @@ fd2 = dup(fd1);
 close(fd2);
 ```
 - 根據圖片，他會被關掉
-
 ```c
 fd1 = open(pathname, ...);
 read_lock(fd1, ...);
 fd2 = open(pathname, ...);
 close(fd2);
 ```
-- 根據圖片，即便它有重新開了一個 open file table，但 lock 是紀錄 process id，所以 lock 也會被 release 掉
-</Aside>
+- 根據圖片，即便它有重新開了一個 open file table，但 lock 是紀錄 process id，並且 i-node 是同一個，所以 lock 也會被 release 掉
 
-**Advisory lock**
-- 有人可能會不去 `F_GETLK`, `F_SETLK`，直接 call `write()`
-- 但是通常會搭配 Unix account 的機制，其他人根本對檔案並沒有權限，只有自己動得了自己的檔案
+### Advisory vs. Mandatory lock
 
-**Mandatory lock**
-- 所有 system call 全都要 check lock
-- 成本極高
+#### Advisory lock
 
-## Networking 
+有些 process 可能會不去 `F_GETLK`, `F_SETLK`，直接 call `write()`，意思是這個 lock 只是一個建議性的 lock，不一定要 call `fcntl()` 像是左下角的 process，就可以 access file，但因為 Unix 本身就有 account 和 permission 的機制，其他人根本對 file 並沒有 permission，只有自己動得了自己的檔案
 
-- **Client** v.s. **Server**
-    - **Client**: 提出 request
-    - **Server**: 處理 request
 <div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-1.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/advisory-lock.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Networking 1
+      Advisory lock
   </span>
 </div>
 
-**Socket Programming**
+#### Mandatory lock
+所有 system call 都要先透過 kernel 去檢查 lock 的狀態，才可以 access file，也只有 kernel 才有權限碰到 lock，所有 process 都只能提出 request
+
 <div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-2.webp" style="width: 100%;" />
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/mandatory-lock.webp" style="width: 90%;" />
   <br />
   <span style="color: grey; font-size: 16px;">
-     Networking 2
+     Mandatory lock
   </span>
 </div>
+
+> 在現代的系統裡，Mandatory lock 很少被使用，因為它會造成很多 overhead，而且也不容易 debug，Advisory lock 只要大家都遵守規則就可以了
+
+## Networking Device
+
+也是一種 slow system call，因為網路的速度比 memory 還慢很多，通常我們會用 non-blocking mode 來做 I/O，並且使用 I/O Multiplexing 來避免一直 query，詳見 [NTU-CN 計算機網路筆記](https://vinsong.csie.org/notes/cn)
+
+### Client Server model
+- **Client**: 提出 request
+- **Server**: 處理 request
+
+是在網路的一種處理資料的 model，通常會有一個 server 在等待 client 的 request，當 client 提出 request 後，server 會處理 request 並且回傳 response 給 client
+
+<div style="text-align: center;">
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-2.webp" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Client Server model
+  </span>
+</div>
+
+### Socket
+
+Socket 是一個抽象的概念，代表一個 endpoint，可以用來做網路的 I/O，通常會有兩個 socket，一個在 client 端，一個在 server 端，兩個 socket 之間可以透過網路傳輸資料，就好像是一個 pipe 一樣，client 端的 socket 可以用來 send request，server 端的 socket 可以用來 receive request，我們也可以把它比作一種 IPC 只不過是跨 device 的 IPC，因為它是透過網路來傳輸資料的
+
+<div style="text-align: center;">
+  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-1.webp" style="width: 90%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     Networking Stack
+  </span>
+</div>
+
+
 
 ---
 
