@@ -1,0 +1,131 @@
+---
+// Course intro "window" for notes/<course>/index.mdx — terminal/editor-window styling
+// that matches PDFCard. The default slot holds the prose course description.
+interface Props {
+  /** English course name, drawn large as the window heading. */
+  course: string
+  /** Chinese course name, shown as the subtitle. */
+  courseZh?: string
+  /** Course shorthand for the window badge / filename, e.g. `SP`. */
+  abbr: string
+  /** Accent color as an hsl triple `H S% L%`, e.g. `'217 85% 54%'`. */
+  accent?: string
+  /** Term, e.g. `2025 Fall`. */
+  semester?: string
+  /** Instructor name (the ` 老師` suffix is added automatically). */
+  teacher?: string
+  /** Course code, e.g. `CSIE-2210`. */
+  code?: string
+  /** Reference textbook. */
+  textbook?: string
+}
+
+const { course, courseZh, abbr, semester, teacher, code, textbook, accent = '193 70% 50%' } =
+  Astro.props
+
+const filename = `${abbr.toLowerCase()}/README.md`
+const path = `~/notes/${abbr.toLowerCase()}`
+const when = [semester, teacher ? `${teacher} 老師` : null].filter(Boolean).join(' · ')
+const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : null].filter(
+  Boolean
+) as string[]
+---
+
+<div
+  class='course-card not-prose my-7 overflow-hidden rounded-xl border bg-card font-mono shadow-sm'
+  style={`--ac: ${accent}`}
+>
+  {/* 視窗條：交通燈 + 檔名頁籤 + 縮寫徽章 */}
+  <div class='course-titlebar flex items-center gap-2 border-b px-4 py-2.5'>
+    <span class='flex items-center gap-1.5' aria-hidden='true'>
+      <span class='course-dot' style='background:#ff5f56'></span>
+      <span class='course-dot' style='background:#ffbd2e'></span>
+      <span class='course-dot' style='background:#27c93f'></span>
+    </span>
+    <span class='flex-1 truncate text-center text-xs text-muted-foreground'>{filename}</span>
+    <span class='course-badge text-xs font-semibold tracking-wide'>[{abbr}]</span>
+  </div>
+
+  {/* 視窗內文 */}
+  <div class='course-body relative p-5 sm:p-6'>
+    <p class='course-name text-2xl font-bold leading-tight text-foreground sm:text-3xl'>{course}</p>
+    {courseZh && <p class='mt-1 text-base text-muted-foreground'>{courseZh}</p>}
+
+    {
+      info.length > 0 && (
+        <div class='course-term mt-4 space-y-1 text-sm'>
+          <p class='break-all'>
+            <span class='course-user'>vinsong@blog</span>{' '}
+            <span class='course-path'>{path}</span>
+          </p>
+          <p class='break-all'>
+            <span class='course-dollar'>$</span> <span class='course-cmd'>cat</span> info.md
+          </p>
+          {info.map((line) => (
+            <p class='course-out text-foreground/80'>{line}</p>
+          ))}
+        </div>
+      )
+    }
+
+    {/* 課程介紹（一般字體，方便閱讀） */}
+    <div class='course-intro mt-4 font-sans text-[15px] leading-relaxed text-muted-foreground'>
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .course-card {
+    --accent: hsl(var(--ac));
+  }
+  /* Lift the accent in dark mode so mid-lightness hues stay readable. */
+  :global(html.dark) .course-card {
+    --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
+  }
+  .course-titlebar {
+    background: color-mix(in srgb, var(--accent) 6%, hsl(var(--muted)));
+  }
+  .course-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 9999px;
+  }
+  .course-badge {
+    color: var(--accent);
+  }
+  /* Path stays a fixed terminal blue across courses (matches SP's accent). */
+  .course-path {
+    color: hsl(217 85% 54%);
+  }
+  :global(html.dark) .course-path {
+    color: hsl(217 90% 70%);
+  }
+  .course-user {
+    color: #2ea043;
+    font-weight: 600;
+  }
+  :global(html.dark) .course-user {
+    color: #3fb950;
+  }
+  .course-dollar {
+    color: hsl(var(--muted-foreground));
+  }
+  .course-cmd {
+    color: #d9b54a;
+  }
+  :global(html.dark) .course-cmd {
+    color: #f1d370;
+  }
+  /* Faint accent glow in the corner, matching PDFCard. */
+  .course-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(110% 120% at 95% 0%, hsl(var(--ac) / 0.1), transparent 58%);
+    pointer-events: none;
+  }
+  .course-body > * {
+    position: relative;
+  }
+</style>

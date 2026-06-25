@@ -6,9 +6,9 @@ interface Props {
   /** Legacy aliases (older blog posts pass these instead of subtitle/href). */
   description?: string
   link?: string
-  /** Screenshot cover (legacy); omit it to get the generated accent cover. */
+  /** Legacy screenshot cover. Ignored by the terminal design, kept for back-compat. */
   imageSrc?: string
-  /** Course shorthand drawn large on the generated cover, e.g. `ADA`, `OS`. */
+  /** Course shorthand drawn large in the window, e.g. `ADA`, `OS`. */
   abbr?: string
   /** Accent color as an hsl triple `H S% L%`, e.g. `'217 85% 54%'`. */
   accent?: string
@@ -17,14 +17,14 @@ interface Props {
 }
 
 const props = Astro.props
-const { title, imageSrc, type = 'pdf' } = props
+const { title, type = 'pdf' } = props
 const subtitle = props.subtitle ?? props.description
 const href = props.href ?? props.link ?? '#'
 const isPdf = type === 'pdf'
 const badgeLabel = isPdf ? 'PDF' : 'NOTE'
-const ctaLabel = isPdf ? 'Open PDF' : 'Open Note'
+const ctaLabel = isPdf ? 'open_pdf' : 'open_note'
 
-// Generated-cover fallbacks: short first word, otherwise up-to-3 initials.
+// Window shorthand: short first word, otherwise up-to-3 initials.
 const words = title.split(/\s+/)
 const abbr =
   props.abbr ??
@@ -36,6 +36,7 @@ const abbr =
         .slice(0, 3)
         .toUpperCase())
 const accent = props.accent ?? '193 70% 50%'
+const filename = `${abbr}.${isPdf ? 'pdf' : 'note'}`
 ---
 
 <a
@@ -43,85 +44,37 @@ const accent = props.accent ?? '193 70% 50%'
   target={isPdf ? '_blank' : undefined}
   rel={isPdf ? 'noreferrer' : undefined}
   data-astro-prefetch={isPdf ? undefined : true}
-  class='pdfcard group not-prose block overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1'
+  class='pdfcard group not-prose block overflow-hidden rounded-xl border bg-card font-mono shadow-sm transition-all duration-300 hover:-translate-y-1'
   style={`--ac: ${accent}`}
 >
-  {/* 封面：有截圖用截圖，否則用主題色生成 */}
+  {/* 視窗條：交通燈 + 檔名頁籤 + 類型徽章 */}
   <div
-    class:list={['relative aspect-[2/1] overflow-hidden', imageSrc ? 'bg-muted' : 'pdfcard-cover']}
+    class='pdfcard-titlebar flex items-center gap-2 border-b px-4 py-2.5'
   >
-    {
-      imageSrc ? (
-        <img
-          src={imageSrc}
-          alt={title}
-          class='h-full w-full object-cover transition-transform duration-500 group-hover:scale-105'
-        />
-      ) : (
-        <>
-          <span class='pdfcard-abbr-ghost' aria-hidden='true'>
-            {abbr}
-          </span>
-          <span class='pdfcard-abbr'>{abbr}</span>
-        </>
-      )
-    }
-    <span
-      class='pdfcard-badge absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow-sm backdrop-blur'
-    >
-      {
-        isPdf ? (
-          <svg
-            class='size-3.5'
-            viewBox='0 0 24 24'
-            fill='none'
-            stroke='currentColor'
-            stroke-width='2'
-            stroke-linecap='round'
-            stroke-linejoin='round'
-          >
-            <path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z' />
-            <polyline points='14 2 14 8 20 8' />
-          </svg>
-        ) : (
-          <svg
-            class='size-3.5'
-            viewBox='0 0 24 24'
-            fill='none'
-            stroke='currentColor'
-            stroke-width='2'
-            stroke-linecap='round'
-            stroke-linejoin='round'
-          >
-            <path d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20' />
-            <path d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' />
-          </svg>
-        )
-      }
-      {badgeLabel}
+    <span class='pdfcard-dots flex items-center gap-1.5' aria-hidden='true'>
+      <span class='pdfcard-dot'></span>
+      <span class='pdfcard-dot'></span>
+      <span class='pdfcard-dot'></span>
+    </span>
+    <span class='pdfcard-filename flex-1 truncate text-center text-xs text-muted-foreground'>
+      {filename}
+    </span>
+    <span class='pdfcard-badge text-[11px] font-semibold tracking-wide'>
+      [{badgeLabel}]
     </span>
   </div>
 
-  {/* 內容 */}
-  <div class='space-y-2 p-5'>
+  {/* 視窗內文 */}
+  <div class='pdfcard-body relative space-y-2 p-5'>
+    <span class='pdfcard-abbr' aria-hidden='true'>{abbr}</span>
     <h3 class='break-words text-lg font-semibold leading-snug text-foreground transition-colors'>
       {title}
     </h3>
     {subtitle && <p class='break-words text-sm text-muted-foreground'>{subtitle}</p>}
-    <div class='pdfcard-cta inline-flex w-fit items-center gap-1.5 pt-1 text-sm font-medium'>
+    <div class='pdfcard-cta flex items-center pt-2 text-sm'>
+      <span class='pdfcard-prompt mr-2 select-none'>&gt;</span>
       <span>{ctaLabel}</span>
-      <svg
-        class='size-4 transition-transform duration-300 group-hover:translate-x-1'
-        viewBox='0 0 24 24'
-        fill='none'
-        stroke='currentColor'
-        stroke-width='2.25'
-        stroke-linecap='round'
-        stroke-linejoin='round'
-      >
-        <line x1='5' y1='12' x2='19' y2='12'></line>
-        <polyline points='12 5 19 12 12 19'></polyline>
-      </svg>
+      <span class='pdfcard-cursor' aria-hidden='true'></span>
     </div>
   </div>
 </a>
@@ -135,64 +88,85 @@ const accent = props.accent ?? '193 70% 50%'
     --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
   }
   .pdfcard:hover {
-    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
-    box-shadow: 0 14px 36px -14px color-mix(in srgb, var(--accent) 35%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    box-shadow: 0 14px 36px -14px color-mix(in srgb, var(--accent) 38%, transparent);
   }
   .pdfcard:hover h3 {
     color: var(--accent);
   }
+
+  /* === Window chrome === */
+  .pdfcard-titlebar {
+    background: color-mix(in srgb, var(--accent) 6%, hsl(var(--muted)));
+  }
+  .pdfcard-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 9999px;
+    background: hsl(var(--muted-foreground) / 0.35);
+    transition:
+      background 0.3s ease,
+      transform 0.3s ease;
+  }
+  .pdfcard:hover .pdfcard-dot:nth-child(1) {
+    background: #ff5f56;
+  }
+  .pdfcard:hover .pdfcard-dot:nth-child(2) {
+    background: #ffbd2e;
+  }
+  .pdfcard:hover .pdfcard-dot:nth-child(3) {
+    background: #27c93f;
+  }
   .pdfcard-badge,
-  .pdfcard-cta {
+  .pdfcard-prompt {
     color: var(--accent);
   }
 
-  /* === Generated cover: accent gradient + dot grid + course shorthand === */
-  .pdfcard-cover {
-    background:
-      radial-gradient(120% 150% at 85% 8%, hsl(var(--ac) / 0.28), transparent 60%),
-      linear-gradient(135deg, hsl(var(--ac) / 0.14), hsl(var(--ac) / 0.03));
-  }
-  .pdfcard-cover::before {
+  /* === Window body: faint accent glow + big shorthand === */
+  .pdfcard-body::before {
     content: '';
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(hsl(var(--ac) / 0.5) 1px, transparent 1.4px);
-    background-size: 18px 18px;
-    opacity: 0.4;
-    -webkit-mask-image: linear-gradient(115deg, #000 25%, transparent 78%);
-    mask-image: linear-gradient(115deg, #000 25%, transparent 78%);
+    background: radial-gradient(120% 130% at 92% 0%, hsl(var(--ac) / 0.12), transparent 60%);
+    pointer-events: none;
   }
   .pdfcard-abbr {
-    position: absolute;
-    left: 1.4rem;
-    bottom: 1rem;
-    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
-    font-size: clamp(2.3rem, 4.5vw, 3.1rem);
+    display: block;
+    font-size: clamp(2rem, 4.5vw, 2.75rem);
     font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.02em;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
     color: var(--accent);
     transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .pdfcard-abbr-ghost {
-    position: absolute;
-    right: -0.06em;
-    top: 50%;
-    transform: translateY(-50%);
-    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
-    font-size: clamp(5.5rem, 11vw, 8rem);
-    font-weight: 800;
-    line-height: 1;
-    white-space: nowrap;
-    color: hsl(var(--ac) / 0.09);
-    pointer-events: none;
-    user-select: none;
-    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   .pdfcard:hover .pdfcard-abbr {
-    transform: translateX(5px);
+    transform: translateX(4px);
   }
-  .pdfcard:hover .pdfcard-abbr-ghost {
-    transform: translateY(-50%) translateX(-6px) scale(1.04);
+
+  /* === Command-line CTA with blinking cursor === */
+  .pdfcard-cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.05em;
+    margin-left: 0.15em;
+    transform: translateY(0.12em);
+    background: var(--accent);
+    animation: pdfcard-blink 1.1s step-end infinite;
+  }
+  @keyframes pdfcard-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    50.01%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pdfcard-cursor {
+      animation: none;
+      opacity: 0.8;
+    }
   }
 </style>

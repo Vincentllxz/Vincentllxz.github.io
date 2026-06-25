@@ -10,24 +10,24 @@ tags:
 language: "zh-TW"
 comment: true
 ---
-import { Aside } from 'astro-pure/user'
 import ChapterList from '../../../components/ChapterList.astro'
+import CourseIntro from '../../../components/CourseIntro.astro'
 
 # 作業系統 筆記 Operating System
 
-<Aside type="note" title="Operating System">
+<CourseIntro
+  course="Operating System"
+  courseZh="作業系統"
+  abbr="OS"
+  accent="350 72% 52%"
+  semester="2021 Spring"
+  teacher="林忠緯"
+  textbook="Operating System Concepts（恐龍書）"
+>
 
-- 作業系統
-- 2021 Spring 林忠緯 老師
+作業系統介紹現代 OS 的核心機制：行程與執行緒、CPU 排程、記憶體與虛擬記憶體管理、檔案系統，以及同步與並行控制。課程內容大致對應經典教材 OSC（恐龍書），這裡整理了我修課時的筆記。
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Operating System textbook cover
-  </span>
-</div>
-</Aside>
+</CourseIntro>
 
 
 ## Content

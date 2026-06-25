@@ -10,25 +10,25 @@ tags:
 language: "zh-TW"
 comment: true
 ---
-import { Aside } from 'astro-pure/user'
 import ChapterList from '../../../components/ChapterList.astro'
+import CourseIntro from '../../../components/CourseIntro.astro'
 
 # System Programming 系統程式設計
 
-<Aside type="note" title="About this course">
+<CourseIntro
+  course="System Programming"
+  courseZh="系統程式設計"
+  abbr="SP"
+  accent="217 85% 54%"
+  semester="2025 Fall"
+  teacher="鄭卜壬"
+  code="CSIE-2210"
+  textbook="Advanced Programming in the UNIX Environment (APUE)"
+>
 
-- System Programming 系統程式設計 CSIE-2210
-- 2025 Fall 鄭卜壬 老師
-- 圖片來自投影片 + 自己重畫
+系統程式設計聚焦在 UNIX / Linux 環境下，如何用 C 與系統呼叫直接和作業系統打交道：從檔案 I/O、行程與 IPC，到訊號處理與執行緒模型。課程內容大致對應經典教材 APUE，這裡整理了我修課時的筆記（圖片來自投影片 + 自己重畫）。
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     System Programming textbook cover
-  </span>
-</div>
-</Aside>
+</CourseIntro>
 
 
 ## Content

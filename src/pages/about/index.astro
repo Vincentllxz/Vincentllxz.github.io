@@ -52,8 +52,14 @@ const headings = [
           ) {
             tx = ((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * 7
             ty = ((r.top + r.height / 2 - e.clientY) / (r.height / 2)) * 6
-            glow.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%')
-            glow.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%')
+            glow.style.setProperty(
+              '--mx',
+              (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%'
+            )
+            glow.style.setProperty(
+              '--my',
+              (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%'
+            )
             glow.classList.add('glow-on')
           } else {
             tx = 0
@@ -67,58 +73,75 @@ const headings = [
     })()
   </script>
 
-  <section
-    class='mb-10 flex flex-col items-center gap-7 rounded-xl border bg-card/60 p-8 text-center shadow-lg md:flex-row md:text-left'
-  >
-    <div class='mx-auto shrink-0 rounded-full border-4 border-background/60 p-2 shadow-md md:mx-0'>
-      <Image
-        src={avatar}
-        alt='VinSong portrait'
-        class='h-40 w-40 rounded-full object-cover'
-        loading='eager'
-      />
+  <section class='about-window mb-10 overflow-hidden rounded-xl border bg-card/60 shadow-lg'>
+    {/* 視窗條：交通燈 + 檔名 + 徽章 */}
+    <div class='flex items-center gap-2 border-b bg-muted/50 px-4 py-2.5'>
+      <span class='flex items-center gap-1.5' aria-hidden='true'>
+        <span class='size-3 rounded-full' style='background:#ff5f56'></span>
+        <span class='size-3 rounded-full' style='background:#ffbd2e'></span>
+        <span class='size-3 rounded-full' style='background:#27c93f'></span>
+      </span>
+      <span class='flex-1 truncate text-center text-xs text-muted-foreground'>about/whoami.md</span>
+      <span class='text-xs font-semibold tracking-wide text-primary'>[ABOUT]</span>
     </div>
-    <div class='space-y-4'>
-      <div>
-        <p class='text-sm uppercase tracking-[0.3em] text-muted-foreground'>Hello, I am</p>
-        <h1 class='sr-only'>VinSong</h1>
-        {/* Compact cursive signature as the name — drawn-in, filled, with an
-            iridescent ink-glow + magnetic 3D tilt that follows the pointer. */}
-        <div class='about-signature' aria-hidden='true'>
-          <div class='about-signature-tilt'>
-            <svg class='about-signature-svg' viewBox='0 0 560 180'>
-              <text x='50%' y='126' text-anchor='middle' class='about-signature-text'>VinSong</text>
-            </svg>
-            <svg
-              class='about-signature-svg about-signature-glow-svg'
-              viewBox='0 0 560 180'
-              aria-hidden='true'
-            >
-              <defs>
-                <linearGradient id='sig-ink-about' x1='0%' y1='0%' x2='100%' y2='100%'>
-                  <stop offset='0%' stop-color='#a8dcea'></stop>
-                  <stop offset='55%' stop-color='#b3c4f2'></stop>
-                  <stop offset='100%' stop-color='#d9bdee'></stop>
-                </linearGradient>
-              </defs>
-              <text
-                x='50%'
-                y='126'
-                text-anchor='middle'
-                class='about-signature-text about-signature-glow-text'>VinSong</text
-              >
-            </svg>
-          </div>
-        </div>
-        <p class='text-muted-foreground'>NTU CSIE · Curious builder · Story collector</p>
+
+    <div class='flex flex-col items-center gap-7 p-8 text-center md:flex-row md:text-left'>
+      <div
+        class='mx-auto shrink-0 rounded-full border-4 border-background/60 p-2 shadow-md md:mx-0'
+      >
+        <Image
+          src={avatar}
+          alt='VinSong portrait'
+          class='h-40 w-40 rounded-full object-cover'
+          loading='eager'
+        />
       </div>
-      <p>
-        我是一個普通的台大資工學生，這裡記錄著我的日常以及修課心得，還有一些廢話和工具分享。如果你也對這些東西有興趣，歡迎一起交流！
-      </p>
-      <div class='flex flex-wrap items-center gap-3 text-sm text-muted-foreground'>
-        <span class='rounded-full border px-4 py-1'>Taiwan</span>
-        <span class='rounded-full border px-4 py-1'>Computer Science</span>
-        <span class='rounded-full border px-4 py-1'>Balloon</span>
+      <div class='space-y-4'>
+        <div>
+          <p class='text-sm uppercase tracking-[0.3em] text-muted-foreground'>Hello, I am</p>
+          <h1 class='sr-only'>VinSong</h1>
+          {
+            /* Compact cursive signature as the name — drawn-in, filled, with an
+            iridescent ink-glow + magnetic 3D tilt that follows the pointer. */
+          }
+          <div class='about-signature' aria-hidden='true'>
+            <div class='about-signature-tilt'>
+              <svg class='about-signature-svg' viewBox='0 0 560 180'>
+                <text x='50%' y='126' text-anchor='middle' class='about-signature-text'
+                  >VinSong</text
+                >
+              </svg>
+              <svg
+                class='about-signature-svg about-signature-glow-svg'
+                viewBox='0 0 560 180'
+                aria-hidden='true'
+              >
+                <defs>
+                  <linearGradient id='sig-ink-about' x1='0%' y1='0%' x2='100%' y2='100%'>
+                    <stop offset='0%' stop-color='#a8dcea'></stop>
+                    <stop offset='55%' stop-color='#b3c4f2'></stop>
+                    <stop offset='100%' stop-color='#d9bdee'></stop>
+                  </linearGradient>
+                </defs>
+                <text
+                  x='50%'
+                  y='126'
+                  text-anchor='middle'
+                  class='about-signature-text about-signature-glow-text'>VinSong</text
+                >
+              </svg>
+            </div>
+          </div>
+          <p class='text-muted-foreground'>NTU CSIE · Curious builder · Story collector</p>
+        </div>
+        <p>
+          我是一個普通的台大資工學生，這裡記錄著我的日常以及修課心得，還有一些廢話和工具分享。如果你也對這些東西有興趣，歡迎一起交流！
+        </p>
+        <div class='flex flex-wrap items-center gap-3 text-sm text-muted-foreground'>
+          <span class='rounded-full border px-4 py-1'>Taiwan</span>
+          <span class='rounded-full border px-4 py-1'>Computer Science</span>
+          <span class='rounded-full border px-4 py-1'>Balloon</span>
+        </div>
       </div>
     </div>
   </section>

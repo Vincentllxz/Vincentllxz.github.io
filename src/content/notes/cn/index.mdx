@@ -10,24 +10,24 @@ tags:
 language: "zh-TW"
 comment: true
 ---
-import { Aside } from 'astro-pure/user'
 import ChapterList from '../../../components/ChapterList.astro'
+import CourseIntro from '../../../components/CourseIntro.astro'
 
 # 計算機網路 筆記 Computer Networking
 
-<Aside type="note" title="Computer Networking">
+<CourseIntro
+  course="Computer Networking"
+  courseZh="計算機網路"
+  abbr="CN"
+  accent="145 60% 38%"
+  semester="2025 Fall"
+  teacher="逄愛君"
+  textbook="Computer Networking: A Top-Down Approach (Kurose & Ross)"
+>
 
-- 計算機網路
-- 2025 Fall 逄愛君 老師
+計算機網路以 top-down 的方式，從應用層一路往下談到網路層：涵蓋 HTTP、DNS 等應用協定，TCP / UDP 與可靠傳輸，以及網路層的資料平面與控制平面。教材為 Kurose & Ross 的 Computer Networking，這裡整理了我修課時的筆記。
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Computer Networking textbook cover
-  </span>
-</div>
-</Aside>
+</CourseIntro>
 
 
 ## Content
