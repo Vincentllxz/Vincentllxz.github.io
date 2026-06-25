@@ -61,6 +61,9 @@ const structuredData = {
 
   <main class='home-main flex w-full flex-col items-center'>
     <div class='home-intro-backdrop' aria-hidden='true'></div>
+    <div class='home-whoami' aria-hidden='true'>
+      <span class='home-whoami-text'></span><span class='home-whoami-caret'></span>
+    </div>
     <div class='home-scroll-hint' aria-hidden='true'>
       <span class='home-scroll-label'>scroll</span>
       <svg
@@ -168,10 +171,18 @@ const structuredData = {
             if (!r.width || !r.height) return
             const vw = window.innerWidth
             const vh = window.innerHeight
-            const scale = Math.max(1.15, Math.min((vw * 0.86) / r.width, (vh * 0.6) / r.height))
+            // Fit the signature to the site's content column (max-w-70rem + the
+            // header's responsive padding) so its left edge lines up with the bar.
+            const pad = vw >= 1024 ? 40 : vw >= 640 ? 28 : 16
+            const containerW = Math.min(vw, 1120)
+            const innerLeft = (vw - containerW) / 2 + pad
+            const innerW = containerW - pad * 2
+            const scale = Math.max(1.15, Math.min(innerW / r.width, (vh * 0.6) / r.height))
             sig.style.setProperty('--intro-tx', (vw / 2 - (r.left + r.width / 2)).toFixed(1) + 'px')
             sig.style.setProperty('--intro-ty', (vh / 2 - (r.top + r.height / 2)).toFixed(1) + 'px')
             sig.style.setProperty('--intro-scale', scale.toFixed(3))
+            // Align the typed prompt with the content column's left edge (= the bar).
+            main.style.setProperty('--wa-left', innerLeft.toFixed(1) + 'px')
             sig.style.position = 'relative'
             sig.style.zIndex = '9991'
             main.classList.add('intro')
@@ -203,6 +214,8 @@ const structuredData = {
               window.removeEventListener('touchmove', onTouchMove)
               window.removeEventListener('keydown', onKey)
               docEl.style.overflow = prevOverflow
+              // If the user scrolls before the signature has drawn, snap it in.
+              if (!main.classList.contains('sig-go')) main.classList.add('sig-instant')
               main.classList.add('entering')
               window.setTimeout(() => {
                 sig.style.removeProperty('z-index')
@@ -211,8 +224,40 @@ const structuredData = {
                 if (backdrop) backdrop.remove()
                 const hint = main.querySelector('.home-scroll-hint')
                 if (hint) hint.remove()
+                const wa = main.querySelector('.home-whoami')
+                if (wa) wa.remove()
               }, 1100)
             }
+
+            // Opening sequence: type `vinsong@blog:~$ whoami` top-left, then the
+            // signature draws in the centre (as if it were whoami's answer).
+            const waEl = main.querySelector('.home-whoami')
+            const waText = waEl && waEl.querySelector('.home-whoami-text')
+            const PROMPT = 'vinsong@blog:~$ '
+            const FULL = PROMPT + 'whoami'
+            let ti = 0
+            const typeStep = () => {
+              if (entered) return
+              ti++
+              if (waText) {
+                const ps = FULL.slice(0, Math.min(ti, PROMPT.length))
+                const cmd = ti > PROMPT.length ? FULL.slice(PROMPT.length, ti) : ''
+                waText.innerHTML =
+                  '<span class="wa-ps">' + ps + '</span><span class="wa-cmd">' + cmd + '</span>'
+              }
+              if (ti < FULL.length) {
+                window.setTimeout(typeStep, 48)
+              } else {
+                window.setTimeout(() => {
+                  if (!entered) main.classList.add('sig-go')
+                }, 300)
+                window.setTimeout(() => {
+                  if (!entered) main.classList.add('hint-go')
+                }, 1700)
+              }
+            }
+            window.setTimeout(typeStep, 320)
+
             window.addEventListener('wheel', onWheel, { passive: true })
             window.addEventListener('touchstart', onTouchStart, { passive: true })
             window.addEventListener('touchmove', onTouchMove, { passive: true })
@@ -448,8 +493,8 @@ const structuredData = {
     stroke-dasharray: 1400;
     stroke-dashoffset: 1400;
     animation:
-      home-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
-      home-signature-fill 0.55s ease-out 2.05s forwards;
+      home-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards,
+      home-signature-fill 0.35s ease-out 1.15s forwards;
   }
   @keyframes home-signature-draw {
     to {
@@ -464,6 +509,8 @@ const structuredData = {
 
   /* Iridescent-ink layer, revealed through a cursor-following radial mask. */
   .home-signature-glow-svg {
+    /* blue iridescent ink-glow removed per request */
+    display: none;
     position: absolute;
     inset: 0;
     opacity: 0;
@@ -490,8 +537,8 @@ const structuredData = {
     stroke: url(#sig-ink);
     stroke-width: 1.7;
     animation:
-      home-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
-      home-signature-glow-fill 0.55s ease-out 2.05s forwards;
+      home-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards,
+      home-signature-glow-fill 0.35s ease-out 1.15s forwards;
   }
   @keyframes home-signature-glow-fill {
     to {
@@ -560,6 +607,75 @@ const structuredData = {
     transform-origin: 50% 50%;
     transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px)) scale(var(--intro-scale, 1));
   }
+  /* While `whoami` is typing, hold the signature hidden (no draw, no fill). */
+  .home-main.intro .home-signature-text,
+  .home-main.intro .home-signature-glow-text {
+    animation: none;
+    stroke-dashoffset: 1400;
+    fill: transparent;
+  }
+  /* whoami finished → draw the signature (fast). JS controls the trigger. */
+  .home-main.intro.sig-go .home-signature-text {
+    animation:
+      home-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0s forwards,
+      home-signature-fill 0.35s ease-out 1s forwards;
+  }
+  .home-main.intro.sig-go .home-signature-glow-text {
+    animation:
+      home-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0s forwards,
+      home-signature-glow-fill 0.35s ease-out 1s forwards;
+  }
+  /* Scrolled before the draw played → snap it in, filled. */
+  .home-main.intro.sig-instant .home-signature-text {
+    animation: none;
+    stroke-dashoffset: 0;
+    fill: currentColor;
+  }
+  .home-main.intro.sig-instant .home-signature-glow-text {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  /* Opening: typed `vinsong@blog:~$ whoami` at the top-left of the gate. */
+  .home-whoami {
+    display: none;
+  }
+  .home-main.intro .home-whoami {
+    display: block;
+    position: fixed;
+    top: clamp(4.5rem, 9vh, 6rem);
+    left: var(--wa-left, clamp(1.5rem, 7vw, 6rem));
+    z-index: 9992;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
+    letter-spacing: 0.02em;
+    color: hsl(var(--foreground) / 0.85);
+    pointer-events: none;
+  }
+  .home-whoami .wa-ps {
+    color: #3fb950;
+  }
+  .home-whoami .wa-cmd {
+    color: hsl(var(--foreground));
+  }
+  .home-whoami-caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.05em;
+    margin-left: 1px;
+    transform: translateY(0.18em);
+    background: #56d4dd;
+    animation: home-wa-blink 1.05s steps(1, end) infinite;
+  }
+  @keyframes home-wa-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .home-main.intro.entering .home-whoami {
+    animation: home-intro-fade 0.5s ease-out forwards;
+  }
+
   /* Scrolled down → it shrinks back into the page flow. */
   .home-main.intro.entering .home-signature {
     animation: home-sig-shrink 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.05s forwards;
@@ -585,7 +701,7 @@ const structuredData = {
   .home-scroll-hint {
     display: none;
   }
-  .home-main.intro .home-scroll-hint {
+  .home-main.intro.hint-go .home-scroll-hint {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -597,7 +713,7 @@ const structuredData = {
     z-index: 9992;
     color: hsl(var(--foreground) / 0.6);
     pointer-events: none;
-    animation: home-hint-in 0.8s ease-out 2.2s backwards;
+    animation: home-hint-in 0.6s ease-out 0.05s backwards;
   }
   .home-scroll-label {
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;

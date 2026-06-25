@@ -391,8 +391,8 @@ const headings = [
     stroke-dasharray: 1400;
     stroke-dashoffset: 1400;
     animation:
-      about-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
-      about-signature-fill 0.55s ease-out 2.05s forwards;
+      about-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards,
+      about-signature-fill 0.35s ease-out 1.15s forwards;
   }
   @keyframes about-signature-draw {
     to {
@@ -407,6 +407,8 @@ const headings = [
 
   /* Iridescent-ink layer, revealed through a cursor-following radial mask. */
   .about-signature-glow-svg {
+    /* blue iridescent ink-glow removed per request */
+    display: none;
     position: absolute;
     inset: 0;
     opacity: 0;
@@ -433,8 +435,8 @@ const headings = [
     stroke: url(#sig-ink-about);
     stroke-width: 1.7;
     animation:
-      about-signature-draw 2s cubic-bezier(0.65, 0, 0.35, 1) 0.25s forwards,
-      about-signature-glow-fill 0.55s ease-out 2.05s forwards;
+      about-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards,
+      about-signature-glow-fill 0.35s ease-out 1.15s forwards;
   }
   @keyframes about-signature-glow-fill {
     to {

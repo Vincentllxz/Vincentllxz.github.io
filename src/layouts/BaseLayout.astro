@@ -24,6 +24,13 @@ const {
 <html lang={config.locale.lang}>
   <head>
     <BaseHead {articleDate} {description} {ogImage} {title} />
+    {/* Default to dark for first-time visitors (no saved preference yet). Must
+        run before ThemeProvider's inline script, which reads this value. */}
+    <script is:inline>
+      try {
+        if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark')
+      } catch (e) {}
+    </script>
     <ThemeProvider />
     {/* Scroll-reveal: reveal children of [data-reveal] as they enter the viewport. */}
     <script is:inline>
