@@ -506,6 +506,25 @@ const structuredData = {
       fill: currentColor;
     }
   }
+  /* Gate-only duplicates: distinct names so adding `.sig-go` always (re)triggers
+     the draw, even though the base rule already ran an identically-named
+     animation before JS booted. */
+  @keyframes home-siggo-draw {
+    from {
+      stroke-dashoffset: 1400;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes home-siggo-fill {
+    from {
+      fill: transparent;
+    }
+    to {
+      fill: currentColor;
+    }
+  }
 
   /* Iridescent-ink layer, revealed through a cursor-following radial mask. */
   .home-signature-glow-svg {
@@ -594,18 +613,34 @@ const structuredData = {
     position: fixed;
     inset: 0;
     z-index: 9990;
-    background: var(--background);
+    /* Pure-black opening; scrolling fades it away to reveal the purple-black page. */
+    background: #000;
     pointer-events: none;
   }
   /* Scrolled down → the cover fades away. */
   .home-main.intro.entering .home-intro-backdrop {
-    animation: home-intro-fade 0.7s ease-out 0.1s forwards;
+    animation: home-intro-fade 0.9s ease-out 0.1s forwards;
+  }
+
+  /* The signature lives inside #content-header, which carries the theme's
+     `.animate` (fade-in-up ends on `transform: translateY(0)`, kept by
+     fill-mode: forwards). That transform makes #content-header a stacking
+     context, trapping the signature's z-index *below* the black backdrop —
+     so it only appears once the cover fades on scroll. Neutralize it while
+     the gate is up so the signature can paint above the cover. */
+  .home-main.intro #content-header {
+    opacity: 1;
+    transform: none;
+    animation: none;
   }
 
   /* During the gate the signature is held full-screen (JS-measured transform). */
   .home-main.intro .home-signature {
     transform-origin: 50% 50%;
     transform: translate(var(--intro-tx, 0px), var(--intro-ty, 0px)) scale(var(--intro-scale, 1));
+    /* The cover is pure black regardless of theme, so the ink (currentColor)
+       must be light or it draws black-on-black and never shows. */
+    color: #f4f5f7;
   }
   /* While `whoami` is typing, hold the signature hidden (no draw, no fill). */
   .home-main.intro .home-signature-text,
@@ -614,16 +649,11 @@ const structuredData = {
     stroke-dashoffset: 1400;
     fill: transparent;
   }
-  /* whoami finished → draw the signature (fast). JS controls the trigger. */
+  /* whoami finished → draw the signature (fast). JS adds `.sig-go`. */
   .home-main.intro.sig-go .home-signature-text {
     animation:
-      home-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0s forwards,
-      home-signature-fill 0.35s ease-out 1s forwards;
-  }
-  .home-main.intro.sig-go .home-signature-glow-text {
-    animation:
-      home-signature-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0s forwards,
-      home-signature-glow-fill 0.35s ease-out 1s forwards;
+      home-siggo-draw 1s cubic-bezier(0.65, 0, 0.35, 1) 0s forwards,
+      home-siggo-fill 0.35s ease-out 1s forwards;
   }
   /* Scrolled before the draw played → snap it in, filled. */
   .home-main.intro.sig-instant .home-signature-text {
@@ -679,6 +709,10 @@ const structuredData = {
   /* Scrolled down → it shrinks back into the page flow. */
   .home-main.intro.entering .home-signature {
     animation: home-sig-shrink 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.05s forwards;
+    /* As the black cover fades, fade the ink back to the theme foreground
+       (currentColor drives the SVG fill, so it follows live). */
+    transition: color 0.7s ease-out;
+    color: hsl(var(--foreground));
   }
   @keyframes home-sig-shrink {
     from {
