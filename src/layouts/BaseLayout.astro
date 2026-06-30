@@ -3,6 +3,7 @@ import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import BaseHead from '@/components/BaseHead.astro'
 import RichBlocks from '@/components/RichBlocks.astro'
+import CourseRatingBars from '@/components/CourseRatingBars.astro'
 import config from '@/site-config'
 
 // Import the global.css file here so that it is included on
@@ -94,6 +95,7 @@ const {
     </div>
 
     <RichBlocks />
+    <CourseRatingBars />
 
     {/* Mark the current page's nav link — powers the active underline in the header. */}
     <script is:inline>

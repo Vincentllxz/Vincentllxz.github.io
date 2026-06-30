@@ -79,53 +79,217 @@ a {
   }
 }
 
-/* Legacy content helper blocks */
+/* Terminal-style collapsible note boxes (info / warning).
+   A real dark terminal surface in BOTH light and dark site themes — that flat
+   near-black panel is what reads as "terminal", not the pastel theme tints.
+   Classic prompt colors: green for info, amber for warning, light-grey body,
+   terminal-blue links; a block cursor blinks at the line end while open. */
 details.info-box,
 details.warning-box {
-  color: hsl(var(--foreground) / 0.92) !important;
-  background: hsl(var(--muted) / 0.6) !important;
-  border-radius: 12px !important;
-  border-left: 5px solid hsl(var(--border) / 1) !important;
-  backdrop-filter: blur(16px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
-  padding: 16px 20px !important;
+  --box-accent: #8b949e;
+  color: #c9d1d9 !important;
+  background: #0d1117 !important;
+  border: 1px solid #30363d !important;
+  border-left: 3px solid var(--box-accent) !important;
+  border-radius: 8px !important;
+  padding: 12px 18px !important;
   margin: 1.25em 0 !important;
 }
 details.info-box {
-  background: linear-gradient(
-      120deg,
-      hsl(var(--info) / 0.28),
-      hsl(var(--info) / 0.08)
-    ) !important;
-  border-left-color: hsl(var(--info) / 0.85) !important;
+  --box-accent: #a371f7; /* terminal purple */
 }
 details.warning-box {
-  background: linear-gradient(
-      120deg,
-      hsl(var(--warning) / 0.3),
-      hsl(var(--warning) / 0.1)
-    ) !important;
-  border-left-color: hsl(var(--warning) / 0.85) !important;
+  --box-accent: #e3b341; /* terminal amber */
 }
-details.info-box summary,
-details.warning-box summary {
-  color: hsl(var(--foreground) / 0.95) !important;
-}
-details.info-box summary::before {
-  color: hsl(var(--info) / 0.95) !important;
-}
-details.warning-box summary::before {
-  color: hsl(var(--warning) / 0.95) !important;
+/* Links inside the dark panel: terminal blue, readable on near-black. */
+details.info-box a,
+details.warning-box a {
+  color: #58a6ff !important;
 }
 
+/* Prompt header line */
+details.info-box > summary,
+details.warning-box > summary {
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #e6edf3 !important;
+  padding-inline-start: 0 !important;
+}
+/* `vinsong@blog:~$ ` prompt; replaces the global ▶ and cancels its rotate. */
+details.info-box > summary::before,
+details.warning-box > summary::before {
+  content: 'vinsong@blog:~$ ' !important;
+  white-space: pre;
+  position: static !important;
+  color: var(--box-accent) !important;
+  font-weight: 700;
+  transform: none !important;
+}
+/* Block cursor at the line end — blinks from the start, open or closed. */
+details.info-box > summary::after,
+details.warning-box > summary::after {
+  content: '▍';
+  margin-inline-start: 0.1em;
+  color: var(--box-accent);
+  animation: term-cursor-blink 1.1s step-end infinite;
+}
+@keyframes term-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Course info card — styled as a terminal window: a title bar with traffic
+   lights + filename, a near-black body, and the key/values as a mono readout
+   ending in a shell prompt. Always dark (matches the note boxes & PDFCard).
+   Ratings stay as text on purpose — several are deliberately out of range
+   (涼度 200/5, 收穫 3000, 甜度（待補）…) and bars would clamp the joke away. */
 .course-info-card {
-  color: hsl(var(--foreground) / 0.95) !important;
-  background: hsl(var(--muted) / 0.75) !important;
-  border: 1px solid hsl(var(--border) / 1) !important;
-  border-radius: 16px !important;
-  box-shadow: none !important;
-  backdrop-filter: blur(12px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+  position: relative;
+  color: #c9d1d9 !important;
+  background: #0d1117 !important;
+  border: 1px solid #30363d !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(1, 4, 9, 0.45) !important;
+  padding: 3rem 1.3rem 1.15rem !important; /* top room for the title bar */
+  margin: 1.5em 0 !important;
+  overflow: hidden;
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+}
+/* Title bar: muted strip, three traffic-light dots, centered filename. */
+.course-info-card::before {
+  content: 'course/info.md';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #161b22;
+  background-image: radial-gradient(circle 5px at 18px 50%, #ff5f56 98%, transparent 100%),
+    radial-gradient(circle 5px at 36px 50%, #ffbd2e 98%, transparent 100%),
+    radial-gradient(circle 5px at 54px 50%, #27c93f 98%, transparent 100%);
+  border-bottom: 1px solid #30363d;
+  color: #8b949e;
+  font-size: 0.8rem;
+}
+/* `vinsong@blog:~$ cat info.md` command line injected by CourseRatingBars.astro
+   above the readout. Coloured per part: green user@host, blue `~` path, muted
+   punctuation. */
+.course-info-card .course-cmd-line {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #c9d1d9;
+  margin-bottom: 0.7rem;
+}
+.course-info-card .course-cmd-line .u {
+  color: #3fb950;
+}
+.course-info-card .course-cmd-line .p {
+  color: #58a6ff;
+}
+.course-info-card .course-cmd-line .o {
+  color: #8b949e;
+}
+.course-info-card .course-cmd-line .f {
+  color: #8b949e;
+  font-weight: 600;
+}
+.course-info-card ul {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.1rem 1.5rem;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  font-size: 0.9rem;
+}
+@media (min-width: 640px) {
+  .course-info-card ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.course-info-card li {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-weight: 600;
+  color: #e6edf3;
+  font-variant-numeric: tabular-nums;
+}
+/* Loose markdown wraps each item in <p>; strip its margins to tighten rows. */
+.course-info-card li > p {
+  margin: 0 !important;
+  line-height: 1.5;
+}
+.course-info-card li::marker {
+  content: '';
+}
+/* The bold markdown label (e.g. `授課教授：`) reads as a quiet inline caption. */
+.course-info-card li strong {
+  font-weight: 400;
+  color: #8b949e !important;
+}
+/* Links inside the dark panel: terminal blue. */
+.course-info-card a {
+  color: #58a6ff !important;
+}
+/* Rating bar (甜度 / 涼度 / 收穫): 5 segments, filled green, empty grey.
+   Injected by CourseRatingBars.astro; the numeric text follows it. */
+.course-info-card .rating-bar {
+  display: inline-flex;
+  gap: 3px;
+  margin-inline-end: 0.5rem;
+  vertical-align: middle;
+}
+.course-info-card .rating-bar i {
+  width: 13px;
+  height: 8px;
+  border-radius: 2px;
+  background: #30363d;
+}
+.course-info-card .rating-bar i.on {
+  background: #3fb950;
+  box-shadow: 0 0 5px rgba(63, 185, 80, 0.45);
+}
+/* "Boom" overload bar for ratings above 5 — all segments hot red, glowing and
+   jittering, capped with a 💥. */
+.course-info-card .rating-bar.boom i {
+  background: #f85149;
+  box-shadow: 0 0 7px rgba(248, 81, 73, 0.65);
+  animation: rating-boom 0.5s ease-in-out infinite alternate;
+}
+.course-info-card .rating-bar.boom i:nth-child(2) {
+  animation-delay: 0.06s;
+}
+.course-info-card .rating-bar.boom i:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.course-info-card .rating-bar.boom i:nth-child(4) {
+  animation-delay: 0.18s;
+}
+.course-info-card .rating-bar.boom i:nth-child(5) {
+  animation-delay: 0.24s;
+}
+.course-info-card .rating-bar .boom-mark {
+  margin-inline-start: 4px;
+  font-size: 0.9rem;
+  line-height: 1;
+  animation: rating-boom 0.5s ease-in-out infinite alternate;
+}
+@keyframes rating-boom {
+  from {
+    transform: translateY(0.5px) scaleY(0.9);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(-1px) scaleY(1.15);
+    opacity: 1;
+  }
 }
 
 figure figcaption,

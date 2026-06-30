@@ -1,0 +1,81 @@
+---
+// Terminal dressing for `.course-info-card`:
+//  • prepends a `vinsong@blog:~$ cat info.md` command line (coloured spans —
+//    green user, blue `~` path — which a CSS pseudo-element can't do).
+//  • turns the rating rows (甜度 / 涼度 / 收穫) into a 5-segment bar. A value
+//    in [1, 5] fills that many segments; < 1 or non-numeric renders empty;
+//    anything > 5 (涼度 200/5, 收穫 3000…) gets the "boom" overload bar.
+// The original text is kept after each bar so the joke values still read.
+// No-op on pages without a course-info-card.
+---
+
+<script is:inline>
+  ;(() => {
+    const RATING_LABELS = ['甜度', '涼度', '收穫']
+    const SEGMENTS = 5
+
+    const ratingState = (value) => {
+      const m = value.match(/-?\d+(?:\.\d+)?/)
+      if (!m) return { type: 'empty' }
+      const n = parseFloat(m[0])
+      if (!Number.isFinite(n)) return { type: 'empty' }
+      if (n > SEGMENTS) return { type: 'boom' }
+      if (n < 1) return { type: 'empty' }
+      return { type: 'fill', filled: Math.round(n) }
+    }
+
+    const buildBar = (state) => {
+      const bar = document.createElement('span')
+      bar.className = 'rating-bar' + (state.type === 'boom' ? ' boom' : '')
+      bar.setAttribute('aria-hidden', 'true')
+      for (let i = 0; i < SEGMENTS; i++) {
+        const seg = document.createElement('i')
+        if (state.type === 'boom' || (state.type === 'fill' && i < state.filled)) seg.className = 'on'
+        bar.appendChild(seg)
+      }
+      if (state.type === 'boom') {
+        const mark = document.createElement('span')
+        mark.className = 'boom-mark'
+        mark.textContent = '💥'
+        bar.appendChild(mark)
+      }
+      return bar
+    }
+
+    // `vinsong@blog:~$ ` prompt as coloured spans, optionally with a command.
+    const promptHTML = (tail) =>
+      '<span class="u">vinsong@blog</span><span class="o">:</span>' +
+      '<span class="p">~</span><span class="o">$</span> ' +
+      tail
+
+    const decorateCard = (card) => {
+      if (card.dataset.termDone) return
+      card.dataset.termDone = '1'
+
+      const head = document.createElement('div')
+      head.className = 'course-cmd-line'
+      head.innerHTML = promptHTML('cat <span class="f">info.md</span>')
+      card.insertBefore(head, card.firstChild)
+    }
+
+    const decorateRating = (li) => {
+      if (li.dataset.barDone) return
+      const strong = li.querySelector('strong')
+      if (!strong) return
+      const label = strong.textContent || ''
+      if (!RATING_LABELS.some((l) => label.includes(l))) return
+
+      const value = (li.textContent || '').slice((strong.textContent || '').length).trim()
+      li.dataset.barDone = '1'
+      strong.insertAdjacentElement('afterend', buildBar(ratingState(value)))
+    }
+
+    const run = () => {
+      document.querySelectorAll('.course-info-card').forEach(decorateCard)
+      document.querySelectorAll('.course-info-card li').forEach(decorateRating)
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run)
+    else run()
+  })()
+</script>
