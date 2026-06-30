@@ -1,6 +1,7 @@
 ---
-// A numbered chapter index with a progress bar, for course-note table-of-contents pages.
-// Chapters without an `href` render as muted "整理中" (work-in-progress) rows.
+// A terminal-style `ls` listing for course-note table-of-contents pages, matching
+// CourseIntro's window aesthetic. Chapters without an `href` render as muted
+// "整理中" (work-in-progress) rows.
 interface Chapter {
   n: number
   title: string
@@ -9,72 +10,124 @@ interface Chapter {
 
 interface Props {
   chapters: Chapter[]
+  /** Accent color as an hsl triple `H S% L%` — defaults to terminal blue. */
+  accent?: string
 }
 
-const { chapters } = Astro.props
+const { chapters, accent = '217 85% 54%' } = Astro.props
 const done = chapters.filter((c) => c.href).length
 const total = chapters.length
-const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+
+// Done chapters reuse their real URL slug; WIP ones get a generated filename.
+const fileName = (c: Chapter) =>
+  c.href
+    ? `${c.href.split('/').filter(Boolean).pop() ?? ''}.md`
+    : `ch${String(c.n).padStart(2, '0')}-${slug(c.title)}.md`
 ---
 
-<div class='not-prose my-7'>
-  {/* Progress summary */}
-  <div class='mb-5 rounded-2xl border bg-card p-4 sm:p-5'>
-    <div class='flex items-baseline justify-between'>
-      <span class='text-sm font-semibold text-foreground'>章節進度</span>
-      <span class='text-sm text-muted-foreground'>{done} / {total} 章</span>
-    </div>
-    <div class='mt-3 h-2 overflow-hidden rounded-full bg-muted'>
-      <div class='h-full rounded-full bg-primary' style={`width:${pct}%`}></div>
-    </div>
+<div
+  class='chapterlist not-prose my-7 overflow-hidden rounded-xl border bg-card font-mono text-sm shadow-sm'
+  style={`--ac: ${accent}`}
+>
+  {/* 命令 + 進度（每個方塊代表一章） */}
+  <div class='space-y-1 border-b px-4 py-3 sm:px-5'>
+    <p>
+      <span class='cl-dollar'>$</span> <span class='cl-cmd'>ls</span> ch*/
+    </p>
+    <p class='text-muted-foreground'>
+      <span class='cl-slash'>//</span> {done} / {total} done{' '}
+      <span class='cl-bar'>
+        <span class='cl-bar-on'>{'█'.repeat(done)}</span><span class='cl-bar-off'>{
+          '░'.repeat(total - done)
+        }</span>
+      </span>
+    </p>
   </div>
 
-  {/* Chapter rows */}
-  <ol class='flex flex-col gap-2.5'>
+  {/* 檔案樹 */}
+  <ol class='px-2 py-2 sm:px-3'>
     {
-      chapters.map((c) => {
-        const Element = c.href ? 'a' : 'div'
+      chapters.map((c, i) => {
+        const Tag = c.href ? 'a' : 'div'
+        const last = i === chapters.length - 1
         return (
           <li>
-            <Element
+            <Tag
               href={c.href}
               data-astro-prefetch={c.href ? true : undefined}
               class:list={[
-                'group flex items-center gap-4 rounded-2xl border px-4 py-3 transition-all',
-                c.href
-                  ? 'bg-background hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md hover:shadow-primary/10'
-                  : 'bg-muted/40 opacity-70'
+                'cl-row group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors',
+                c.href ? 'cl-row-link' : 'cl-row-wip'
               ]}
             >
-              <span
-                class:list={[
-                  'flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold',
-                  c.href ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                ]}
-              >
-                {c.n}
-              </span>
-              <span
-                class:list={[
-                  'min-w-0 grow truncate font-medium',
-                  c.href ? 'text-foreground group-hover:text-primary' : 'text-muted-foreground'
-                ]}
-              >
+              <span class='cl-tree shrink-0 text-muted-foreground'>{last ? '└─' : '├─'}</span>
+              <span class='cl-name min-w-0 truncate text-foreground'>{fileName(c)}</span>
+              <span class='grow' />
+              <span class='cl-title hidden max-w-[42%] truncate text-xs text-muted-foreground sm:block'>
                 {c.title}
               </span>
               {c.href ? (
-                <span class='shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1'>
-                  →
-                </span>
+                <span class='cl-ok shrink-0'>✓</span>
               ) : (
-                <span class='shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground'>
-                  整理中
-                </span>
+                <span class='shrink-0 text-muted-foreground'>···</span>
               )}
-            </Element>
+            </Tag>
           </li>
         )
       })
     }
   </ol>
 </div>
+
+<style>
+  .chapterlist {
+    --accent: hsl(var(--ac));
+  }
+  /* Lift the accent in dark mode so mid-lightness hues stay readable. */
+  :global(html.dark) .chapterlist {
+    --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
+  }
+  .cl-dollar {
+    color: hsl(var(--muted-foreground));
+  }
+  .cl-cmd {
+    color: #d9b54a;
+  }
+  :global(html.dark) .cl-cmd {
+    color: #f1d370;
+  }
+  .cl-slash,
+  .cl-bar-on,
+  .cl-ok {
+    color: var(--accent);
+  }
+  .cl-bar {
+    letter-spacing: 0.08em;
+  }
+  .cl-bar-off {
+    color: hsl(var(--muted-foreground) / 0.4);
+  }
+
+  /* Rows */
+  .cl-row-wip {
+    opacity: 0.6;
+  }
+  .cl-row-link:hover {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  .cl-row-link:hover .cl-name {
+    color: var(--accent);
+  }
+  .cl-ok {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cl-row-link:hover .cl-ok {
+    transform: translateX(4px);
+  }
+</style>

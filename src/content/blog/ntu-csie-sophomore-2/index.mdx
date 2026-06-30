@@ -1,7 +1,7 @@
 ---
 title: "台大資工大二下 修課心得"
 description: "記錄台大資工大二下的修課心得"
-publishDate: "2026-06-08 00:00:00"
+publishDate: "2026-06-30 11:43:52"
 tags:
   - "修課心得"
   - "NTU"
@@ -9,7 +9,7 @@ tags:
 language: "zh-TW"
 heroImage: { src: './back.png', color: '#4891B2' }
 comment: true
-draft: true
+draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
 import PDFCard from '../../../components/PDFCard.astro';
@@ -75,7 +75,7 @@ import PDFCard from '../../../components/PDFCard.astro';
 
 </div>
 
-（待補）
+中規中矩的系統課，我自己是蠻喜歡這門課，感覺我學到很多東西，內容基本上就是把 SP 更能夠串起來，有很多底層相關的知識，這學期我讀得特別認真，以下附上筆記
 
 <PDFCard
   title="Operating System"
@@ -83,6 +83,41 @@ import PDFCard from '../../../components/PDFCard.astro';
   href="/notes/os"
   type="note"
 />
+
+內容包括各種系統知識包括 Scheduler, Memory Management, File System, I/O, Virtual Memory, Process, Thread, Synchronization 等等（沒教 deadlock 很詭異），忠緯上課就是可以把很複雜的東西講的很簡單，很愛他，但這門課很特別的地方是兩班的 COOL 是共用的，所以可以同時看到施吉昇的 PPT，也可以看到他的錄影，想上哪一班可以自己決定
+
+<details class="warning-box">
+<summary> <b>&nbsp;關於 老師</b></summary>
+
+其實我本來應該是巫芳璟班，但因為我一看那個 PPT 完全就是忠緯風 PPT，所以我就去網路上狂翻忠緯的[上課錄影](https://www.youtube.com/watch?v=twAAfDolt5w&list=PLtTRnIHwzzdCzLN_WgEeNJ3K_qV6bD2ip)，所以我其實一堂課也沒去過，認真一堂課也沒去過，連第一堂課都沒有，所以我無法對巫芳璟的教學給出任何評價，但這樣上課有一個小小的壞處是每年的教材都有一點小小的更動，比如說因為近年來都是施吉昇主導考試，所以會考一些實作細節的東西，比如說實際去計算 CFS 的排程，這個在忠緯的課裡面沒有強調，所以要特別注意
+
+</details>
+
+<details class="info-box">
+<summary> <b>&nbsp;關於 小趣事</b></summary>
+
+施吉昇是我的導師（很愛他，每次都有導生宴），因為今年是我負責導生宴我一直想寫信給他，但他本來一直不回我，害我直接衝到期中考跟他要導生宴名單。~~很開心是導生宴有被老師誇考很好~~
+
+</details>
+
+這門課分數算法是
+- Midterm	    28\%
+- Final Exam	28\%
+- MPs	        44\%
+
+MP 是 machine problem 的意思，一共有四個 MP，MP 的部分是用 xv6 作業系統，基本上就是把一個簡單的作業系統給你，然後你要去實作一些功能，file system, slab 之類的東西，xv6 是一個 MIT 的幾個教授為了他們的 OS 課寫的一個簡化版作業系統，他們甚至為此寫了一個[教學](https://pdos.csail.mit.edu/6.828/2021/xv6/book-riscv-rev2.pdf)，四次作業都不難，基本上 100\~200 行就結束了，但 spec 真的完全 AI 寫的，一堆無意義的 emoji，我真的看不懂
+
+最後還有一個 bonus 作業，是要在 NTU COOL 上回答同學的問題，聽說之前是有回答就加一個等地，我回答了好多好多，~~但不知道是不是因為本來就 A+~~，我拿 0 分，很過分。兩次考試的話，我覺得都比去年的考古題難了不少，兩次考試都在綜合大講堂考試，內容就是先出一堆定義題，然後出一堆解釋題，然後出一堆計算題，兩次都是這樣，我自己兩次都考得還不錯（我覺得我的筆記很有用），我自己兩次考試一次 95+, 一次 85+，作業全拿，這樣是 A+
+
+總之，上完這門課，你可以更了解你平常在寫 code 裡面寫的那些 function 到底在底層是怎麼運作的，為啥某些方法寫完明明數學上不會有複雜度差別，但實際寫下來就是會複雜度爆炸。
+
+<details class="warning-box">
+<summary> <b>&nbsp;關於 期末考</b></summary>
+
+1. 期末考的時候非常誇張，綜合大講堂開考五分鐘直接停電，超級爆炸熱又爆炸暗，根本沒辦法考試，而且我後面還要監考 DSA，所以我最後一大題的 CFS 根本隨便亂填幾個數字就直接出來了，根本待不下去
+2. 期末考之前我撇了一下旁邊的人在做啥，然後我看到旁邊的人在看手機，我細看了一下發現他居然是在看我的筆記，然後我根本不認識那個人？？？？？
+
+</details>
 
 ### 機率
 
@@ -224,7 +259,7 @@ import PDFCard from '../../../components/PDFCard.astro';
 4. 如何做一些特殊的 Matrix Decomposition
 5. 如何超神速做 Matrix Computation
 
-因為老師的本業是在做 ML 的基礎算法、軟體開發，所以這門可課就是他的本業，其實這門科目就像是在學如何在軟體、算法層面做優化，但這門科目說實話是一個在 CS 裡面算非常古老的學科（跟 AI 們比），所以上的東西可能就沒有像 Agent, Diffusion, LLM 那麼炫砲，但我自己是覺得這門課挺有趣的，而且很多東西都能夠應用到現代的 Efficient ML 優化上，比如說 [block algorithm](https://vinsong.csie.org/pdf/NumericalMethod.pdf) 筆記第三章 BLAS 的其中一個做法，本質上是把矩陣拆開來做相乘，就可以減少 cache miss 或者說 page fault 的次數，來加速整個計算的過程，這些東西在近期有一個叫 flash attention 的東西，就是用這個原理來對 attention layer 做優化，來加速整個 transformer 的計算過程，這些東西雖然老，但我覺得種點是要學會他的 intuition，才能把它套用在你的 research 上。
+因為老師的本業是在做 ML 的基礎算法、軟體開發，所以這門可課就是他的本業，其實這門科目就像是在學如何在軟體、算法層面做優化，但這門科目說實話是一個在 CS 裡面算非常古老的學科（跟 AI 們比），所以上的東西可能就沒有像 Agent, Diffusion, LLM 那麼炫砲，但我自己是覺得這門課挺有趣的，而且很多東西都能夠應用到現代的 Efficient ML 優化上，比如說 [block algorithm](https://vinsong.csie.org/pdf/NumericalMethod.pdf) 筆記第三章 BLAS 的其中一個做法，本質上是把矩陣拆開來做相乘，就可以減少 cache miss 或者說 page fault 的次數，來加速整個計算的過程，這些東西在近期有一個叫 flash attention 的東西，就是用這個原理來對 attention layer 做優化，來加速整個 transformer 的計算過程，這些東西雖然老，但我覺得種點是要學會他的 intuition，才能把它套用在你的 research 上。比較可惜的是老師的專精是 ML，所以這門課沒有提到 ODE, PDE, Integration 的 Numerical Method
 
 回歸正題，這門課就是 CJ 老三件套
 1. Ranking 算等地
@@ -319,7 +354,32 @@ $$
 
 </div>
 
-老師教很多統計的相關知識，我覺得了解的大部分是因為
+老師教很多統計的相關知識，畢竟是叫做「跨領域」，課程設計肯定要更貼合所有學院的平均，我覺得課程大部分內容有點太簡單，我自己在這門課學最多東西是在我自己做 final project 的時候，老師上課的內容大概就是隔壁農藝系統計學，把數學部分跳過或省略，詳細可以參考課程網，畢竟是跨領域的通識課，所以計分方式有兩種給大家選
+1. 通識組：
+  - Assignment 40%
+  - Final Project 50%
+  - Participation 10%
+2. 研究組：
+  - Midterm Score of Final Project 40%
+  - Final Project 50%
+  - Participation 10%
+
+通識組是給本來沒有統計基礎的同學，每堂課第三節都有一個關於統計方法的實作，助教會給一個 data，然後要大家完成某種統計的圖表，基本上助教會一步一步帶著做，所以不必擔心不會做；研究組是給有統計基礎的同學，不需要做作業，評分完全是按照 final project 的分數來算，雖然老師說按照自己的能力去選，但其實大部分人都是選通識組（畢竟作業分數比較穩妥）
+
+<details class="warning-box">
+<summary> <b>&nbsp;關於 final project</b></summary>
+
+我這學期的 final project 比較幸運，我覺得應該是因為我們系上含我有四個人選這門課，然後國榮的微積分 Lecturer TA 剛好也修這門課，他們兩個人我們四個人剛好一組六個人，我們的題目訂的是「消費者分群分析」，簡單來講是用 PCA 做出新特徵，然後把消費者用 K-means 分群，最後用 ANOVA 做出分群的統計顯著性，然後我們當時分工因為覺得 code 分太多人實作有點難合作，所以我負責的就是 PCA, K-means 的 implementation，反正就是瘋狂套 scikit-learn 的 package，然後做出圖表，最後把東西給學長做 ANOVA，最後我們的結果還不錯，老師也給了我們一個不錯的分數，感覺分組組員很重要（好像是廢話）
+
+<div style="text-align: center;">
+  <img loading="lazy" decoding="async" src="/images/ntu-csie-sophomore-2/stat.webp" style="width: 50%;" />
+  <br />
+  <span style="color: grey; font-size: 16px;">
+     偷看老師打分數（註：阿姨是某個修課同學，那個阿姨好像是統計學程的學生）
+  </span>
+</div>
+
+</details>
 
 ### 數位素養導航
 
@@ -335,7 +395,19 @@ $$
 
 </div>
 
-每個禮拜請一個講師來講跟數位有關的主題，分成五個大部分
+每個禮拜請一個講師來講跟數位有關的主題，分成五個大部分，14 位講者都是這五大領域的教授或業界人士，來講跟數位相關的整合，或是在數位時代下產生的新技術，我覺得認真的聽的話還蠻有趣的。這堂課的分數計算是：
+- Attendance 40%
+- Flash Talk 20%
+- Final Report 40%（兩個老師各佔 20%）
+
+Atttendance 部分是每次演講都要簽到簽退，有問一次問題或回答一次問題會加 0.5 次的出席分，也就是說問兩次問題就可以不用來上課一次，Flash Talk 的話則是六個人一組選定五大領域的其中一個做簡短的介紹或發想，然後上台報告兩分鐘，總之是一門蠻輕鬆的通識課
+
+<details class="warning-box">
+<summary> <b>&nbsp;關於 flash talk</b></summary>
+
+這門課一樣莫名的蒐集到了 4 個資訊系的同學，剩下兩個組員是其中一個同學的高中同學，本來因為我們選的主題有點資工，所以敲定是我們四個一任選一個小主題介紹，最後連在一起，剩下兩位同學美編，結果不知道為什麼他們生出來的東西真的超級醜，就是那種把 doc 上的字完全複製貼上，然後用一個神秘 google slide 色塊拼起來，真的史詩級的難看，最後我真的受不了了，所以晚上開始美編到凌晨三點，小怒
+
+</details>
 
 ### 理想職涯與財富規劃
 
@@ -351,7 +423,9 @@ $$
 
 </div>
 
-感覺老師就是一直在講故事，一直講自己的故事，老師好像是個蠻厲害的人，總之就是業界很多人都在邀請他去演講
+期初的時候我看到課名就想選，但我沒選上，然後我就寫信給老師加簽，老師就說 ok 上課直接找他，結果當天到博雅 101，完全大爆滿，真的是爆炸滿那種，還好我有先寫信有加簽名額，我排隊排領加簽碼排了 40 分鐘，超誇張
+
+感覺老師就是一直在講故事，一直講自己的故事，老師好像是個蠻厲害的人，總之就是業界很多人都在邀請他去演講，或是他以前的職業生涯經驗，有些東西蠻受用的，老師的評分方法就是 100% 期末 report，內容基本上是你的職業規劃分階段，還有在這些階段應對的投資組合，總之是一門我覺得蠻有趣的通識課。
 
 ## 體育
 

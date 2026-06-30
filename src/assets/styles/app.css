@@ -185,35 +185,57 @@ figcaption {
   text-align: center;
 }
 
-/* .prose table {
-  width: min(100%, 900px);
-  margin: 1.75em auto;
-  border-collapse: collapse;
-  table-layout: auto;
-  background: hsl(var(--card) / 0.65);
+/* === MDX content tables (blog + notes) ============================
+   Clean, rounded, theme-aware styling for every prose table: a rounded
+   outer frame, a tinted header row, horizontal row dividers, zebra
+   striping + hover, and an emphasised first column (handy for the
+   key/value comparison tables common in the notes). `.not-prose`
+   descendants are unaffected. Element selectors (0,1,1) intentionally
+   outrank UnoCSS typography's `:where()`-wrapped table rules (0,1,0).
+   Colours use theme CSS vars, so dark mode flips automatically. */
+.prose table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  background: hsl(var(--card) / 0.5);
+  font-size: 0.95em;
+  line-height: 1.55;
 }
 .prose th,
 .prose td {
-  padding: 0.95em 1.2em;
-  border: 1px solid hsl(var(--border) / 1);
+  padding: 0.6em 0.95em;
   text-align: left;
   vertical-align: top;
+  border-bottom: 1px solid hsl(var(--border) / 0.7);
   word-break: break-word;
 }
-.prose thead {
-  background: linear-gradient(
-    120deg,
-    hsl(var(--primary) / 0.12),
-    hsl(var(--warning) / 0.12)
-  );
+/* Header row: subtle brand tint + heavier divider. */
+.prose thead th {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  border-bottom: 1px solid hsl(var(--border));
+}
+/* Body rows: zebra + hover, with the last row meeting the rounded edge. */
+.prose tbody tr {
+  transition: background-color 0.15s ease;
+}
+.prose tbody tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.4);
 }
 .prose tbody tr:hover {
   background: hsl(var(--primary) / 0.08);
 }
-.prose td:first-child {
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+/* First column reads as a row label. */
+.prose tbody td:first-child {
   font-weight: 600;
-  color: hsl(var(--foreground) / 0.85);
-} */
+  color: hsl(var(--foreground) / 0.9);
+}
 
 /* Center every prose table (blog + notes) horizontally within the content
    column. UnoCSS typography defaults tables to `width: 100%`, so we shrink them
@@ -432,4 +454,15 @@ body {
     radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1.4px),
     radial-gradient(36rem 26rem at 4% -6%, hsl(199 80% 62% / 0.16), transparent 60%),
     radial-gradient(32rem 24rem at 103% 106%, hsl(265 70% 62% / 0.16), transparent 60%);
+}
+
+/* ============================================================
+   Hide the "Buy me a coffee" / sponsor button shown at the bottom
+   of every blog post and note. It is rendered by the theme component
+   `astro-pure` Copyright.astro (→ /projects#sponsorship), which lives
+   in node_modules and can't be edited directly — so we hide its
+   wrapper here. To bring it back, delete this rule.
+   ============================================================ */
+div:has(> a[href='/projects#sponsorship']) {
+  display: none;
 }
