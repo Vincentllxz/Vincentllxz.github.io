@@ -171,7 +171,8 @@ details.warning-box > summary::after {
   align-items: center;
   justify-content: center;
   background-color: #161b22;
-  background-image: radial-gradient(circle 5px at 18px 50%, #ff5f56 98%, transparent 100%),
+  background-image:
+    radial-gradient(circle 5px at 18px 50%, #ff5f56 98%, transparent 100%),
     radial-gradient(circle 5px at 36px 50%, #ffbd2e 98%, transparent 100%),
     radial-gradient(circle 5px at 54px 50%, #27c93f 98%, transparent 100%);
   border-bottom: 1px solid #30363d;
@@ -443,16 +444,36 @@ figcaption {
   line-height: 1.85;
 }
 /* Use Tailwind's prose `:not(:where([class~="not-prose"] *))` pattern so
-   `.not-prose` descendants (e.g. PDFCard) opt out of the bumped margins. */
+   `.not-prose` descendants (e.g. PDFCard) opt out of the bumped margins.
+   Every article image sits in a terminal-style bezel — near-black mat, thin
+   border, rounded corners — matching the info boxes and course cards, which
+   stay dark in BOTH themes. White-background diagrams stop glaring against
+   the dark page and read as intentional panels instead of pasted screenshots. */
 .prose :where(img):not(:where([class~='not-prose'] *)) {
   margin-top: 1.6em;
   margin-bottom: 1.6em;
+  padding: 0.55rem;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(1, 4, 9, 0.35);
 }
-.prose :where(div[style*='text-align: center'], div[style*='text-align:center']):not(:where([class~='not-prose'] *)) {
+/* Captioned figures keep their tight image→caption gap (the bezel rule above
+   would otherwise stretch it to 1.6em; (0,2,1) outranks its (0,1,1)). */
+.prose .custom-figure img {
+  margin-bottom: 0.75em;
+}
+.prose
+  :where(div[style*='text-align: center'], div[style*='text-align:center']):not(
+    :where([class~='not-prose'] *)
+  ) {
   margin-top: 2em;
   margin-bottom: 2em;
 }
-.prose :where(div[style*='text-align: center'] img, div[style*='text-align:center'] img):not(:where([class~='not-prose'] *)) {
+.prose
+  :where(div[style*='text-align: center'] img, div[style*='text-align:center'] img):not(
+    :where([class~='not-prose'] *)
+  ) {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -608,10 +629,16 @@ body {
     radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1.4px),
     radial-gradient(36rem 26rem at 4% -6%, hsl(199 78% 58% / 0.13), transparent 60%),
     radial-gradient(32rem 24rem at 103% 106%, hsl(199 74% 56% / 0.11), transparent 60%);
-  background-size: 24px 24px, auto, auto;
+  background-size:
+    24px 24px,
+    auto,
+    auto;
   background-repeat: repeat, no-repeat, no-repeat;
   background-attachment: scroll, fixed, fixed;
-  background-position: center top, left top, right bottom;
+  background-position:
+    center top,
+    left top,
+    right bottom;
 }
 .dark body {
   background-image:
@@ -629,4 +656,150 @@ body {
    ============================================================ */
 div:has(> a[href='/projects#sponsorship']) {
   display: none;
+}
+
+/* ============================================================
+   Terminal identity pass — carry the shell aesthetic (whoami
+   intro, info boxes, course cards, PDFCards) into the site's
+   skeleton: header brand, article headings, statusline footer,
+   scrollbar.
+   ============================================================ */
+
+/* --- Header brand → shell prompt with a blinking block cursor.
+   The theme's Header.astro (node_modules) renders `config.title` as plain
+   text; font-size:0 hides it (screen readers still get it) and the pseudo
+   elements draw the prompt. `color: inherit` keeps the hover accent. */
+header-component > a[aria-label='Brand'] {
+  font-size: 0;
+}
+header-component > a[aria-label='Brand']::before {
+  content: 'vinsong@blog:~$';
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: inherit;
+}
+header-component > a[aria-label='Brand']::after {
+  content: '';
+  display: inline-block;
+  width: 0.55rem;
+  height: 1.1rem;
+  margin-inline-start: 0.4rem;
+  vertical-align: -0.16rem;
+  background: hsl(var(--primary));
+  animation: term-cursor-blink 1.1s step-end infinite;
+}
+
+/* --- Markdown-style heading prefixes in article prose. The `[id]` guard
+   limits this to real content headings (rehype-slug gives them ids) and
+   keeps decorative headings — e.g. the Archives year watermark — clean. */
+.prose :where(h2[id], h3[id], h4[id]):not(:where([class~='not-prose'] *))::before {
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-weight: 500;
+  color: hsl(var(--primary) / 0.6);
+  white-space: pre;
+}
+.prose :where(h2[id]):not(:where([class~='not-prose'] *))::before {
+  content: '# ';
+}
+.prose :where(h3[id]):not(:where([class~='not-prose'] *))::before {
+  content: '## ';
+}
+.prose :where(h4[id]):not(:where([class~='not-prose'] *))::before {
+  content: '### ';
+}
+
+/* --- Vim/airline statusline above the footer (markup in BaseLayout.astro).
+   Terminal palette on purpose: a dark panel in BOTH themes, matching the
+   note boxes and course cards. */
+.statusline {
+  display: flex;
+  align-items: stretch;
+  margin-top: 4rem;
+  overflow: hidden;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #0d1117;
+  font-family: ui-monospace, 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-size: 0.72rem;
+  line-height: 1;
+  color: #8b949e;
+  user-select: none;
+}
+.statusline > span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+}
+.statusline .sl-mode {
+  background: #3fb950;
+  color: #0d1117;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+.statusline .sl-path {
+  color: #58a6ff;
+  font-weight: 600;
+}
+.statusline .sl-git b {
+  color: #f85149;
+  font-weight: 600;
+}
+.statusline .sl-spacer {
+  flex: 1;
+  padding: 0;
+}
+.statusline .sl-meta {
+  border-inline-start: 1px solid #30363d;
+}
+.statusline .sl-meta:last-child {
+  background: #161b22;
+  color: #c9d1d9;
+}
+@media (max-width: 640px) {
+  .statusline .sl-git,
+  .statusline .sl-hide-sm {
+    display: none;
+  }
+}
+/* Sits right on top of the footer — drop the footer's own big gap/rule. */
+.statusline + footer {
+  margin-top: 0.75rem;
+}
+.statusline + footer > div {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* --- Scrollbar that matches the theme (WebKit first; the standard
+   properties only apply where the WebKit pseudos don't exist). */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  background-color: hsl(var(--muted-foreground) / 0.35);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--primary) / 0.55);
+}
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.4) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header-component > a[aria-label='Brand']::after {
+    animation: none;
+    opacity: 0.8;
+  }
 }

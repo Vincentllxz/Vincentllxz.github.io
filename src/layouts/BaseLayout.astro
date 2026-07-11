@@ -2,8 +2,8 @@
 import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import BaseHead from '@/components/BaseHead.astro'
-import RichBlocks from '@/components/RichBlocks.astro'
 import CourseRatingBars from '@/components/CourseRatingBars.astro'
+import RichBlocks from '@/components/RichBlocks.astro'
 import config from '@/site-config'
 
 // Import the global.css file here so that it is included on
@@ -25,8 +25,10 @@ const {
 <html lang={config.locale.lang}>
   <head>
     <BaseHead {articleDate} {description} {ogImage} {title} />
-    {/* Default to dark for first-time visitors (no saved preference yet). Must
-        run before ThemeProvider's inline script, which reads this value. */}
+    {
+      /* Default to dark for first-time visitors (no saved preference yet). Must
+        run before ThemeProvider's inline script, which reads this value. */
+    }
     <script is:inline>
       try {
         if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark')
@@ -90,6 +92,16 @@ const {
       <Header />
       <div class='flex-1 w-full'>
         <slot />
+      </div>
+      {/* Vim-style statusline — decorative site-wide signature (styles in app.css). */}
+      <div class='statusline' aria-hidden='true'>
+        <span class='sl-mode'>NORMAL</span>
+        <span class='sl-path'>~/vinsong</span>
+        <span class='sl-git'>git:(<b>main</b>)</span>
+        <span class='sl-spacer'></span>
+        <span class='sl-meta'>zh-tw</span>
+        <span class='sl-meta sl-hide-sm'>utf-8</span>
+        <span class='sl-meta'>100%</span>
       </div>
       <Footer />
     </div>

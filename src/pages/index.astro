@@ -167,6 +167,9 @@ const structuredData = {
             }
 
             if (reduced) return
+            // The opening gate plays once per browsing session; after that the
+            // homepage loads straight into its normal state.
+            if (sessionStorage.getItem('home-intro-seen')) return
             const r = sig.getBoundingClientRect()
             if (!r.width || !r.height) return
             const vw = window.innerWidth
@@ -206,13 +209,18 @@ const structuredData = {
             const onKey = (e) => {
               if (['ArrowDown', 'PageDown', 'End', ' ', 'Spacebar'].indexOf(e.key) !== -1) enter()
             }
+            const onClick = () => enter()
             const enter = () => {
               if (entered) return
               entered = true
+              try {
+                sessionStorage.setItem('home-intro-seen', '1')
+              } catch (err) {}
               window.removeEventListener('wheel', onWheel)
               window.removeEventListener('touchstart', onTouchStart)
               window.removeEventListener('touchmove', onTouchMove)
               window.removeEventListener('keydown', onKey)
+              window.removeEventListener('click', onClick)
               docEl.style.overflow = prevOverflow
               // If the user scrolls before the signature has drawn, snap it in.
               if (!main.classList.contains('sig-go')) main.classList.add('sig-instant')
@@ -262,6 +270,7 @@ const structuredData = {
             window.addEventListener('touchstart', onTouchStart, { passive: true })
             window.addEventListener('touchmove', onTouchMove, { passive: true })
             window.addEventListener('keydown', onKey)
+            window.addEventListener('click', onClick)
           } catch (e) {
             /* no gate on failure — page stays in its normal state */
           }
@@ -854,9 +863,14 @@ const structuredData = {
     animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.96s forwards;
   }
 
-  /* The orange top gradient gently breathes. */
+  /* The top gradient gently breathes. In dark mode it stays much quieter so
+     the hero/About text keeps its contrast against the near-black background. */
   #highlight-gradient {
     animation: home-highlight-breathe 8s ease-in-out infinite;
+  }
+  html.dark #highlight-gradient {
+    --hg-lo: 0.1;
+    --hg-hi: 0.16;
   }
 
   @keyframes home-fade-up {
@@ -893,10 +907,10 @@ const structuredData = {
   @keyframes home-highlight-breathe {
     0%,
     100% {
-      opacity: 0.22;
+      opacity: var(--hg-lo, 0.22);
     }
     50% {
-      opacity: 0.32;
+      opacity: var(--hg-hi, 0.32);
     }
   }
 
@@ -906,11 +920,18 @@ const structuredData = {
     #content-header .home-signature,
     #content-header .home-avatar-wrap,
     #content-header .home-hero-meta,
-    #content > section,
-    #highlight-gradient {
+    #content > section {
       animation: none !important;
       opacity: 1 !important;
       transform: none !important;
+    }
+    /* The gradient keeps its resting tint — opacity 1 would flood the page. */
+    #highlight-gradient {
+      animation: none !important;
+      opacity: 0.25 !important;
+    }
+    html.dark #highlight-gradient {
+      opacity: 0.12 !important;
     }
     .home-signature-text {
       animation: none !important;
