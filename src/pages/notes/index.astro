@@ -4,7 +4,9 @@ import PDFCard from '@/components/PDFCard.astro'
 
 export const prerender = true
 
-const notes = [
+// 站內筆記留自己的主題色 —— 那個顏色會延續到課程頁的 CourseIntro，所以它是
+// 「這門課有站內頁面可以逐章看」的訊號，不是裝飾。
+const series = [
   {
     title: 'Operating System',
     subtitle: '作業系統 林忠緯 教授',
@@ -22,55 +24,65 @@ const notes = [
     type: 'note' as const
   },
   {
-    title: 'Introduction to Computation Theory',
-    subtitle: '自動機與形式語言 林智仁 教授',
-    href: '/pdf/IntroComputation.pdf',
-    abbr: 'TOC',
-    accent: '262 65% 56%'
-  },
-  {
-    title: 'Numerical Method',
-    subtitle: '數值方法 林智仁 教授',
-    href: '/pdf/NumericalMethod.pdf',
-    abbr: 'NM',
-    accent: '192 90% 38%'
-  },
-  {
-    title: 'Algorithm Design and Analysis',
-    subtitle: '演算法設計與分析 呂學一 教授',
-    href: '/pdf/ADA_cut.pdf',
-    abbr: 'ADA',
-    accent: '27 92% 50%'
-  },
-  {
     title: 'Computer Networking',
     subtitle: '計算機網路 逄愛君 教授',
     href: '/notes/cn',
     abbr: 'CN',
     accent: '145 60% 38%',
     type: 'note' as const
+  }
+]
+
+// PDF 點下去就離開站了，顏色沒有下文，所以統一收成中性灰：8 種色相各據一角
+// 只是讓整頁變彩虹。色相沿用 --muted-foreground，在明暗兩個主題下都站得住。
+const MUTED = '15 10% 45%'
+
+const handouts = [
+  {
+    title: 'Introduction to Computation Theory',
+    subtitle: '自動機與形式語言 林智仁 教授',
+    href: '/pdf/IntroComputation.pdf',
+    abbr: 'TOC'
+  },
+  {
+    title: 'Numerical Method',
+    subtitle: '數值方法 林智仁 教授',
+    href: '/pdf/NumericalMethod.pdf',
+    abbr: 'NM'
+  },
+  {
+    title: 'Algorithm Design and Analysis',
+    subtitle: '演算法設計與分析 呂學一 教授',
+    href: '/pdf/ADA_cut.pdf',
+    abbr: 'ADA'
   },
   {
     title: 'Linear Algebra',
     subtitle: '線性代數 李明穗 教授',
     href: '/pdf/LinearAlgebra.pdf',
-    abbr: 'LA',
-    accent: '174 65% 38%'
+    abbr: 'LA'
   },
   {
     title: '東坡詞',
     subtitle: '劉少雄 教授',
     href: '/pdf/東坡詞.pdf',
-    abbr: '東坡詞',
-    accent: '14 68% 48%'
+    abbr: '東坡詞'
   }
-]
+].map((h) => ({ ...h, accent: MUTED }))
 ---
 
 <PageLayout title='Notes'>
   <p class='text-muted-foreground'>這裡放一些我修課時整理的筆記，點擊卡片即可開啟。</p>
 
-  <div class='not-prose mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
-    {notes.map((note) => <PDFCard {...note} />)}
+  <h2 class='mt-8 text-lg font-semibold'>課程筆記</h2>
+  <p class='mt-1 text-sm text-muted-foreground'>站內逐章整理，可以直接在網頁上讀。</p>
+  <div class='not-prose mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
+    {series.map((note) => <PDFCard {...note} />)}
+  </div>
+
+  <h2 class='mt-10 text-lg font-semibold'>PDF 講義</h2>
+  <p class='mt-1 text-sm text-muted-foreground'>手寫或排版好的完整講義，開新分頁下載。</p>
+  <div class='not-prose mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
+    {handouts.map((note) => <PDFCard {...note} />)}
   </div>
 </PageLayout>

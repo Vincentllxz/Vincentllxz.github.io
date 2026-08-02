@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Virtual Memory
 
@@ -23,30 +24,20 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 其實使用超過 Physical Memory 的記憶體量只會造成效能問題，不會有正確性問題
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/virtual-memory-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Virtual Memory 2
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/virtual-memory-2.webp" caption="Virtual Memory 2" />
 
 Virtual Memory Space 是一個 Process 使用的全部 Memory，會是一段 Continuous 的 Memory，但是被 map 到 Physical Memory 會變得不連續
 
 - Stack, Heap 之間的空白我們稱為 **Sparse** address space
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/virtual-memory-1.webp" style="width: 45%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/virtual-memory-1.webp" />
 
 #### Shared Library
 
 Share Library 跟 Page table 一樣是很好做 Share Library 的方法，透過 Virtual Memory 就可以讓他變成 Share Memory
 - `fork()` 做 Share 的方法也可以節省空間
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/shared-library.webp" style="width: 45%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/shared-library.webp" />
 
 ## Demand Paging
 
@@ -58,74 +49,32 @@ Share Library 跟 Page table 一樣是很好做 Share Library 的方法，透過
 - If valid, 就存在在 memory 裡面
 - If invalid, 有可能在 Backing store 或是根本不存在
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/basic-concept.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Basic Concept
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/basic-concept.webp" caption="Basic Concept" />
 
 #### Page Fault Handling
 
 如果發現這格是 **Invalid** (Page fault)，我們就會
 
 1. **Trap** 到 OS 裡面檢查他是否存在 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-fault-handling-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Fault Handling 1
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-fault-handling-1.webp" caption="Page Fault Handling 1" />
 
 2. 在 OS 裡面查表（不是 Page table）
 - If vaild, 在 Backing Store 裡面，準備把它拿到 Physical memory 裡面
 - If invalid, 直接把 process teminate，因為他 access 到不該 access 的 memory
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-fault-handling-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Fault Handling 2
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-fault-handling-2.webp" caption="Page Fault Handling 2" />
 
 
 3. 在 Physical memory 裡面找到 **Free frame** (從 free frame list 找)
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-fault-handling-3.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Fault Handling 3
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-fault-handling-3.webp" caption="Page Fault Handling 3" />
 
 4. 把那個 Page 放到 Memory 裡面
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-fault-handling-4.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Fault Handling 4
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-fault-handling-4.webp" caption="Page Fault Handling 4" />
 
 5. 更新 Page table（invalid to valid）
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-fault-handling-5.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Fault Handling 5
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-fault-handling-5.webp" caption="Page Fault Handling 5" />
 
 6. 重新 Restart 原本的 instruction
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-fault-handling-6.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Fault Handling 6
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-fault-handling-6.webp" caption="Page Fault Handling 6" />
 
 #### Aspects of Demand Paging
 分成幾種
@@ -154,13 +103,7 @@ Share Library 跟 Page table 一樣是很好做 Share Library 的方法，透過
 
 下面這個例子，這個指令是要把 `1`, `2` 搬到下面的位置，假設搬完 1 了，我們要做第二個指令，此時產生 Page fault，如果在這時候搬回來 Restart，執行第一個 instruction 就會把 garbage 搬過去，因此不能直接 Restart
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/instruction-restart.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Instruction Restart
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/instruction-restart.webp" caption="Instruction Restart" />
 
 有幾種解決方法
 - 我們可以用 Microcode 來得知會不會產生 Page Fault，提早把東西 load 進來，microcode 可以預先 fetch 那些位置來得知是否產生 Page fault
@@ -170,13 +113,7 @@ Share Library 跟 Page table 一樣是很好做 Share Library 的方法，透過
 
 我們需要把可用的 free-frame 全部存起來，我們用 **free-frame list** 來達成
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/free-frame-list.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Free-Frame List
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/free-frame-list.webp" caption="Free-Frame List" />
 
 從 free-frame list 拿到 free-frame 後我們需要先執行 **zero-fill-on-demand** 讓裡面清空，不然可能會造成 security 的問題
 
@@ -232,13 +169,7 @@ Secondary Store 裡面可能有一塊專門的 Swap space 運作會比 File syst
 
 跟 `fork()` 不一樣，複製的時候先放一個指標指向 Memory，但不複製，直到有改動出現，我們才來 Duplicate
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/copy-on-write.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Copy-on-Write
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/copy-on-write.webp" caption="Copy-on-Write" />
 
 `vfork()` 是一種不會 Duplicate 的 fork，原始設計是要直接 execution（`exec()`） 用的 fork，他不使用 copy-on-write，會共用記憶體
 
@@ -248,13 +179,7 @@ Secondary Store 裡面可能有一塊專門的 Swap space 運作會比 File syst
 
 照理來說我們要把東西放到 Free frame 裡面，但如果沒有 Free frame 的話，我們就得執行 **Page Replacement**
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/page-replacement.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Page Replacement
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/page-replacement.webp" caption="Page Replacement" />
 
 ### Basic Page Replacement
 
@@ -265,13 +190,7 @@ Secondary Store 裡面可能有一塊專門的 Swap space 運作會比 File syst
 3. 更新 Memory 和 Page Table
 4. 繼續執行 Process
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/basic-page-replacement.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Basic Page Replacement
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/basic-page-replacement.webp" caption="Basic Page Replacement" />
 
 如果沒有 Frame 是 Free 的，那我們就必須進行交換，一個 Swap out 一個 Swap in，也就是兩次的 Secondary Storage I/O，可以用一些東西加速
 - **modify bit** (**dirty bit**)：如果被 set，代表有改動，才需要進行 Secondary Storage write，如果沒有就可以省下一次的 I/O time
@@ -298,13 +217,7 @@ Secondary Storage 太慢了，所以這兩個問題會大大影響 Page fault �
 
 採用 First-in-First-out 的方法
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/fifo-page-replacement.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     FIFO Page Replacement
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/fifo-page-replacement.webp" caption="FIFO Page Replacement" />
 
 總共會產生 15 個 Page fault
 
@@ -314,13 +227,7 @@ Secondary Storage 太慢了，所以這兩個問題會大大影響 Page fault �
 
 
 在 3~4 這邊反而回升了
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/belady-s-anomaly.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Belady's Anomaly
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/belady-s-anomaly.webp" caption="Belady's Anomaly" />
 
 舉例來說 `1 2 3 4 1 2 5 1 2 3 4 5` 在一個沒有 Prefetch 的 System 之下
 - If # of frames = 1, # of page faults = 12
@@ -337,13 +244,7 @@ Secondary Storage 太慢了，所以這兩個問題會大大影響 Page fault �
 
 每次都找最久才用到的 Frame 去做 Replacement
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/optimal-page-replacement.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Optimal Page Replacement
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/optimal-page-replacement.webp" caption="Optimal Page Replacement" />
 
 總共需要 9 次的 Page Fault
 
@@ -351,13 +252,7 @@ Secondary Storage 太慢了，所以這兩個問題會大大影響 Page fault �
 
 去找 Least recently used (LRU) 的 Frame，往前去找最久沒用的那個
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/lru-page-replacement-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     LRU Page Replacement 2
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/lru-page-replacement-2.webp" caption="LRU Page Replacement 2" />
 
 有兩種方法可以 implement 這個 Algorithm
 1. **counters**:
@@ -365,9 +260,7 @@ CPU 需要有一個 Logical Clock, 把資訊記錄在一個 Time-of-Used Field�
 2. **stack**:
 用一個 Stack (Doubly linked list) 去把最近使用的 page number 放進去，這種方法的 Overhead 就是得每次 reference 都得改 6 個 pointer 把它挪到 tail，但就不用 search
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/lru-page-replacement-1.webp" style="width: 50%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/lru-page-replacement-1.webp" />
 
 <Aside type="note">
 
@@ -399,13 +292,7 @@ LRU 的 Overhead 不管是哪個方法都不低，所以我們改做 LRU 的 App
 
 如果所有人都有，還是依照 FIFO 進行
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/second-chance-algorithm.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Second-Chance Algorithm
-  </span>
-</div>
+<Fig src="/images/os/ch06-virtual-memory/second-chance-algorithm.webp" caption="Second-Chance Algorithm" />
 
 通常是一個 Circular Queue（所以有可能叫做 clock algorithm） 來 implement，檢查完之後再回到頭
 
@@ -485,9 +372,7 @@ $$
 
 但是這個 Reclaim algorithm 是很多樣化的，可以決定要砍誰
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/reclaiming-pages.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/reclaiming-pages.webp" />
 
 Linux 有一種更極端的手段，就是把 Process 根據他們的 Score 直接砍掉
 
@@ -495,9 +380,7 @@ Linux 有一種更極端的手段，就是把 Process 根據他們的 Score 直�
 
 所有的 Memory 我們不把他們當同一種東西，比如可以設定各個 Process 之間的關係，在進階的系統裡面，我們 Swap-in 的 Process 應該要跟原始 Process 是關聯性很大的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/non-uniform-memory-access.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/non-uniform-memory-access.webp" />
 
 我們應該把 Frame 放到正在運行相關 Process 的 CPU 附近
 
@@ -509,9 +392,7 @@ Linux 有一種更極端的手段，就是把 Process 根據他們的 Score 直�
 
 當一個 process frame 需求變高的時候，就會對別的 process frame 做 replacement，當大家都不停的 Page fault，就會產生嚴重的 Thrashing，產生 I/O 後，大家如果都在 Hard Disk 去做 waiting，CPU 的 utilization 就會大大降低，而這時候 System 可能就會讓 CPU 提高 degree of multiprogramming 是一個惡性循環
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/cause-of-thrashing.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/cause-of-thrashing.webp" />
 
 #### Locality Model
 
@@ -599,9 +480,7 @@ $$
 
 分配給 kernel 的時候我們會切 Continuous，並且剛剛好可以塞的下又是 $2$ 的次方的大小，我們叫他 **power-of-2 allocator**
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/buddy-system.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/buddy-system.webp" />
 
 這些沒用到的 **buddies** 還是可以繼續組合 **coalescing** 成新的 segment 去使用，並且可以最大化節省空間，但壞處就是還是有 Internal Fragmentation
 
@@ -614,9 +493,7 @@ $$
 - 消除 internal fragmentation，因為大小都提前知道了
 - Memory request 會變很快，Object 都已經先開好了，而 free 的時候只需要改 valid bit 就好了
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/slab-allocation.webp" style="width: 50%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/slab-allocation.webp" />
 
 舉例來說 `struct task_struct` 就是一種固定大小為 1.7 KB 的 Cache，可以直接把資料填進去就好
 
@@ -713,9 +590,7 @@ SLAB 的來源，Linux 採用的是 Global page replacement，採用 demand pagi
 
 有一個 **Pageout algorithm**，用雙指標的掃描，前面的 pointer 把 bit set 成 `0`，後面的如果看到某個 frame 還是 `0` 就代表沒用到，可以把它丟到 freelist
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch06-virtual-memory/solaris.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch06-virtual-memory/solaris.webp" />
 
 這個 algorithm 的癥結點在 scan rate，如果很多 memory 就不用巡邏那麼快，如果 free memory 快沒了就要超快速巡邏
 

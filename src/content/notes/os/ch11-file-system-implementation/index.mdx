@@ -11,6 +11,7 @@ language: 'zh-TW'
 comment: true
 draft: false
 ---
+import Fig from '@/components/Fig.astro'
 
 # File-System Implementation
 
@@ -24,14 +25,7 @@ draft: false
 
 跟 Network 一樣 File system 也可以分層
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/layered-file-systems.webp'
-    style='width: 50%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Layered File Systems</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/layered-file-systems.webp" caption="Layered File Systems" />
 
 - Application programs
 - **Logical file system**
@@ -103,14 +97,7 @@ Typical File-Control Block 需要含有以下 attributes
 
 要 `read()` 就用 file descriptor 去做存取，很像一個 index 指向 open file table，open file table 再用 pointer 指向真正的 data block
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/file-open-and-read.webp'
-    style='width: 80%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>File Open and File Read</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/file-open-and-read.webp" caption="File Open and File Read" />
 
 ## Directory Implementation
 
@@ -129,14 +116,7 @@ Typical File-Control Block 需要含有以下 attributes
 
 最簡單的 implementation，只需要記錄每個 file 開頭結尾，但一樣會有 external fragmentation，還會有 Free-space management 的問題
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/contiguous-allocation.webp'
-    style='width: 80%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Contiguous Allocation</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/contiguous-allocation.webp" caption="Contiguous Allocation" />
 
 可以做 Compaction 避免這個問題，全部搬過去 memory 操作，再全部一起排好放回來，可以 Off-line（系統休眠）也可以 on-line（overhead）
 
@@ -155,14 +135,7 @@ Typical File-Control Block 需要含有以下 attributes
 
 但是如果要做某個 block 的 delete 或是 operation 就必須要做 traverse，並且需要花額外的空間存 pointer，並且 reliability 會因為 pointer 損壞而整組損壞
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/linked-allocation.webp'
-    style='width: 70%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Linked Allocation</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/linked-allocation.webp" caption="Linked Allocation" />
 
 稍微緩解這種現象可以用 **cluster** 聚集一些 block 讓他稍微連續
 
@@ -170,14 +143,7 @@ Typical File-Control Block 需要含有以下 attributes
 
 把每個 volume 的前面用來存每個 linklist 的行為，把 block 之間的關聯性存在一個 table 上
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/file-allocation-table.webp'
-    style='width: 70%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>File-Allocation Table</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/file-allocation-table.webp" caption="File-Allocation Table" />
 
 這樣 direct access 就會比較快，但在 hardware 上的 disk head seeks 就會比較多，因為要在 table 跟 list 間移動
 
@@ -187,14 +153,7 @@ Typical File-Control Block 需要含有以下 attributes
 
 這樣的方法會造成一些 space 上的 overhead
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/indexed-allocation.webp'
-    style='width: 70%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Indexed Allocation</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/indexed-allocation.webp" caption="Indexed Allocation" />
 
 #### Schemes of Index Blocks
 
@@ -202,14 +161,7 @@ Typical File-Control Block 需要含有以下 attributes
 - **Multilevel index**: 用多層 index 來做擴增，depend on file size 決定要多少層
   - With 4,096-byte blocks, we could store 1,024 four-byte pointers in an index block. Two levels of indexes allow 1,048,576 data blocks and a file size of up to 4 GB
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/combined-scheme-unix.webp'
-    style='width: 70%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Combined scheme in Unix-based system</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/combined-scheme-unix.webp" caption="Combined scheme in Unix-based system" />
 
 ### Performance
 
@@ -250,14 +202,7 @@ $$
 
 但缺點是 traverse list 依然是一個 time consuming 的事情，但其實 traverse 的機會不多
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/free-space-linked-list.webp'
-    style='width: 70%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Linked List method on free-space</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/free-space-linked-list.webp" caption="Linked List method on free-space" />
 
 這個概念跟 file-allocation table (FAT) 是很像的只不過我們記錄的是 free-block，所以假設我們有 FAT 可以串 free block，也可以不用 separate method 來處理，只需要注記是在記錄 free block 的 list
 
@@ -312,11 +257,7 @@ NVM 依然比 CPU memory 慢，所以處理不一樣會造成 bottle neck，以�
 
 我們現在有 Memory-I/O (Page Cache) 也有 File-system-I/O (Buffer cache)，在這樣的 I/O 情況下會產生下面的情況
 
-<div style='text-align: center;'>
-  <img loading="lazy" decoding="async" src='/images/os/ch11-file-system-implementation/double-caching.webp' style='width: 60%;' />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Double Caching</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/double-caching.webp" caption="Double Caching" />
 
 我們稱這種情況叫 **Double Caching**，也就是 Memory-Mapped I/O 因為先做了 Page cache 然後 Page cache 又透過 Buffer cache access file system
 
@@ -324,14 +265,7 @@ NVM 依然比 CPU memory 慢，所以處理不一樣會造成 bottle neck，以�
 
 為了解決這個問題我們採用 **Unified Buffer Cache**
 
-<div style='text-align: center;'>
-  <img
-    src='/images/os/ch11-file-system-implementation/unified-buffer-cache.webp'
-    style='width: 60%;'
-  />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Unified Buffer Cache</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/unified-buffer-cache.webp" caption="Unified Buffer Cache" />
 
 ### Synchronous and Asynchronous Writes
 
@@ -382,11 +316,7 @@ File 是 sequence read 的時候，我們必須保證不使用 LRU (Least recent
 
 通常的 protocol (NFS, CIFS) 會先做 read operation 的 cache 可以做 optimization，但 write 操作就無法做到 optimization，WAFL file system 會有 write cache 可以做 optimize
 
-<div style='text-align: center;'>
-  <img loading="lazy" decoding="async" src='/images/os/ch11-file-system-implementation/wafl-file-system.webp' style='width: 90%;' />
-  <br />
-  <span style='color: grey; font-size: 16px;'>WAFL File System</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/wafl-file-system.webp" caption="WAFL File System" />
 
 另外一個特色就是他的 metadata 都是存在 file 裡面的，像這個 free block map 跟 free inode map 都是存成一個 file
 
@@ -394,11 +324,7 @@ File 是 sequence read 的時候，我們必須保證不使用 LRU (Least recent
 
 這個 system 還有一個 powerful 的地方，就是他的 snapshot，下面是一個例子
 
-<div style='text-align: center;'>
-  <img loading="lazy" decoding="async" src='/images/os/ch11-file-system-implementation/wafl-snapshot.webp' style='width: 100%;' />
-  <br />
-  <span style='color: grey; font-size: 16px;'>Snapshot of WAFL File System</span>
-</div>
+<Fig src="/images/os/ch11-file-system-implementation/wafl-snapshot.webp" caption="Snapshot of WAFL File System" />
 
 Snapshot 只需要多做一份 copy，snapshot 只需要紀錄所有 block 的指標就好，還有其他 feature
 

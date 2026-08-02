@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Threads & Concurrency
 
@@ -25,13 +26,7 @@ Thread 就是 CPU 能夠安排運行的最小單位，擁有
 - Register Set
 - Stack
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/overview.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Overview
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/overview.webp" caption="Overview" />
 
 跟 Process 最大不同就是會 share resource, code, file
 
@@ -48,22 +43,10 @@ Thread 可以來平行的進行各種計算，Process 是一個 time consuming �
 - **Parallelism**: 完全獨立的運行
 
 Single core 也可以有 Concurrency，但無法 Parallelism
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/multicore-programming-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Multicore Programming 1
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/multicore-programming-1.webp" caption="Multicore Programming 1" />
 
 下面這張則是同時有 Concurrency 跟 Parallelism
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/multicore-programming-2.webp" style="width: 65%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Multicore Programming 2
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/multicore-programming-2.webp" caption="Multicore Programming 2" />
 
 ### Challenge
 
@@ -76,23 +59,11 @@ Single core 也可以有 Concurrency，但無法 Parallelism
 ### Parallelism
 - **Data parallelism**
 從資料下手，把資料分成四段，執行一樣的 code 四個 core 執行完畢再由統一一個 core 做整合
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/parallelism-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Parallelism 1
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/parallelism-1.webp" caption="Parallelism 1" />
 
 - **Task parallelism**
 共用一個 data，但四個 core 在做不同的 task
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/parallelism-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Parallelism 2
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/parallelism-2.webp" caption="Parallelism 2" />
 
 兩種 parallelism 可以混用，只是概念而已
 
@@ -106,9 +77,7 @@ $$
 
 雖然有平行化，但通常都會多一些 overhead，所以現實情況都會差一點
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/amdahl-s-law.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch04-threads/amdahl-s-law.webp" />
 
 無法平行化的部分越多，multi-core 的效果就越差
 
@@ -126,13 +95,7 @@ $$
 - 站在 kernel 角度其實沒辦法真正 implement multi-thread
 - efficient 但是無法真正發揮 parallelism
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/many-to-one-model.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Many-to-One Model
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/many-to-one-model.webp" caption="Many-to-One Model" />
 
 
 ### One-to-One Model (kernel-level threading)
@@ -141,13 +104,7 @@ $$
 - 當有 blocking system call 只會讓對應的 kernel thread 被 block 住
 - 高成本
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/one-to-one-model.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     One-to-One Model
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/one-to-one-model.webp" caption="One-to-One Model" />
 
 
 ### Many-to-Many Model (hybrid threading)
@@ -155,19 +112,11 @@ $$
 混合版模型，把 M 個 application 丟給 N 個 thread entities (Virtual Processor)
 - 比較彈性，可以根據 task 的複雜度，來決定到底要多少 thread
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/many-to-many-model-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Many-to-Many Model 2
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/many-to-many-model-2.webp" caption="Many-to-Many Model 2" />
 
 Two-level model 也是一種 Many-to-Many Model 的變形
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/many-to-many-model-1.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch04-threads/many-to-many-model-1.webp" />
 
 > 現今大部分 OS 都是 one-to-one model 因為效能足夠
 
@@ -375,13 +324,7 @@ newCachedThreadPool()
 跟 Process 很像，只是我們這次是用在 Thread 上
 - 站在使用者的角度是分成兩個 **Task**，但是實際上的 implementation 也有可能是 Thread Pool
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/fork-join-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Fork join 1
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/fork-join-1.webp" caption="Fork join 1" />
 
 通常會有 library 來處理，會使用 synchronous thread，也就是全部執行完畢才會回到 main thread
 
@@ -398,13 +341,7 @@ Task(problem)
         result2 = join(subtask2)
         return combined results
 ```
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/fork-join-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Fork join 2
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/fork-join-2.webp" caption="Fork join 2" />
 - 一直切一直切一直切
 ```java
 protected Integer compute() {
@@ -429,13 +366,7 @@ protected Integer compute() {
 <Aside type="note" title="Fork join">
 
 可以有 Return value 繼承也可以沒有
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/fork-join-3.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Fork join 3
-  </span>
-</div>
+<Fig src="/images/os/ch04-threads/fork-join-3.webp" caption="Fork join 3" />
 </Aside>
 
 ### OpenMP
@@ -569,9 +500,7 @@ while(!Thread.currentThread().isInterrupted()){
 #### Lightweight Process (LWP)
 Two level model 我們通常都會把 kernel thread 當成一個 virtual processor，而 LWP 就是一種 virtual processor 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch04-threads/lightweight-process.webp" style="width: 40%;" />
-</div>
+<Fig src="/images/os/ch04-threads/lightweight-process.webp" />
 
 有時候的 communication 是 bottom up 的，我們會叫他 **upcall**
 

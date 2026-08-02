@@ -20,11 +20,18 @@ interface Props {
   textbook?: string
 }
 
-const { course, courseZh, abbr, semester, teacher, code, textbook, accent = '193 70% 50%' } =
-  Astro.props
+const {
+  course,
+  courseZh,
+  abbr,
+  semester,
+  teacher,
+  code,
+  textbook,
+  accent = '193 70% 50%'
+} = Astro.props
 
 const filename = `${abbr.toLowerCase()}/README.md`
-const path = `~/notes/${abbr.toLowerCase()}`
 const when = [semester, teacher ? `${teacher} 老師` : null].filter(Boolean).join(' · ')
 const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : null].filter(
   Boolean
@@ -52,17 +59,12 @@ const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : n
     {courseZh && <p class='mt-1 text-base text-muted-foreground'>{courseZh}</p>}
 
     {
+      /* 課程資訊直接列。標題列的紅綠燈 + os/README.md 已經把「這是一個檔案」講完了，
+         再演一次 `$ cat info.md` 只是重複。 */
       info.length > 0 && (
-        <div class='course-term mt-4 space-y-1 text-sm'>
-          <p class='break-all'>
-            <span class='course-user'>vinsong@blog</span>{' '}
-            <span class='course-path'>{path}</span>
-          </p>
-          <p class='break-all'>
-            <span class='course-dollar'>$</span> <span class='course-cmd'>cat</span> info.md
-          </p>
+        <div class='course-term mt-4 space-y-1 text-sm text-foreground/80'>
           {info.map((line) => (
-            <p class='course-out text-foreground/80'>{line}</p>
+            <p class='break-all'>{line}</p>
           ))}
         </div>
       )
@@ -93,29 +95,6 @@ const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : n
   }
   .course-badge {
     color: var(--accent);
-  }
-  /* Path stays a fixed terminal blue across courses (matches SP's accent). */
-  .course-path {
-    color: hsl(217 85% 54%);
-  }
-  :global(html.dark) .course-path {
-    color: hsl(217 90% 70%);
-  }
-  .course-user {
-    color: #2ea043;
-    font-weight: 600;
-  }
-  :global(html.dark) .course-user {
-    color: #3fb950;
-  }
-  .course-dollar {
-    color: hsl(var(--muted-foreground));
-  }
-  .course-cmd {
-    color: #d9b54a;
-  }
-  :global(html.dark) .course-cmd {
-    color: #f1d370;
   }
   /* Faint accent glow in the corner, matching PDFCard. */
   .course-body::before {

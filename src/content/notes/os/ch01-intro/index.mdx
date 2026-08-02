@@ -12,16 +12,11 @@ comment: true
 draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Overview
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/overview.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Overview
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/overview.webp" caption="Overview" />
 
 ## What OS do?
 
@@ -45,13 +40,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ## Computer-System Organization
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/computer-system-organization.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Computer-System Organization
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/computer-system-organization.webp" caption="Computer-System Organization" />
 
 通常一台電腦都會有
 - **Bus**: 連接 CPU, device controllers, share memory
@@ -73,13 +62,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **Hardware** 會 trigger interrupt by sending **signal** to CPU (By bus)
     - 這裡的 signal 是硬體上的「電壓變化」而不是 Unix kernel signal
 - **Interrupt vector**: 紀錄要跳到哪裡
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/interrupt-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Interrupt 1
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/interrupt-1.webp" caption="Interrupt 1" />
 
 **Step**
 1. CPU 收到後，會馬上轉換執行某個動作（存在某個 fixed location）
@@ -87,21 +70,9 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 3. 執行 ISR (Interrupt service routine)
 4. CPU 回覆原始狀態
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/interrupt-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Interrupt 2
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/interrupt-2.webp" caption="Interrupt 2" />
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/interrupt-3.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Interrupt 3
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/interrupt-3.webp" caption="Interrupt 3" />
 - I/O request 後控制權到 I/O Device 上
 - I/O 結束後發送 CPU 被 Interrupt 後會先打斷 User Program 去執行 ISR
 - 執行結束後回覆 User Program 
@@ -134,13 +105,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 - 通常一個 Storage 讀寫速度越快就越小，而且 **Volatile**
 - 會有成本問題
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/secondary-and-tertiary-storage.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Secondary and Tertiary Storage
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/secondary-and-tertiary-storage.webp" caption="Secondary and Tertiary Storage" />
 </Aside>
 
 #### Direct Memory Access
@@ -153,25 +118,13 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     > [!Tip]
     > 有些 high-end system 會用 switch 而不是 bus architecture，DMA 在此情況更有效率
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/direct-memory-access.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Direct Memory Access
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/direct-memory-access.webp" caption="Direct Memory Access" />
 
 ### Computer-System Architecture
 - Single Processor Systems
 - Multiprocessor Systems
     - 在現今的系統內比較重要
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/comuter-system-architecture.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Computer-System Architecture
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/comuter-system-architecture.webp" caption="Computer-System Architecture" />
     - 可以用不同 CPU 控制也可以用不同 core 控制
 - Cluster Systems
 
@@ -202,13 +155,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **Kernel mode** & **User mode**
 - **Mode bit**
     - 用 system call 做到更改
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/dual-mode-and-multimode-operation.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Dual-Mode &amp; Multimode Operation
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/dual-mode-and-multimode-operation.webp" caption="Dual-Mode &amp; Multimode Operation" />
 - **Privileged instruction**: 有些指令 hardware 只讓在 kernel mode 的 process 執行
 
 #### Timer
@@ -227,13 +174,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **Security**: Malicious 的 attack protect
 
 ## Virtualization
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/virtualization.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Virtualization
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/virtualization.webp" caption="Virtualization" />
 - Virtual machine 可以有多個，各自擁有 Kernel
 
 ## Distributed System
@@ -241,13 +182,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
     - **TCP/IP**
 - Local area network 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch01-intro/distributed-system.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Distributed System
-  </span>
-</div>
+<Fig src="/images/os/ch01-intro/distributed-system.webp" caption="Distributed System" />
 - Distributed OS 是只有一個 OS，可以用很多 kernel
 - Network OS 是在 Application 上用 Network 連接
 - Middleware OS 是用 Middleware 連接，通常用 subscribe 的方法連接

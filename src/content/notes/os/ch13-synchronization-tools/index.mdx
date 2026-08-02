@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Synchronization Tools
 
@@ -50,13 +51,7 @@ count = reg2;
 2. 用 kernel 的 `next_available_pid` 拿下一個 available 的 `pid`
 3. 假設 `P0` 先拿到 `pid` 但 `P1` 在 `next_available_pid` 更新前就先拿到 `pid`，`P0`, `P1` 就會拿到同一個 `pid`
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch13-synchronization-tools/race-condition-on-pid.webp" style="width: 50%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Race condition on pid
-  </span>
-</div>
+<Fig src="/images/os/ch13-synchronization-tools/race-condition-on-pid.webp" caption="Race condition on pid" />
 
 ## Critical-Section Problem
 
@@ -217,13 +212,7 @@ x = 100;
 
 剛剛先把 `flag` 設定 `true`，但 reorder 可能把 `turn` 先設定再設定 `flag`，會發生下圖的問題，導致 critical section 重疊了
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch13-synchronization-tools/revisited-peterson-solution.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Revisited of Peterson's Solution
-  </span>
-</div>
+<Fig src="/images/os/ch13-synchronization-tools/revisited-peterson-solution.webp" caption="Revisited of Peterson's Solution" />
 
 `P1` 由於 `flag[0] == false` 提前進入 critical section，導致跟原本應該進入的 `P0` 重疊
 
@@ -561,13 +550,7 @@ monitor monitor-name {
 
 雖然可以有一些 share variables，但最後的 procedure 都是 mutual exclusive 的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch13-synchronization-tools/schematic-view-monitor.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Schematic View of a Monitor
-  </span>
-</div>
+<Fig src="/images/os/ch13-synchronization-tools/schematic-view-monitor.webp" caption="Schematic View of a Monitor" />
 
 我們可以保證每次在 monitor 裡面運行的只有一個 process 而已
 
@@ -580,13 +563,7 @@ Monitor 其實沒那麼好用，我們希望有更 powerful 的方法，於是�
 
 我們要調用 `wait()` 要使用 `x.wait()`, `x.signal()` 或 `y` 也是相應操作
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch13-synchronization-tools/schematic-view-conditional-variable.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Schematic View of a Conditional variable
-  </span>
-</div>
+<Fig src="/images/os/ch13-synchronization-tools/schematic-view-conditional-variable.webp" caption="Schematic View of a Conditional variable" />
 
 如果有 `x`, `y` 兩個 condition 的話，他們會有各自的 queue
 

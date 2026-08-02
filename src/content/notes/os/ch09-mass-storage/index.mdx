@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Mass-Storage System
 
@@ -21,13 +22,7 @@ import { Aside } from 'astro-pure/user'
 
 磁碟上的一片一片叫做 **platter** 可以存資料，一圈叫一個 **track**, track 裡面一段一段就是 **sector**，把不同層的 track 組合在一起我們叫他 **cylinder**
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/hard-disk-drives.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Hard Disk Drives (HDDs)
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/hard-disk-drives.webp" caption="Hard Disk Drives (HDDs)" />
 
 #### HDD Performance
 
@@ -167,13 +162,7 @@ OS 提供的 **queuing request** 機制可以讓 device optimize performance
 - Request queue: `98`, `183`, `37`, `122`, `14`, `124`, `65`, `67`
 - Head pointer 在 `53`
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/fcfs-scheduling.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Example of FCFS
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/fcfs-scheduling.webp" caption="Example of FCFS" />
 
 總共有 **640** 個 cylinders movement
 
@@ -182,13 +171,7 @@ OS 提供的 **queuing request** 機制可以讓 device optimize performance
 
 這種演算法會先從 end point 挪到另一個 end point，不停在兩端挪動，遇到誰就先處理誰，**SCAN algorithm** 也叫做 **elevator algorithm**
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/scan-scheduling.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Example of SCAN
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/scan-scheduling.webp" caption="Example of SCAN" />
 
 總共有 **236** 個 cylinders movement
 
@@ -198,13 +181,7 @@ OS 提供的 **queuing request** 機制可以讓 device optimize performance
 
 把 SCAN 到末尾的操作改成 **跳回原本的起始點**，相較於 SCAN 會更加 Uniform
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/c-scan-scheduling.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Example of C-SCAN
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/c-scan-scheduling.webp" caption="Example of C-SCAN" />
 
 移動了 **$146 + 199 + 37 = \mathbf{382}$** 個 cylinders movement
 
@@ -276,13 +253,7 @@ a bit **flipping** and **parity** bit：檢查有沒有 bit flipping 有奇數�
 - 裡面有一個 table 會存入 partition 的各種資訊，比如指向 boot program 的 partition
 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/master-boot-record.webp" style="width: 50%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     A Master Boot Record (MBR)
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/master-boot-record.webp" caption="A Master Boot Record (MBR)" />
 
 1. Run the code in the system's firmware
 2. Direct to read the boot code from the MBR
@@ -309,13 +280,7 @@ Swap out 跟 page out 可能會混用，但 swap 是整個 process 的 memory，
 
 Linux 有一個 swap map，值是多少就代表有多少 process reference 到這裡（因為有 share memory 所以會超過 1）是 `0` 就表示這個 partition 可以使用
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/linux-swap-map.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Linux Swapping Partition and Swap map
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/linux-swap-map.webp" caption="Linux Swapping Partition and Swap map" />
 
 ## Storage Attachment
 
@@ -335,13 +300,7 @@ Storage 到底是怎麼接上來的
 
 這些伺服器不一定真的是一台 server，有可能只是一個 storage system 而已
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/nas.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Example of NAS
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/nas.webp" caption="Example of NAS" />
 
 有一些更進階的 protocol 像是 iSCSI，是一種用 IP 傳輸的 SCSI protocol，可以讓網路硬碟運作得像本地端一樣
 
@@ -353,13 +312,7 @@ Storage 到底是怎麼接上來的
 
 **Storage Area Networks** 就是一個 connect 很多 servers and storage units 的系統，非常彈性，可以隨意組合，有 multiple host 跟 multiple storage array，assign 的方法完全 dynamic
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/storage-area-networks.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Storage Area Networks and Storage Arrays
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/storage-area-networks.webp" caption="Storage Area Networks and Storage Arrays" />
 
 **storage array** 可以根據我們希望的目的來打造，可以跟 Network 比較有關也可以跟 storage 有關
 
@@ -401,13 +354,7 @@ $$
 - **Striped mirrors (RAID 1+0)** 或 **mirrored stripes (RAID 0+1)** 就是可以增加 performance 以及 reliability
 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/raid-levels.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Illustration of RAID
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/raid-levels.webp" caption="Illustration of RAID" />
 
 - RAID 0：Non-Redundant
 - RAID 1：Mirrored
@@ -420,13 +367,7 @@ $$
 
 RAID 0+1，如果其中一個 Disk 壞掉，那整個 Stripe 都不能用了，但如果是 RAID 1+0 可以從 Mirror 的 DISK 去組合出來
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch09-mass-storage/raid-01-10.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Illustration of RAID 0+1, RAID 1+0
-  </span>
-</div>
+<Fig src="/images/os/ch09-mass-storage/raid-01-10.webp" caption="Illustration of RAID 0+1, RAID 1+0" />
 
 - **Snapshot**：會在更新前做一個備份，可以 trace 發生啥事
 - **Replication**：為了怕資料不見，我們想做到 automatically duplication write，這個方法可以 sync 也可以 async，通常還能達到 Fault Tolerance, Read Scalability

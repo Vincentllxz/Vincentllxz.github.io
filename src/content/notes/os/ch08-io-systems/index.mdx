@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # I/O Systems
 
@@ -40,13 +41,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **Expansion Bus** 可以讓慢速裝置傳輸稍微加速
 - **Serial-attached SCSI (SAS)** bus 串接 DISK
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/typical-pc-bus-structure.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Typical PC Bus Structure
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/typical-pc-bus-structure.webp" caption="Typical PC Bus Structure" />
 
 **Controller**: 解讀、Construct 要溝通的訊息，是在 Device 方的
 - **Serial-port controller**
@@ -74,13 +69,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 4. **Data-out register**
 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/memory-device.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     到對應的 Memory 讀寫等於完成對 Device 的控制
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/memory-device.webp" caption="到對應的 Memory 讀寫等於完成對 Device 的控制" />
 
 ### Polling
 
@@ -105,23 +94,11 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - Interrupt vector
 - Interrupt-handler routine
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/interrupt-driven-i-o-cycle.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Interrupt-Driven I/O Cycle
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/interrupt-driven-i-o-cycle.webp" caption="Interrupt-Driven I/O Cycle" />
 
 Interrupt Routine 後才會把東西 CPU 使用權交回去給原本的 Process
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/interrupt-vector.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Interrupt vector
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/interrupt-vector.webp" caption="Interrupt vector" />
 
 Interrupt 有以下的 features
 - **Nonmaskable** or **Maskable**，處理上更方便
@@ -133,13 +110,7 @@ Interrupt 有以下的 features
 
 我們希望大量的 I/O 傳輸 **不要牽扯到 CPU** 也就是避免 **programmed I/O**（one byte by a time，由 CPU 下指令控制的 I/O）
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/dma-progress.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     DMA Progress
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/dma-progress.webp" caption="DMA Progress" />
 
 1. 我們想把 Disk 2 上的一段 data 寫到 memory 裡面
 2. Device driver 會告訴 Controller 要傳輸 `c` bytes 到 address `x` 上
@@ -161,23 +132,11 @@ Interrupt 有以下的 features
 
 在時代的演進之下，有各種 Interface，我們做一些分類
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/application-i-o-interface-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Application I/O Interface structure
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/application-i-o-interface-1.webp" caption="Application I/O Interface structure" />
 
 可以用以下的分類方法，有各種不同的限制
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/application-i-o-interface-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Application I/O Interface types
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/application-i-o-interface-2.webp" caption="Application I/O Interface types" />
 
 通常我們都還是會分成
 - Block I/O
@@ -233,13 +192,7 @@ DMA 可以一個指令就多件事情都完成，而 **vector I/O** 也是一樣
 
 可能一次會有很多個 process 都需要用同一個 I/O device，所以我們需要留存 I/O device 的資訊
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/example-of-i-o-scheduling.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Example of I/O Scheduling
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/example-of-i-o-scheduling.webp" caption="Example of I/O Scheduling" />
 
 有必要的話，可以做一些 scheduling，改變 request 處理的順序，我們可以 maintain 一個 waiting queue
 
@@ -315,25 +268,13 @@ OS, kernel 也需要對這件事情有一定的控制權，**Power Collapse** �
 - Return control to the process
 </Aside>
  
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/life-cycle-of-blocking-read-request-1.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Life Cycle of Blocking Read Request
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/life-cycle-of-blocking-read-request-1.webp" caption="Life Cycle of Blocking Read Request" />
 
 ## STREAMS
 
 這是在 Unix 系統中特有的結構，本質上就跟 Network 一樣，是用 Moduler 的結構化設計，User 跟 Device 之間有各自的 format 互相不會侵犯，是 layer 化設計的代表
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/life-cycle-of-blocking-read-request-2.webp" style="width: 40%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Life Cycle of Blocking Read Request
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/life-cycle-of-blocking-read-request-2.webp" caption="Life Cycle of Blocking Read Request" />
 
 可以拆開來設計，新加一層也很方便
 
@@ -344,13 +285,7 @@ I/O 的設計其實對 system performance 來講是影響最大的一個部分�
 
 以下這張圖是如何用網路來對電腦之間的傳輸做控制
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/intercomputer-communications.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Intercomputer Communications
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/intercomputer-communications.webp" caption="Intercomputer Communications" />
 
 ### Improving I/O Performance
 - 減少 context switches
@@ -363,10 +298,4 @@ I/O 的設計其實對 system performance 來講是影響最大的一個部分�
 
 越上層越有 Flexibility，越下層越快，但功能越少
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch08-io-systems/device-functionality-progression.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Device Functionality Progression
-  </span>
-</div>
+<Fig src="/images/os/ch08-io-systems/device-functionality-progression.webp" caption="Device Functionality Progression" />

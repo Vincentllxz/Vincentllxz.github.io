@@ -11,6 +11,7 @@ language: "zh-TW"
 comment: true
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Advance I/O
 
@@ -42,13 +43,7 @@ Blocking 與 Non-blocking mode 是 I/O 一個處理這種問題的 property
 
 面對這些 system call 我們不可能使用 blocking mode，因為他會 forever block，所以我們通常會用 non-blocking mode 來對這些 device 做 I/O，我們可以在 `open()` 的時候直接指定 `O_NONBLOCK` flag，或是之後用 `fcntl()` 把它改成 non-blocking mode
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-      non-blocking mode for a file
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/fig-1.webp" caption="non-blocking mode for a file" />
 
 > 雖然 Disk I/O 是很慢，但我們並不會把它歸類為 slow system call，因為它不會 forever block
 
@@ -123,13 +118,7 @@ Terminal Device 的 buffer 會是 circular buffer，意思是我們只會使用�
 
 看看以下這張圖，當我們在 terminal 上打字的時候，OS 會先把我們打的字放在 buffer 裡面，等到我們按下 `Enter` 的時候才會把 buffer 裡面的資料送到 process 裡面去，這樣就不會因為我們打字太快而來不及處理了
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/fig-2.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Terminal Circular Buffer
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/fig-2.webp" caption="Terminal Circular Buffer" />
 
 Terminal 有一個特別的機制是我們打字可以非常快速的顯示在螢幕上，這是因為我們可以開啟 echo，在我們用鍵盤（Device）輸入的時候，OS 會把這份資料複製，同時放到 input queue 跟 output queue，termial 的 process 就可以從 input queue 讀取資料，Terminal 的 I/O process 則會從 output queue 讀取資料
 
@@ -164,13 +153,7 @@ totalFds = select(nfds, readfds, writefds, errorfds, timeout)
 
 > 為了 Portability，`readfds`, `writefds` 的 type 是 `fd_set`，這樣就不用管 System 的實作細節了，Unix 會幫我們把它轉成 bits string
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/i-o-multiplexing.webp" style="width: 80%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-      Illustration of select()
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/i-o-multiplexing.webp" caption="Illustration of select()" />
 
 呼叫 `select()` 後，system 就會去看前面 4 個 `fd`，後面的就不用幫忙看，當有 partial ready 後，就會 return 一個 totalFds（幾個 ready 了），所以 `readfds`, `writefds` 同時會被當作輸入也會被當作輸出
 
@@ -215,13 +198,7 @@ struct pollfd {
 當有兩個 process 想要同時 `write()` 一個 file 的時候，一會出問題，以下是個例子
 - 從 `fd` 讀出存款到 `int_var` 裡面，假設本來有 `1000`，藍色 program 先讀到 `1000`，然後被 context switch 出去，紅色 program 讀到 `1000`，然後做 `int_var -= 200`，然後寫回 `fd`，這時候藍色 program 又被 context switch 回來，做 `int_var -= 200`，照理來說兩次提領應該要剩 `600`，但因為藍色 program 讀到的 `int_var` 是 `1000`，所以最後寫回去的還是 `800`，這樣就會有 race condition 問題了
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/file-lock.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Race condition on two processes writing a file
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/file-lock.webp" caption="Race condition on two processes writing a file" />
 
 因此我們就會需要 file lock 來解決這個問題，File lock 的概念就是說，當一個 process 在 `write()` 一個 file 的時候，OS 會幫他把這個 file lock 住，其他 process 就不能對這個 file 做任何操作了，直到這個 process 把 lock 解掉了以後，其他 process 才能對這個 file 做操作
 - 只要有 process 在 `write()` File 就會被 lock 住，多個 process 會搶一個 file
@@ -231,13 +208,7 @@ struct pollfd {
 
 Lock 除了 `write()` 以外，還有 `read()` 也可以上 lock，我們可以根據 lock 的性質用以下的表格來分類
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-1.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-      The type of lock
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/type-of-lock-1.webp" caption="The type of lock" />
 
 - Shared **read lock**
     - 可以多 process 共享
@@ -282,13 +253,7 @@ struct flock {
 - 所有共享 file 的 `fd` 都可以去關掉他，file close, process terminated lock 都會被 release
 - lock 無法繼承，舉個例子 write lock 是 exclusive 的，不可能被繼承
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/type-of-lock-2.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Process Structure and Lock in FreeBSD
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/type-of-lock-2.webp" caption="Process Structure and Lock in FreeBSD" />
 
 因為 lock structure 記錄的是 process，他只認 process 所以只要是從正確的 process 來的 release request 就可以把 lock release 掉，下面兩個 code 為例
 ```c
@@ -312,24 +277,12 @@ close(fd2);
 
 有些 process 可能會不去 `F_GETLK`, `F_SETLK`，直接 call `write()`，意思是這個 lock 只是一個建議性的 lock，不一定要 call `fcntl()` 像是左下角的 process，就可以 access file，但因為 Unix 本身就有 account 和 permission 的機制，其他人根本對 file 並沒有 permission，只有自己動得了自己的檔案
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/advisory-lock.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-      Advisory lock
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/advisory-lock.webp" caption="Advisory lock" />
 
 #### Mandatory lock
 所有 system call 都要先透過 kernel 去檢查 lock 的狀態，才可以 access file，也只有 kernel 才有權限碰到 lock，所有 process 都只能提出 request
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/mandatory-lock.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Mandatory lock
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/mandatory-lock.webp" caption="Mandatory lock" />
 
 > 在現代的系統裡，Mandatory lock 很少被使用，因為它會造成很多 overhead，而且也不容易 debug，Advisory lock 只要大家都遵守規則就可以了
 
@@ -343,25 +296,13 @@ close(fd2);
 
 是在網路的一種處理資料的 model，通常會有一個 server 在等待 client 的 request，當 client 提出 request 後，server 會處理 request 並且回傳 response 給 client
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-2.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Client Server model
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/networking-2.webp" caption="Client Server model" />
 
 ### Socket
 
 Socket 是一個抽象的概念，代表一個 endpoint，可以用來做網路的 I/O，通常會有兩個 socket，一個在 client 端，一個在 server 端，兩個 socket 之間可以透過網路傳輸資料，就好像是一個 pipe 一樣，client 端的 socket 可以用來 send request，server 端的 socket 可以用來 receive request，我們也可以把它比作一種 IPC 只不過是跨 device 的 IPC，因為它是透過網路來傳輸資料的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch03-advio/networking-1.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Networking Stack
-  </span>
-</div>
+<Fig src="/images/sp/ch03-advio/networking-1.webp" caption="Networking Stack" />
 
 
 

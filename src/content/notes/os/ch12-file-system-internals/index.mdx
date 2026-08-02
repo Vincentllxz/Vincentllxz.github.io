@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # File-System Internals
 
@@ -21,13 +22,7 @@ import { Aside } from 'astro-pure/user'
 
 > 邏輯上來講 Volume 是可以切在不同 Disk 上的，但 partition 只能在同一顆 Disk 上，如果 volume manager 支援跨 partition 的操作的話，也是可以做到跨 partition 的 volume 的，甚至可以跨 device
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch12-file-system-internals/file-systems-illustration.webp" style="width: 80%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Illustration of File system
-  </span>
-</div>
+<Fig src="/images/os/ch12-file-system-internals/file-systems-illustration.webp" caption="Illustration of File system" />
 
 一個 system 裡面也可以有多種 file system，以 Solaris 為例子
 - **tmpfs**: 放在 volatile 的 memory 上面，暫存
@@ -56,13 +51,7 @@ File system 一定要透過 **mounting** 才能被 OS 使用，我們會把 **mo
    - 一個 file system 只能 mount 一次
    - 一個 file system 可以 mount 很多次（在不同 mount point）
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch12-file-system-internals/allow-overwrite.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Allow overwrite of file system
-  </span>
-</div>
+<Fig src="/images/os/ch12-file-system-internals/allow-overwrite.webp" caption="Allow overwrite of file system" />
 
 ## Partitions and Mounting
 
@@ -99,13 +88,7 @@ Virtualization 這個概念在 OS 裡面非常常見，File system 也可以套�
 
 我們必須確定 vnode 是 unique 的，因為 file system 裡面常常一樣名字的情況，但 VFS 必須搞清楚
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch12-file-system-internals/virtual-file-system-interface.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Virtual file system Interface
-  </span>
-</div>
+<Fig src="/images/os/ch12-file-system-internals/virtual-file-system-interface.webp" caption="Virtual file system Interface" />
 
 ### VFS: Linux
 
@@ -209,13 +192,7 @@ NFS 是一種 implementation，是一種基於 client-server 的 model，藉由 
   - 把 `S2` 的 `dir2` 底下結構掛到 `dir1` 底下
   - 最後的 `U` 是 `U` + `S1` 的 `shared` 掛成 `local` + `S2` 的 `dir2` 掛成 `dir1`
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch12-file-system-internals/cascading-mounting-nfs.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Cascading Mounting on NFS
-  </span>
-</div>
+<Fig src="/images/os/ch12-file-system-internals/cascading-mounting-nfs.webp" caption="Cascading Mounting on NFS" />
 
 NFS 為了 remote file access 每個 machine 的 OS architecture 都不一樣，必須要 handle 這個部分，希望 NFS 可以 independent from hardware，要設計出一套新的 protocol 把 remote procedure call (RPC) translate 成 external data representation (XDR) protocol
 
@@ -260,13 +237,7 @@ NFS v3 剛剛有提到是 stateless 的，所以必須提供完整的所有資�
 4. XDR 轉換回 RPC，讓 NFS server 去做轉換給 VFS
 5. VFS 轉成 system call 給 file system 去 access disk
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch12-file-system-internals/nfs-architecture.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Schematic View of NFS Architecture
-  </span>
-</div>
+<Fig src="/images/os/ch12-file-system-internals/nfs-architecture.webp" caption="Schematic View of NFS Architecture" />
 
 ### Path-Name Translation
 

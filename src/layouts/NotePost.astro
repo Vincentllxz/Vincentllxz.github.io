@@ -49,6 +49,14 @@ const parentId = isChapter ? id.split('/')[0] : undefined
 const parentNote = parentId ? notes.find((n) => n.id === parentId) : undefined
 const parentHref = parentNote ? `/notes/${parentNote.id}` : '/notes'
 const parentTitle = parentNote?.data.title ?? 'Notes'
+
+// Prev/next must stay inside one course. `ArticleBottom` just walks the array it is
+// given, so hand it only this course's chapters — otherwise the last CN chapter's
+// "next" lands on the OS course index. Course index pages skip it entirely; they
+// already list every chapter.
+const siblings = isChapter
+  ? notes.filter((n) => n.id.startsWith(`${parentId}/`))
+  : ([] as CollectionEntry<'notes'>[])
 ---
 
 <PageLayout
@@ -86,8 +94,8 @@ const parentTitle = parentNote?.data.title ?? 'Notes'
         </a>
       )
     }
-    {/* Chapter recommend (prev / next) */}
-    <ArticleBottom collections={notes} {id} class='mt-3 sm:mt-6' />
+    {/* Chapter recommend (prev / next), within this course only */}
+    {isChapter && <ArticleBottom collections={siblings} {id} class='mt-3 sm:mt-6' />}
     {/* Comment */}
     {!isDraft && enableComment && <Comment class='mt-3 sm:mt-6' />}
   </Fragment>

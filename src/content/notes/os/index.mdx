@@ -32,22 +32,25 @@ import CourseIntro from '../../../components/CourseIntro.astro'
 
 ## Content
 
+{/* 上課順序跟恐龍書章節不一樣（而且跳過了 Ch8 Deadlocks），所以每章附上課本章節號。 */}
+
 <ChapterList
   accent="350 72% 52%"
+  bookLabel="OSC"
   chapters={[
-    { n: 1, title: 'Introduction', href: '/notes/os/ch01-intro' },
-    { n: 2, title: 'OS Structure', href: '/notes/os/ch02-os-structure' },
-    { n: 3, title: 'Process', href: '/notes/os/ch03-process' },
-    { n: 4, title: 'Threads & Concurrency', href: '/notes/os/ch04-threads' },
-    { n: 5, title: 'Main Memory', href: '/notes/os/ch05-main-memory' },
-    { n: 6, title: 'Virtual Memory', href: '/notes/os/ch06-virtual-memory' },
-    { n: 7, title: 'CPU Scheduling', href: '/notes/os/ch07-cpu-scheduling' },
-    { n: 8, title: 'I/O Systems', href: '/notes/os/ch08-io-systems' },
-    { n: 9, title: 'Mass Storage System', href: '/notes/os/ch09-mass-storage' },
-    { n: 10, title: 'File-System Interface', href: '/notes/os/ch10-file-system-interface' },
-    { n: 11, title: 'File-System Implementation', href: '/notes/os/ch11-file-system-implementation' },
-    { n: 12, title: 'File-System Internals', href: '/notes/os/ch12-file-system-internals' },
-    { n: 13, title: 'Synchronization Tools', href: '/notes/os/ch13-synchronization-tools' },
-    { n: 14, title: 'Synchronization Examples', href: '/notes/os/ch14-synchronization-examples' }
+    { n: 1, title: 'Introduction', book: 1, href: '/notes/os/ch01-intro' },
+    { n: 2, title: 'OS Structure', book: 2, href: '/notes/os/ch02-os-structure' },
+    { n: 3, title: 'Process', book: 3, href: '/notes/os/ch03-process' },
+    { n: 4, title: 'Threads & Concurrency', book: 4, href: '/notes/os/ch04-threads' },
+    { n: 5, title: 'Main Memory', book: 9, href: '/notes/os/ch05-main-memory' },
+    { n: 6, title: 'Virtual Memory', book: 10, href: '/notes/os/ch06-virtual-memory' },
+    { n: 7, title: 'CPU Scheduling', book: 5, href: '/notes/os/ch07-cpu-scheduling' },
+    { n: 8, title: 'I/O Systems', book: 12, href: '/notes/os/ch08-io-systems' },
+    { n: 9, title: 'Mass Storage System', book: 11, href: '/notes/os/ch09-mass-storage' },
+    { n: 10, title: 'File-System Interface', book: 13, href: '/notes/os/ch10-file-system-interface' },
+    { n: 11, title: 'File-System Implementation', book: 14, href: '/notes/os/ch11-file-system-implementation' },
+    { n: 12, title: 'File-System Internals', book: 15, href: '/notes/os/ch12-file-system-internals' },
+    { n: 13, title: 'Synchronization Tools', book: 6, href: '/notes/os/ch13-synchronization-tools' },
+    { n: 14, title: 'Synchronization Examples', book: 7, href: '/notes/os/ch14-synchronization-examples' }
   ]}
 />

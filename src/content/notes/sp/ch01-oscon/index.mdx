@@ -11,6 +11,7 @@ language: "zh-TW"
 comment: true
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # OS concept
 
@@ -26,13 +27,7 @@ Function call 是把 callee 跟 caller 的資料放在 process 裡面，然後�
 
 System call 則是要把的 caller 的資料放在 process 裡面，但 callee 的 code 是在 kernel 裡面，所以要先切換到 kernel mode，然後再跳到 callee 的 code 執行，最後再切回 user mode 回來 caller 繼續執行
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/system-call-v-s-function-call.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     System call v.s Function call
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/system-call-v-s-function-call.webp" caption="System call v.s Function call" />
 
 ### User space v.s. Kernel space
 
@@ -40,13 +35,7 @@ System memory 通常會被分成兩個區域：user space 跟 kernel space
 - **User space**: 普通 process execution 的地方，除非有 system call，否則 process 只能 access user space
 - **Kernel space**: OS kernel execution 的地方，process 可以透過 system call 去 access kernel space，但不能直接 access kernel space
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/user-mode-v-s-kernel-mode.webp" style="width: 70%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     User space v.s. Kernel space
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/user-mode-v-s-kernel-mode.webp" caption="User space v.s. Kernel space" />
 
 > Hardware 運行指令永遠在 kernel mode
 
@@ -119,13 +108,7 @@ User 會通過 `crypt()` 來驗證密碼
 
 我們可以利用 CPU 的速度來實現 **Time Sharing**，因為 CPU 切換的速度太快了，所以我們可以讓每個 process 都有一個 time slice，當 time slice 用完的時候，CPU 就會切換到下一個 process，這樣就可以讓多個 process 好像同時執行了
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-1.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     CPU Scheduling Original setting
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/cpu-scheduling-1.webp" caption="CPU Scheduling Original setting" />
 
 這個 **Event** 就是一個慢速事件，當 CPU 在執行 process A 的時候，突然有一個 Event 發生了，這時候 CPU 就會把 process A 暫停，然後去處理這個 Event，等到 Event 處理完了之後，再回來繼續執行 process A
 - Event 可能是 I/O event、timer event、signal event 等等
@@ -133,37 +116,13 @@ User 會通過 `crypt()` 來驗證密碼
 換句話說當我們把一個 process 放到 ready queue 的時候，那個 process 的所有 data 應該要已經被 load 到 memory 裡面了
 
 1. CPU 會從 ready queue 裡面選擇一個 process 來執行
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-2.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      A process is going to be scheduled
-    </span>
-  </div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-2.webp" caption="A process is going to be scheduled" />
 2. CPU 正在執行 process
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-3.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      A process is running on CPU
-    </span>
-  </div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-3.webp" caption="A process is running on CPU" />
 3. CPU 把正在執行的 task 踢掉
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-4.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      A process is push out from CPU
-    </span>
-</div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-4.webp" caption="A process is push out from CPU" />
 4. 在這個 time slice，Process A 會被放回 ready queue 裡面，等待下一次被 CPU 選中來執行，同一時間，CPU 會從 ready queue 裡面選擇下一個 process 來執行
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-5.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      The next process is running on CPU
-    </span>
-  </div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-5.webp" caption="The next process is running on CPU" />
 
 剛剛這個把 CPU 上的 process 抽換成另一個 process 的過程就叫做 **Context Switch**
 - **Time Slice** 可能只有一個 nano second
@@ -172,31 +131,13 @@ User 會通過 `crypt()` 來驗證密碼
 - 因為 Memory 的速度不夠快，這個步驟通常會在 **L1, L2 cache** 內運作
 
 5. 如果這個 process 被踢出是因為 Event 的話，那麼這個 process 就不會在那個 time slice 裡面被放回 ready queue 裡面，而是會被放到 waiting queue 裡面，等到 Event 處理完了之後，再把這個 process 放回 ready queue 裡面等待下一次被 CPU 選中來執行
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-6.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      A process is waiting for an event
-    </span>
-  </div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-6.webp" caption="A process is waiting for an event" />
 
 6. 當 event 來的時候，這個 process 就會自行對 event 做出反應
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-7.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      A process is executing an event
-    </span>
-  </div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-7.webp" caption="A process is executing an event" />
 
 7. 當 event 處理完了之後，這個 process 就會被放回 ready queue 裡面等待下一次被 CPU 選中來執行
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/cpu-scheduling-8.webp" style="width: 90%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-      A process is back to ready queue
-    </span>
-  </div>
+  <Fig src="/images/sp/ch01-oscon/cpu-scheduling-8.webp" caption="A process is back to ready queue" />
   在這張圖上我們也可以看到，如果一個 process 執行完畢就會在 CPU 運行完後被踢出這個循環，我們成為 **exit**，而 exit 分成很多種
 
 <Aside type="note" title="Mode switch and Context switch">
@@ -207,23 +148,11 @@ User 會通過 `crypt()` 來驗證密碼
 
 在 Unix 系統裡面所有 process 都是用 `fork()` 這個 system call 來創建的，當 `fork()` 被呼叫的時候，OS 會複製一個新的 process 出來，這個新的 process 就叫做 child process，而原本的 process 就叫做 parent process，這兩個 process 會有相同的 code、data、stack，但是他們的 process ID 是不同的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/unix-process-1.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     UNIX Process creation
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/unix-process-1.webp" caption="UNIX Process creation" />
 
 以 Unix system 為例，除了 `init` process 之外，其他 process 都是由 `init` process 透過 `fork()` 來創建的，這樣就形成了一個 process tree
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/unix-process-2.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     UNIX Process tree
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/unix-process-2.webp" caption="UNIX Process tree" />
 
 接下來介紹 **Pipe**，pipe 是一種可以把某個 process 的 input 轉換成另一個 process 的 input 的方法
 
@@ -257,13 +186,7 @@ User 會通過 `crypt()` 來驗證密碼
 
 Linux 內的 memory 都是以這種 layout 來進行 process 管理的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/memory-management.webp" style="width: 50%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Memory Management
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/memory-management.webp" caption="Memory Management" />
 
 ## File/Directory Management
 
@@ -277,23 +200,11 @@ Unix 系統裡面的 file structure 是一個 tree structure，最上面是 root
 - **bin**: binary, in the system genuinly
 - **var**: dynamic file
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/file-structure-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     File Structure in Unix
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/file-structure-1.webp" caption="File Structure in Unix" />
 
 用 `ls` 指令可以看到
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch01-oscon/file-structure-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     File in Unix
-  </span>
-</div>
+<Fig src="/images/sp/ch01-oscon/file-structure-2.webp" caption="File in Unix" />
 
 ```chmod```,```chown```,```touch```
 

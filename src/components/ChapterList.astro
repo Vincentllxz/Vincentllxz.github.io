@@ -1,133 +1,135 @@
 ---
-// A terminal-style `ls` listing for course-note table-of-contents pages, matching
-// CourseIntro's window aesthetic. Chapters without an `href` render as muted
-// "整理中" (work-in-progress) rows.
+// 課程首頁的章節目錄。刻意不做視窗外框 —— 這一頁上面已經有 CourseIntro 的
+// 視窗條了，而這份列表是要被點 10 幾次的東西，安靜、好掃比有裝飾重要。
 interface Chapter {
+  /** 閱讀順序，也是網址上的編號。 */
   n: number
   title: string
   href?: string
+  /** 對應的課本章節號。課程編排跟課本順序不一致時才需要（例如 OS）。 */
+  book?: number
 }
 
 interface Props {
   chapters: Chapter[]
-  /** Accent color as an hsl triple `H S% L%` — defaults to terminal blue. */
+  /** 主色，hsl 三元組 `H S% L%`；預設終端機藍。 */
   accent?: string
+  /** `book` 欄的前綴，例如 `OSC`。有章節帶 `book` 時才會顯示。 */
+  bookLabel?: string
 }
 
-const { chapters, accent = '217 85% 54%' } = Astro.props
-const done = chapters.filter((c) => c.href).length
-const total = chapters.length
-
-const slug = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-
-// Done chapters reuse their real URL slug; WIP ones get a generated filename.
-const fileName = (c: Chapter) =>
-  c.href
-    ? `${c.href.split('/').filter(Boolean).pop() ?? ''}.md`
-    : `ch${String(c.n).padStart(2, '0')}-${slug(c.title)}.md`
+const { chapters, accent = '217 85% 54%', bookLabel = '' } = Astro.props
+const showBook = chapters.some((c) => c.book !== undefined)
 ---
 
-<div
-  class='chapterlist not-prose my-7 overflow-hidden rounded-xl border bg-card font-mono text-sm shadow-sm'
-  style={`--ac: ${accent}`}
->
-  {/* 命令 + 進度（每個方塊代表一章） */}
-  <div class='space-y-1 border-b px-4 py-3 sm:px-5'>
-    <p>
-      <span class='cl-dollar'>$</span> <span class='cl-cmd'>ls</span> ch*/
-    </p>
-    <p class='text-muted-foreground'>
-      <span class='cl-slash'>//</span> {done} / {total} done{' '}
-      <span class='cl-bar'>
-        <span class='cl-bar-on'>{'█'.repeat(done)}</span><span class='cl-bar-off'>{
-          '░'.repeat(total - done)
-        }</span>
-      </span>
-    </p>
-  </div>
-
-  {/* 檔案樹 */}
-  <ol class='px-2 py-2 sm:px-3'>
-    {
-      chapters.map((c, i) => {
-        const Tag = c.href ? 'a' : 'div'
-        const last = i === chapters.length - 1
-        return (
-          <li>
-            <Tag
-              href={c.href}
-              data-astro-prefetch={c.href ? true : undefined}
-              class:list={[
-                'cl-row group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors',
-                c.href ? 'cl-row-link' : 'cl-row-wip'
-              ]}
-            >
-              <span class='cl-tree shrink-0 text-muted-foreground'>{last ? '└─' : '├─'}</span>
-              <span class='cl-name min-w-0 truncate text-foreground'>{fileName(c)}</span>
-              <span class='grow' />
-              <span class='cl-title hidden max-w-[42%] truncate text-xs text-muted-foreground sm:block'>
-                {c.title}
+<ol class='chapterlist not-prose my-6' style={`--ac: ${accent}`}>
+  {
+    chapters.map((c) => {
+      const Tag = c.href ? 'a' : 'div'
+      return (
+        <li>
+          <Tag
+            href={c.href}
+            data-astro-prefetch={c.href ? true : undefined}
+            class:list={['cl-row', c.href ? 'cl-row-link' : 'cl-row-wip']}
+            aria-disabled={c.href ? undefined : 'true'}
+          >
+            <span class='cl-n'>{String(c.n).padStart(2, '0')}</span>
+            <span class='cl-title'>{c.title}</span>
+            {showBook && (
+              <span class='cl-book'>
+                {c.book !== undefined ? `${bookLabel} ${c.book}`.trim() : ''}
               </span>
-              {c.href ? (
-                <span class='cl-ok shrink-0'>✓</span>
-              ) : (
-                <span class='shrink-0 text-muted-foreground'>···</span>
-              )}
-            </Tag>
-          </li>
-        )
-      })
-    }
-  </ol>
-</div>
+            )}
+            <span class='cl-mark' aria-hidden='true'>
+              {c.href ? '›' : '整理中'}
+            </span>
+          </Tag>
+        </li>
+      )
+    })
+  }
+</ol>
 
 <style>
   .chapterlist {
     --accent: hsl(var(--ac));
+    list-style: none;
+    margin-inline: 0;
+    padding: 0;
+    border-top: 1px solid hsl(var(--border));
   }
-  /* Lift the accent in dark mode so mid-lightness hues stay readable. */
+  /* 中等亮度的色相在深色底上會沉下去，提亮一點。 */
   :global(html.dark) .chapterlist {
     --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
   }
-  .cl-dollar {
-    color: hsl(var(--muted-foreground));
-  }
-  .cl-cmd {
-    color: #d9b54a;
-  }
-  :global(html.dark) .cl-cmd {
-    color: #f1d370;
-  }
-  .cl-slash,
-  .cl-bar-on,
-  .cl-ok {
-    color: var(--accent);
-  }
-  .cl-bar {
-    letter-spacing: 0.08em;
-  }
-  .cl-bar-off {
-    color: hsl(var(--muted-foreground) / 0.4);
+  .chapterlist li {
+    border-bottom: 1px solid hsl(var(--border));
   }
 
-  /* Rows */
-  .cl-row-wip {
-    opacity: 0.6;
+  .cl-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    padding: 0.7rem 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
   }
   .cl-row-link:hover {
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
   }
-  .cl-row-link:hover .cl-name {
+  .cl-row-wip {
+    opacity: 0.55;
+  }
+
+  .cl-n {
+    flex-shrink: 0;
+    width: 1.6rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--muted-foreground));
+  }
+  .cl-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: hsl(var(--foreground));
+    transition: color 0.15s ease;
+  }
+  .cl-row-link:hover .cl-title {
     color: var(--accent);
   }
-  .cl-ok {
-    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* 課本章節：對照用的註記，不該跟章名搶。 */
+  .cl-book {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--muted-foreground) / 0.8);
   }
-  .cl-row-link:hover .cl-ok {
-    transform: translateX(4px);
+  .cl-mark {
+    flex-shrink: 0;
+    width: 3rem;
+    text-align: end;
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cl-row-link .cl-mark {
+    color: var(--accent);
+  }
+  .cl-row-link:hover .cl-mark {
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 480px) {
+    .cl-book {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cl-row,
+    .cl-mark {
+      transition: none;
+    }
   }
 </style>

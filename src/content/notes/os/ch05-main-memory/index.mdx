@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Main Memory
 
@@ -28,9 +29,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 ### Basic Hardware
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/basic-hardware.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch05-main-memory/basic-hardware.webp" />
 
 - CPU 上只有 register 是 built-in 的
 - Main memory 是大部分運算資源所在地
@@ -43,22 +42,14 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 - **base register**: 檢查 if `address >= base`
 - **limit register**: 檢查 if `address < base + limit`
  
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/address-protection.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Address Protection
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/address-protection.webp" caption="Address Protection" />
 
 會隨著 Context Switch 變化，存在 Register 是因為這個動作要非常快，因為每個 Process 都需要檢查
 
 ### Address Binding
 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/address-binding.webp" style="width: 50%;" />
-</div>
+<Fig src="/images/os/ch05-main-memory/address-binding.webp" />
 
 在 Memory 層面看來，所有值、變數都是記憶體的操作，Program 可以在不同時間決定實際的記憶體位置
 - Compile 的時候做 Binding，決定實際的位置在哪，會變成 **absolute code**
@@ -81,9 +72,7 @@ CPU 先產生 Program Counter，透過 PC 的 memory 產生出這次要執行的
 
 #### Memory-Management Unit (MMU)
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/memory-management-unit.webp" style="width: 70%;" />
-</div>
+<Fig src="/images/os/ch05-main-memory/memory-management-unit.webp" />
 
 這裡的 `364` 是 CPU 認為的「在這個 Process 裡的第 364 個 Bytes」，而 **MMU** 會去做轉換，轉換成真正在 Memory 裡的位置
 
@@ -109,13 +98,7 @@ Static Linking 就是把 Library 當作一個新的 Object File
 
 ### Memory Protection
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/memory-protection.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Memory Protection
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/memory-protection.webp" caption="Memory Protection" />
 
 一個 logical address 進來之後先檢查有沒有超過 Limit，因為是 Continuous 所以只需要檢查有沒有超過某個 limit
 
@@ -125,13 +108,7 @@ Static Linking 就是把 Library 當作一個新的 Object File
 - Reject
 - 排進 Wait Queue 裡面
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/memory-allocation.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Memory Allocation
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/memory-allocation.webp" caption="Memory Allocation" />
 
 #### Dynamic Storage Allocation Problem
 
@@ -183,42 +160,22 @@ $$
 
 Paging 一樣是在 **MMU** 裡面實現的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/basic-method-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Basic Method 2
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/basic-method-2.webp" caption="Basic Method 2" />
 
 1. CPU 產生 `p+d` 的 logical address
 2. `p` 被當作 index，去 Page table 裡面替換成 `f`
 3. 用 `f+d` 當作 Physical address 去 access 真正的 frame 裡的位置
 
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/basic-method-1.webp" style="width: 50%;" />
-</div>
+<Fig src="/images/os/ch05-main-memory/basic-method-1.webp" />
 
 可以是不連續的 Access，Logical 上看 Page 0~3 是連續的，但在 Frame 上看是不連續的
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/basic-method-3.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Basic Method 3
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/basic-method-3.webp" caption="Basic Method 3" />
 
 access `10` 會變成 `60` 也就是 `6*4 + 0 = 24` 是 `e`
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/basic-method-4.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Basic Method 4
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/basic-method-4.webp" caption="Basic Method 4" />
 
 OS 會先 keep 一個 Free-Frame List，有新 Process 要 allocate 的時候就 Dynamically 的去從 list 裡找，再更改那個 List
 
@@ -259,26 +216,14 @@ Page table 是一個 per process 的 Data Structure 有兩種 implement
 
 為了讓 Address 轉換的過程加速，多增加一個比較靠近硬體層面的 **TLB**
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/translation-look-aside-buffer-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Translation Look-Aside Buffer 1
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/translation-look-aside-buffer-1.webp" caption="Translation Look-Aside Buffer 1" />
 
 MMU 先去檢查 TLB 裡面有沒有要求的 Address
 
 <Aside type="note" title="TLB">
 
 他是一種 hardware，所以加速是在硬體層面上進行的，使用 **Associative Memory** 進行加速，當發出請求的時候，硬體 control lines 會平行化的去找那個 frame page
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/translation-look-aside-buffer-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Translation Look-Aside Buffer 2
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/translation-look-aside-buffer-2.webp" caption="Translation Look-Aside Buffer 2" />
 </Aside>
 
 因為真正的 CPU execution 是一種 pipeline 的感覺，不同步驟可以同時做（e.g. 不同任務的讀、算可以同時進行），每當運行發生 TLB miss（當前 Address 不在 TLB 內）就要寫入 TLB
@@ -332,13 +277,7 @@ $$
 
 #### Valid-invalid bit
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/valid-invalid-bit.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Valid-invalid bit
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/valid-invalid-bit.webp" caption="Valid-invalid bit" />
 
 可以告訴我們哪個欄位不能 access，一遇到 invalid 就可以直接 Error trap，有可能是發生 page fault
 
@@ -351,13 +290,7 @@ $$
 
 有一種 **Reentrant code** 是不能在 Execution 的時候變化的 code，是可以被 share 的，此時如果有 Paging 就可以非常方便的在 Physical memory 上 Share 這段 code
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/shared-pages.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Shared Pages
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/shared-pages.webp" caption="Shared Pages" />
 
 只要 Process 把自己需要的那段 Share code 放到自己的 Page table 上 mapping 過去就好了
 
@@ -375,13 +308,7 @@ $$
 
 把 Page number 的存取變成一個 tree structure，讓他可以分開來（但其實使用的 total memory 會比較多，也是一種 trade-off）
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/two-level-paging.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Two-Level Paging
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/two-level-paging.webp" caption="Two-Level Paging" />
 
 32-bit 的話就可以是：$p_1$ 10 bit，$p_2$ 10 bit
 
@@ -391,13 +318,7 @@ $$
 
 ### Hashed Page Tables
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/hashed-page-tables.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Hashed Page Tables
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/hashed-page-tables.webp" caption="Hashed Page Tables" />
 
 把 Page table 改成一個 Hash table，用 Hash function 到達指定 entry 後，透過 link list 的 traverse 找到對應的 Frame number
 
@@ -407,13 +328,7 @@ $$
 
 檢查現在這個 Frame 正在被誰使用，也就是說這並不是個 Per process 的 data structure
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/inverted-page-tables.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Inverted Page Tables
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/inverted-page-tables.webp" caption="Inverted Page Tables" />
 
 `i` 是 frame 的 index，如果要 access `pid+p+d` 這個 address，對 Page table 做 search，假設第 `i` 個 entry 剛好符合這個條件，那 Physical address 就會是 `i+d`
 
@@ -432,13 +347,7 @@ $$
 \text{Actual memory space} \leq \text{Total memory of process}
 $$
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/swapping.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Swapping
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/swapping.webp" caption="Swapping" />
 
 ### Standard Swapping
 
@@ -452,13 +361,7 @@ $$
 
 > 該如何選擇誰要搬走就是 Ch.10 Virtual Memory 的問題
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/swapping-with-paging.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Swapping with Paging
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/swapping-with-paging.webp" caption="Swapping with Paging" />
 
 ### Swapping on Mobile Systems
 
@@ -481,13 +384,7 @@ Intel adopted AMD's x86-64 architecture
 
 有三種不同的 **translation granules**，有不同的 **regions** 也就是連續的 memory
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/os/ch05-main-memory/armv8-architecture.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     ARMv8 Architecture
-  </span>
-</div>
+<Fig src="/images/os/ch05-main-memory/armv8-architecture.webp" caption="ARMv8 Architecture" />
 
 有 two level TLB
 - **micro TLBs**: inner, ASIDs supported

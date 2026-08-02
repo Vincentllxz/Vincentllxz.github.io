@@ -12,6 +12,7 @@ comment: true
 draft: false
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Application Layer
 - 通常只需要跟 **Transport Layer** 互動就好
@@ -19,13 +20,7 @@ import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse 
 
 <Aside type="note" title="">
 做出一個 app 我們只需要知道 API (Application layer Interface) 如何操作，以及他與 Transport Layer 的溝通關係就好了
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/fig.webp" style="width: 60%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     figure
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/fig.webp" caption="figure" />
 </Aside>
 
 ## Principle of Application layer
@@ -70,13 +65,7 @@ P2P 會交換
 - **Throughput**
 - **Security**
 - 以下是常見服務隊各種屬性的要求
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/available-in-transport-layer.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Available in Transport Layer
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/available-in-transport-layer.webp" caption="Available in Transport Layer" />
 
 ### Transport Layer
 - **TCP** service: 
@@ -126,13 +115,7 @@ Accept-language: fr
 - 每行結尾都有 `\r\n`
 - 大致結構如下
     - request 下面是 header 資訊
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/cn/ch02-app/http-request-message.webp" style="width: 100%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-       HTTP Request message
-    </span>
-  </div>
+  <Fig src="/images/cn/ch02-app/http-request-message.webp" caption="HTTP Request message" />
 
 ### Types of HTTP Request message
 - **POST**: 上傳 form 資料（用 body）
@@ -167,13 +150,7 @@ Content-Type: text/html
     4. 向 Back-end database 請求資料
 
 <Aside type="tip" title="Example">
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/cookie.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Cookie
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/cookie.webp" caption="Cookie" />
 - Backend create entry 之後就會回傳 cookie ID
 - Request 用這個 ID 去請求
 </Aside>
@@ -197,13 +174,7 @@ Server 可以用 Control header 對 Cache 下指令
 - 可以減少 access link 的 traffic
 
 <Aside type="tip" title="">
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/web-caches-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Web Caches 1
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/web-caches-1.webp" caption="Web Caches 1" />
 觀察一下 Access link 使用率，真的非常高
 $$
 \text{Access link 使用率} = \frac{1.50 \text{ (Mbps)}}{1.54\text{ (Mbps)}} = 0.97
@@ -226,13 +197,7 @@ $$
 </Aside>
 
 <Aside type="caution" title="Solution 2：Buy a **Web Cache**">
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/web-caches-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Web Caches 2
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/web-caches-2.webp" caption="Web Caches 2" />
 假定 **hit rate** 是 **0.4**，表示四成資料會不需要經過 Access link，只需要 msec delay，剩餘 60％ 維持原樣
 $$
 \text{Hit rate} = 0.4
@@ -254,25 +219,13 @@ $$
 - Check if cache is up-to-date
 - 會進行以下機制，自動排除寄送 `304 Not Modified`
     - 加入一行 header `If-modified-since: <date>`
-  <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/cn/ch02-app/conditional-get.webp" style="width: 100%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-       Conditional GET
-    </span>
-  </div>
+  <Fig src="/images/cn/ch02-app/conditional-get.webp" caption="Conditional GET" />
 
 
 ### HTTP/2
 - 把資料分解成 frame 去做 HOL Blocking
 - 如果 $O_1$ 必須一起送出，那 $O_2 \to O_4$ 會 delay 非常嚴重，但分段就可以讓 delay 只存在 $O_1$
-- <div style="text-align: center;">
-    <img loading="lazy" decoding="async" src="/images/cn/ch02-app/http-2.webp" style="width: 100%;" />
-    <br />
-    <span style="color: grey; font-size: 16px;">
-       HTTP/2
-    </span>
-  </div>
+- <Fig src="/images/cn/ch02-app/http-2.webp" caption="HTTP/2" />
 
 
 ## Email, SMTP
@@ -281,13 +234,7 @@ Email 分為三個部分
 - **User Agent**
 - **SMTP protocol**: 推送信件到另一個 Server
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/email-smtp-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Email, SMTP 1
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/email-smtp-1.webp" caption="Email, SMTP 1" />
 
 - SMTP 用的是 Direct Transfer
 - ```
@@ -308,13 +255,7 @@ Email 分為三個部分
   S:  221 hamburger.edu closing connection
   ```
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/email-smtp-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Email, SMTP 2
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/email-smtp-2.webp" caption="Email, SMTP 2" />
 
 ### Compare to HTTP
 - HTTP: client PULL, single object
@@ -344,13 +285,7 @@ Email 分為三個部分
 
 
 ### A Distributed, Hierarchical Database
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/a-distributed-hierarchical-database.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     A Distributed, Hierarchical Database
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/a-distributed-hierarchical-database.webp" caption="A Distributed, Hierarchical Database" />
 - 根域名 DNS 伺服器 (**root** DNS servers)
     - 具有非常重要的功能
     - ICANN 定義的
@@ -362,23 +297,11 @@ Email 分為三個部分
 
 ### Iterated Query
 - 要一層一層訪問才能獲得真正的網域，可能會造成 congestion
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/iterated-query.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Iterated Query
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/iterated-query.webp" caption="Iterated Query" />
 
 ### Recursive Query
 - 同樣一層一層訪問，但不用每次都回到 local DNS server
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/recursive-query.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Recursive Query
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/recursive-query.webp" caption="Recursive Query" />
 
 ### DNS Caching
 - 會設定 TTL
@@ -394,29 +317,11 @@ Email 分為三個部分
     - **Type MX**: for mail
 
 ### DNS protocol message
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/dns-protocol-message-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     DNS protocol message 1
-  </span>
-</div>
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/dns-protocol-message-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     DNS protocol message 2
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/dns-protocol-message-1.webp" caption="DNS protocol message 1" />
+<Fig src="/images/cn/ch02-app/dns-protocol-message-2.webp" caption="DNS protocol message 2" />
 
 ## P2P
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/p2p-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     P2P 1
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/p2p-1.webp" caption="P2P 1" />
 - 在 client-server 架構裡，只有 server 在上傳，所以若有 $N$ 份大小為 $F$ 的資料，則 delay 為
 $$
 D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}} \right\}
@@ -426,13 +331,7 @@ $$
 D_{cs} = \max\left\{ \frac{NF}{u_s}, \frac{F}{d_{min}}, \frac{NF}{u_s + \sum u_i} \right\}
 $$
 這兩個公式在人數多的時候會體現出非常大的差異
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/p2p-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     P2P 2
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/p2p-2.webp" caption="P2P 2" />
 
 ### BitTorrent
 - 在某一個 torrent 裡面的 peer 們會從其他的 peer 那邊下載該檔案的等大的 chunks
@@ -455,24 +354,12 @@ $$
     - VBR (Variable Bit Rate): 根據時間, 空間決定 encoding rate
 
 <Aside type="note" title="Streaming">
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/video-stream-and-cdn-1.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Video Stream &amp; CDN 1
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/video-stream-and-cdn-1.webp" caption="Video Stream &amp; CDN 1" />
 - 並不是下載整個影片檔，而是 server 邊送我邊看，因此稱作 streaming
 </Aside>
 
 <Aside type="note" title="Playout Buffering">
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/video-stream-and-cdn-2.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Video Stream &amp; CDN 2
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/video-stream-and-cdn-2.webp" caption="Video Stream &amp; CDN 2" />
 - 可以根據情況調整 buffer video 大小
 </Aside>
 
@@ -493,13 +380,7 @@ $$
 - 這是一種 OTT (over the top) 服務 
     - content 並不是 internet 但是使用了 Internet
 - 運作原理是可以讓 Server 根據 Congestion 情況判斷應該從哪個 CDN 拿取資料。
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/cn/ch02-app/cdn.webp" style="width: 100%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     CDN
-  </span>
-</div>
+<Fig src="/images/cn/ch02-app/cdn.webp" caption="CDN" />
 
 ---
 

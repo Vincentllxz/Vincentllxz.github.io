@@ -11,6 +11,7 @@ language: "zh-TW"
 comment: true
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
 
 # Unbuffered I/O 
 
@@ -38,13 +39,7 @@ int main(void) {
 
 以下就是 unbuffered I/O 的 system call，在 POSIX.1 的標準裡面，每個 `read()`, `write()` 操作都會 invoke disk I/O，這樣的效率非常低
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/fig-2.webp" style="width: 80%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Unbuffered I/O
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/fig-2.webp" caption="Unbuffered I/O" />
 
 - 因為 DISK's (HDD) 的特性，每次的 read 操作都是以 "**block**" 為單位，也就是 the cylinder of a section，而不是用 "**byte**".
 - 而 SSD 的特性是以 page 為單位，通常是 4KB，因此每次的 read 操作都是以 page 為單位，速度比 HDD 快很多，但跟 memory 的速度還是有差距，因此仍然需要 buffer cache 來提高效率
@@ -59,13 +54,7 @@ Buffer cache 是 kernel space 的一塊記憶體，用來暫存從 disk 讀取�
 - (1) `read()` 需要 Context Switch 因為 Disk I/O 會讓這個 processs 被踢到 waiting queue
 - (5) `read()` 則不需要 Context Switch 因為資料已經在 buffer cache 裡面了，直接回傳給 user process 就好
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/fig-5.webp" style="width: 80%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Unbuffered I/O with Buffer Cache
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/fig-5.webp" caption="Unbuffered I/O with Buffer Cache" />
 
 由於 Disk 的特性，我們會做一些 **Prefetch** 的動作，也就是讓資料先進入 buffer cache，來加速整個 I/O 流程，因此我們會希望 Disk 內的資料排列具有 **locality**，這樣就可以減少 disk I/O 的次數，提高效率
 
@@ -75,25 +64,13 @@ Buffer cache 是 kernel space 的一塊記憶體，用來暫存從 disk 讀取�
 
 Buffer I/O 的 Buffer 是在 user space 裡的，Unbuffered I/O 代表的是在 User space 裡面沒有額外的 buffer，而非是沒有 Buffer Cache，這樣的 Buffer 在 C language 裡面是以 `FILE` stream 來儲存，如下圖所示
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/process-structure-2.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     "Buffer" of Buffer I/O
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/process-structure-2.webp" caption='"Buffer" of Buffer I/O' />
 
 ## Process Structure
 
 以下是在 Unix 裡面 process 的結構圖，System Call interface 就是在 open file descriptor table 跟 `FILE` object 之間的 interface，所以 unbuffered I/O 就是直接用 file descriptor `fd` 來操作 file I/O
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/process-structure-1.webp" style="width:90%;" />
-  <br/>
-  <span style="color: grey; font-size: 16px;">
-     The Unix Process Structure
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/process-structure-1.webp" caption="The Unix Process Structure" />
 
 我們可以看到我們可以把東西劃分成在 **User space** 跟在 **Kernel space** 裡面的 data structure
 - **User space** (per process): `FILE` object, Open file descriptor table 都是在 user space 裡面的，所以一定是 per process 的 data structure
@@ -131,13 +108,7 @@ Process 用來操控檔案的 handle，是 per process 的，而可以開幾個�
 6. **Reference Count**
 open file table 會有很多 entry 指向同一個 i-node entry，`RC` 用來記錄有多少指向他
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/process-structure-3.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Metadata, Content, Reference Count
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/process-structure-3.webp" caption="Metadata, Content, Reference Count" />
 
 ## File I/O system call
 
@@ -232,13 +203,7 @@ int close(int filedes)
 
 `lseek()` 這個 system call 就是專門在做 `offset` 的移動
 
-<div style="text-align: center;">
-<img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-3.webp" style="width: 70%;" />
-<br/>
-<span style="color: grey; font-size: 16px;">
-    The operation on a file, and current file offset
-</span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-3.webp" caption="The operation on a file, and current file offset" />
 
 ```c noLineNumbers
 off_t lseek(int filedes, off_t offset, int whence)
@@ -349,13 +314,7 @@ ssize_t write(int filedes, const void *buf, size_t nbytes)
 
 看下面這張圖，白色的 `Data''` DISK 其實不知道他的存在，也不重要
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-5.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Delay Write
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-5.webp" caption="Delay Write" />
 </Aside>
 
 ### File offset and file pointer
@@ -376,13 +335,7 @@ int main()
 }
 ```
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-1.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-     Two process open the same file
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-1.webp" caption="Two process open the same file" />
 
 用以下程式 `fork()` 兩個 process 後，兩個 process 會有獨立的 `fd`，但因為 `fd` 是指向同一個 open file table entry 的，所以兩個 process 的 current file offset 是相同的，因此兩個 process 讀取的資料也會相同
 
@@ -401,13 +354,7 @@ int main()
 }
 ```
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-2.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-      Successive of parent process and child process
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-2.webp" caption="Successive of parent process and child process" />
 
 <Aside type="note" title="Shell Process Execution">
 Child process 只會從 `fork()` 後開始執行，假設我們執行
@@ -424,13 +371,7 @@ $ ./a.out
 
 是因為萬一出現這種情況就會發生問題，紅藍色是兩個 process
 
-<div style="text-align: center;">
-<img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-6.webp" style="width: 90%;" />
-<br />
-<span style="color: grey; font-size: 16px;">
-    Problem of non-atomic operation
-</span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-6.webp" caption="Problem of non-atomic operation" />
 
 假設在剛執行完藍色 process `lseek()` 的時候，剛好發生 context switch，藍色 Process 被踢出 CPU，紅色 Process 就會把 current file offset 往後移動，然後寫入資料，等到藍色 Process 再回來執行 `write()` 的時候，就會把資料寫在錯誤的位置，造成資料被覆蓋掉了
 
@@ -545,31 +486,13 @@ int main(int argc, char **argv, char **envp)
 接下來講幾種 synchronization 的方式
 
 1. **`O_DSYNC`**：不會 **delay write**，當有任何 `write()` 操作的時候，system 會直接執行 disk I/O，把 content 跟重要的 metadata (size) 寫到 disk 去，而不重要的 metadata 則是會再 context swtich 的時候再把 kernel buffer 的 i-node table attribute 寫到 disk i-node 去
-<div style="text-align: center;">
-<img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-7.webp" style="width: 90%;" />
-<br />
-<span style="color: grey; font-size: 16px;">
-    The illustration of O_DSYNC
-</span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-7.webp" caption="The illustration of O_DSYNC" />
 
 2. **`O_SYNC`**：對 return time 更加嚴格，當有任何 `write()` 操作的時候，system 會直接執行 disk I/O 把 content 跟 metadata 都寫到 disk 去，等到 disk 寫完了才會 return
-<div style="text-align: center;">
-<img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-8.webp" style="width: 90%;" />
-<br />
-<span style="color: grey; font-size: 16px;">
-    The illustration of O_SYNC
-</span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-8.webp" caption="The illustration of O_SYNC" />
 
 3. **`O_RSYNC`**：針對 `read()` 的 protection，確保在 `read()` 回傳之前，該檔案所有在 cache 的 Dirty Pages，都已經被強制同步到 disk 上
-<div style="text-align: center;">
-<img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/blocking-vs-synchronization-9.webp" style="width: 90%;" />
-<br />
-<span style="color: grey; font-size: 16px;">
-    The illustration of O_RSYNC
-</span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/blocking-vs-synchronization-9.webp" caption="The illustration of O_RSYNC" />
 
 因為開 `O_SYNC` 開檔案會導致時間成本太大，因此通常用下面這些 function 來做 synchronization：
 
@@ -668,13 +591,7 @@ int main(void) {
 - **User CPU time**：可以無限下降
 - **System CPU time**：只有算 `read()` 搬動的時間，從 kernel 到 disk 獲得資料，理論上我只要把這個 buffer 宣告的超大，我也可以搬動次數超級少，但他有一個上限值是 **Disk block size**，因為 random access 只保證 block 內的檔案連續，並不保證同檔案所有 block 連續，當 buffer size 超過 block size 時，系統就會把 buffer 分成多個 block 來搬動，這樣就會增加搬動的次數，導致 system CPU time 上升
 
-<div style="text-align: center;">
-  <img loading="lazy" decoding="async" src="/images/sp/ch02-unbufio/i-o-efficiency.webp" style="width: 90%;" />
-  <br />
-  <span style="color: grey; font-size: 16px;">
-        The illustration of I/O Efficiency
-  </span>
-</div>
+<Fig src="/images/sp/ch02-unbufio/i-o-efficiency.webp" caption="The illustration of I/O Efficiency" />
 
 ### Read ahead
 
