@@ -10,6 +10,7 @@ language: 'zh-TW'
 heroImage: { src: './back.png', color: '#4891B2' }
 comment: true
 ---
+import CourseInfo from '@/components/CourseInfo.astro';
 
 ## 前言
 
@@ -63,17 +64,7 @@ comment: true
 
 ### 資料結構與演算法
 
-<div class="course-info-card">
-
-- **授課教授：** 林軒田/蔡欣穆 合授
-- **學分：** 3
-- **等第：** A-（被自己蠢到）
-
-- **甜度：** 2/5
-- **涼度：** 0.0001/5
-- **收穫：** 4/5
-
-</div>
+<CourseInfo teacher="林軒田/蔡欣穆 合授" credits={3} grade="A-（被自己蠢到）" sweet="2/5" cool="0.0001/5" gain="4/5" />
 
 這門課就是傳說中的DSA，資料結構與演算法的入門，內容大概是在教各種演算法以及資料結構，課本是經典的 _Introduction to algorithms (4th ed.) Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022), The MIT Press._，前半學期軒田上課，後半學期則是Micheal，都是老師上傳的PPT講課。這門課擁有史上最複雜的計分方式基本上是：
 
@@ -91,8 +82,8 @@ comment: true
 
 我這屆也是差不多，Programming Part 的話也是同樣一次兩題，只不過我們這屆還有一份 mini-HW + hw0的程式題，兩個合再一起可以當成一次作業，mini-HW 基本上是上課內容的 implement，老師說是為了銜接 HW 跟課程內容增設的作業，hw0 的話則是從 Judgegirl (JG) 上挑出八題，來測試你有沒有基本的 C 語言能力（計程停修的各位注意了），從 hw0~hw4，DSA的所有程式作業都是要上傳到 DSA judge，不同於 JG，DSA judge 要用 `git  push` 上傳，我自己第一次交作業的時候 `wsl` 不知道為啥密鑰設定一直不成功，剛好我要換電腦，後來換成Mac不知道為何，很輕鬆就設定好了（沒有暗廣），一天上限是十次繳交（這害慘我了）。通常越後面的programming part會越難，這裡要感謝所有跟我一起修課的朋友們，我跟他們的話題在學期最後都變成：「你p4寫了嗎？」、「你p4最後一組過了沒」，過了的話我就會狂問猛問他們（話說突然感覺去問 TA 應該是個比較好的選擇，但每次 TA hour 我都莫名的沒空）
 
-<details class="warning-box">
-<summary><b>&nbsp;關於 Programming Part</b></summary>
+<details class="note-box">
+<summary>關於 Programming Part</summary>
 
 在 HW2 的 P4 題目中，我當時已經獲得 AC，於是想繼續挑戰這題的 bonus。寫完之後準備 push 時，才發現自己的 submit 次數已經用完了。為了能檢查結果，我借用了某位已經完成 P4 並且寫完 bonus 的同學的 judge 帳號來 push，結果顯示是 TLE。後來我又改了一段時間，等到隔天自己的繳交次數重置後，用自己的帳號重新 push。
 
@@ -103,20 +94,20 @@ comment: true
 附上信件，請感受我當時的驚恐
 
 <figure class="custom-figure">
-    <img src="/images/penalty.webp" alt="圖片描述">
+    <img src="/images/penalty.webp" alt="圖片描述" />
     <figcaption>penalty mail</figcaption>
 </figure>
 
 </details>
 
-<br>
+<br />
 
 作業有任何問題的話可以直接在 DC 上發問，COOL 討論區發問應該也會有人回（？，也可以在 TA hour 的時候去問問 TA 們，這門課厲害的地方就在於有 23 個 TA（真的有點多），基本上任何時間都會有 TA 在線上。
 
 上半學期軒田就是傳統的老師授課，有錄影，可以回家上課，第一堂課可能很多人，但後面漸漸人就會變稀少，HT上課口條很清楚、語速適中，也會在 PPT 上畫畫來講解，上課體驗極佳，感覺我自己上學期吸收得還不錯。
 
-<details class="info-box">
-<summary> <b>&nbsp;關於 軒田學長</b></summary>
+<details class="note-box">
+<summary>關於 軒田學長</summary>
 
 推軒田會請大家吃飯，我不是軒田的導生，但我莫名地進入了兩個飯局，兩次都被軒田請，對於窮困大學生來說是一大福音，但學長有兩大堅持：
 
@@ -127,7 +118,7 @@ comment: true
 
 </details>
 
-<br>
+<br />
 
 下半學期改成欣穆老師授課，一樣有錄影，但多了三個活動分別是：
 
@@ -137,8 +128,8 @@ comment: true
 
 這三個遊戲跟 In-class 作業的成績一起算在"Activity"的10%裡面，基本上很容易拿滿，cap的標準很鬆，基本上有參加就有分。
 
-<details class="warning-box">
-<summary> <b>&nbsp;小抱怨</b></summary>
+<details class="note-box">
+<summary>小抱怨</summary>
 
 這學期活動真的很多，但老師還是排了跟上學期差不多份量的進度，甚至下半學期的內容比上半學期還要難不少。為了把三個活動塞進課堂時間，老師把不少課改成錄影，讓我們自己回家看。
 
@@ -160,17 +151,7 @@ comment: true
 
 ### 微積分34
 
-<div class="course-info-card">
-
-- **授課教授：** 蔡國榮
-- **學分：** 2/2
-- **等第：** A+/A+
-
-- **甜度：** 5/5
-- **涼度：** 4.5/5
-- **收穫：** 5/5
-
-</div>
+<CourseInfo teacher="蔡國榮" credits="2/2" grade="A+/A+" sweet="5/5" cool="4.5/5" gain="5/5" />
 
 按照慣例，先推[**蔡國榮粉絲後援會**](https://www.facebook.com/p/%E8%94%A1%E5%9C%8B%E6%A6%AE%E7%B2%89%E7%B5%B2%E5%BE%8C%E6%8F%B4%E6%9C%83-Kwok-Wing-Tsoi-fans-100090291350231/?locale=zh_TW)，這學期因為同學有揪[大金ＭＬ](#機器學習)，因為會佔到原本 01\~04 的微積分，加上已經被國榮圈粉，所以我簽去上學期就旁聽的 07 班的機械班，我在上學期期末大家揪完ML後就直接寄信給國榮，因為我聽說國榮的信箱幾乎每天都是滿的，能不能收到回覆全憑天意（現主時，我正有一封郵件躺在國榮信箱裡面等回覆），但我很幸運的，國榮收到信後，馬上答應（好像是因為我是 01~04 班的，我聽說大數字班同學都有被勸退）。
 
@@ -186,8 +167,8 @@ comment: true
 
 國榮班的作業成績有一個 cap，基本上非常容易拿滿分，國榮的作業每個禮拜都會有，但是不是每一份都算分，有一些作業是不算分的，但寫了對複習絕對有大大的幫助~~Quiz大洩題~~，但即便是這樣還是有人寫不出 quiz 中的作業題（用 Magical LLM 寫作業的人們），國榮作業出的好、上課進度不拖延、又幽默，到底哪裡找這麼好的老師，嗚嗚嗚嗚嗚嗚，因此在一次推薦加入[**蔡國榮粉絲後援會**](https://www.facebook.com/p/%E8%94%A1%E5%9C%8B%E6%A6%AE%E7%B2%89%E7%B5%B2%E5%BE%8C%E6%8F%B4%E6%9C%83-Kwok-Wing-Tsoi-fans-100090291350231/?locale=zh_TW)，遇到國榮必推。
 
-<details class="info-box">
-<summary> <b>&nbsp;微34筆記</b></summary>
+<details class="note-box">
+<summary>微34筆記</summary>
 
 待補（如果我記得），如果發現我忘記可以到 [About](https://vinsong.csie.org/about) 找聯絡方式私訊我
 
@@ -195,17 +176,7 @@ comment: true
 
 ### 普通化學甲下
 
-<div class="course-info-card">
-
-- **授課教授：** 蔡蘊明
-- **學分：** 3
-- **等第：** A+
-
-- **甜度：** 2/5
-- **涼度：** 3/5
-- **收穫：** 4/5
-
-</div>
+<CourseInfo teacher="蔡蘊明" credits={3} grade="A+" sweet="2/5" cool="3/5" gain="4/5" />
 
 下學期一樣必帶進蘊明普化，依然是一樣的節奏，偷一下上學期寫的
 
@@ -222,8 +193,8 @@ comment: true
 > 18. Properties of Solutions
 > 19. The Nucleus: A Chemist’s View
 
-<details class="warning-box">
-<summary><b>&nbsp;道歉啟事</b></summary>
+<details class="note-box">
+<summary>道歉啟事</summary>
 
 本人在普通化學甲下上半學期量子化學部分
 
@@ -249,16 +220,7 @@ comment: true
 
 ### 數位系統與實驗
 
-<div class="course-info-card">
-
-- **授課教授：** 林忠緯
-- **學分：** 3
-
-- **甜度：** 4/5
-- **涼度：** 5/5
-- **收穫：** 5/5
-
-</div>
+<CourseInfo teacher="林忠緯" credits={3} sweet="4/5" cool="5/5" gain="5/5" />
 
 這門課是台大少有的「遠距教學」課程，顧名思義就是實體上課並不會上課程內容，只會回答問題，相當於 Office hour 的概念，課程內容完全要到[課程的COOL](https://cool.ntu.edu.tw/courses/44631)上面去觀看，老師在學期初就會把所有內容上傳，所以其實期初就可以開始卷了，基本上課程內容就是隔壁電機系的**交換電路與邏輯設計**的簡化版，這學期的Syllabus如下：
 
@@ -270,13 +232,13 @@ comment: true
 > 6. Quine-McCluskey Method
 > 7. Multi-Level Gate Circuits
 > 8. Combinational Circuit Design
-> 9. Multiplexers, Decoders, and Programmable Logic Devices <= (Midterm Exam)
+> 9. Multiplexers, Decoders, and Programmable Logic Devices \<= (Midterm Exam)
 > 10. Latches and Flip-Flops
 > 11. Registers and Counters
 > 12. Analysis of Clocked Sequential Circuits
 > 13. Derivation of State Graphs and Tables
 > 14. Reduction of State Tables
-> 15. Sequential Circuit Design <= (Final Exam)
+> 15. Sequential Circuit Design \<= (Final Exam)
 
 上半學期的主軸是 Combinational Circuits，下半學期則是 Sequential Circuits，每個單元都會分成 Lecture 跟 Discussion，Lecture 部分是上正課，Discussion 則是在帶題目講解觀念，其實可以把這門課理解成資工系EDA組的入門課，教授研究所就是 EDA 組的，每個禮拜一前把課程影片看完大概就好了，雖然課程是三學分的，但是看完影片的長度大概體感真的最多兩學分，甚至只有一學分，但教授講課清楚，邏輯通順，吸收內容吸收的很容易。
 
@@ -295,17 +257,7 @@ comment: true
 
 ### 計算機圖形
 
-<div class="course-info-card">
-
-- **授課教授：** 歐陽明
-- **學分：** 3
-- **等第：** A（被自己蠢到 第二次）
-
-- **甜度：** 5/5
-- **涼度：** 3/5
-- **收穫：** 4/5（自己學）
-
-</div>
+<CourseInfo teacher="歐陽明" credits={3} grade="A（被自己蠢到 第二次）" sweet="5/5" cool="3/5" gain="4/5（自己學）" />
 
 我會修這門課，是因為上學期修了 cyy 老師的計概，覺得他的課講得很清楚，也蠻有趣的，所以想接著修他開的選修課。他開了兩門進階的 Computer Graphics 課程，一門是數位影像生成，一門是數位視覺效果。我去看了這兩門課的簡介，上面寫需要線性代數、機率、微積分的背景，還建議最好有電腦圖學的基礎。我想說自己對這方面還不太熟，就開始上網查有沒有相關的入門課，結果就發現 cyy 的老師也有開一門電腦圖學的基礎課程。查了一下網路上的評價，很多人說即使沒有數學基礎也能跟得上，蠻適合初學者的。後來我就找了同學一起在開學前寫信給老師要加簽碼，老師也很快回覆，叫我們直接去上課拿加簽就好，基本上全簽。
 
@@ -335,8 +287,8 @@ comment: true
 
 HW1 是用 WebGL 寫出 model 的 Traslation, Rotation, Scaling, Light, Shading, 還有 model 切換之類的基礎功能，基本上不難，但因為是一個全新的語言，我大概50%以上都是在摸索這個語言怎麼寫，最後應該是花了一個禮拜左右寫出來，最後拿87分。
 
-<details class="info-box">
-<summary><b>&nbsp;HW1 Demo</b></summary>
+<details class="note-box">
+<summary>HW1 Demo</summary>
 
 <div style="text-align: center; margin: 2em 0;">
     <video 
@@ -344,7 +296,7 @@ HW1 是用 WebGL 寫出 model 的 Traslation, Rotation, Scaling, Light, Shading,
         height="405" 
         controls 
         style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); max-width: 100%;">
-        <source src="/videos/Demo HW1.mp4" type="video/mp4">
+        <source src="/videos/Demo HW1.mp4" type="video/mp4" />
         您的瀏覽器不支援影片播放。
     </video>
     <p style="font-size: 1rem; color: #555; margin-top: 0.5em;">Demo ICG HW1</p>
@@ -354,8 +306,8 @@ HW1 是用 WebGL 寫出 model 的 Traslation, Rotation, Scaling, Light, Shading,
 
 Midterm 基本上非常簡單，可以open everything except Internet，基本上有在上課就有分，老師也有把前幾年課程錄影放上去，基本上不怎麼需要讀就可以拿高分，我最後拿85，大概是中位數左右，老師考題只有一題是延伸考題（自由發想）不是課內，其他全部都是課內問題。老師的最後計分方式是$\min(60, \text{grades})$，完全佛心來的。
 
-<details class="warning-box">
-<summary><b>&nbsp;關於 Midterm</b></summary>
+<details class="note-box">
+<summary>關於 Midterm</summary>
 
 老師出的延伸考題我是拿幾乎滿分的，但我最後還是只有85，是因為我矩陣乘法乘錯了，真的很ㄡˋ，連延伸考題都有想出來結果最後錯在最基本的矩陣乘法。這也導致我最後總成績算出來是剛好89，直接跟A+擦肩而過。
 
@@ -371,17 +323,7 @@ Term Project 老師有給大家14個題目，還有相應的 paper，1~3 人一�
 
 ### 機器學習
 
-<div class="course-info-card">
-
-- **授課教授：** 李宏毅
-- **學分：** 4
-- **等第：** A+
-
-- **甜度：** 6/5
-- **涼度：** 3/5
-- **收穫：** 4/5
-
-</div>
+<CourseInfo teacher="李宏毅" credits={4} grade="A+" sweet="6/5" cool="3/5" gain="4/5" />
 
 鼎鼎大名的大金 ML，還沒入學的時候就聽過老師的大名，也看過老師[**2021的機器學習**](https://www.youtube.com/playlist?list=PLJV_el3uVTsMhtt7_Y6sgTHGHp1Vb2P2J)影片，一直很想要自己來修一次課，本來想說這門課都開這麼多年了，應該網路上有很多作業答案可以~~抄~~借鑑，再加上系上很強的同學也要去修，秉持著有大腿不抱是傻子的心態，我就去簽了，這門課只要大金本人有出現在你們系所的網站上，就全簽，其他人擇要寫 HW1 看排名才能簽，學期初加簽的時候，那個情況真的很可怕，博理112直接大爆滿，。
 
@@ -405,8 +347,8 @@ Term Project 老師有給大家14個題目，還有相應的 paper，1~3 人一�
 
 作業裡面的調整參數雖然聽起來簡單，但其實是一門玄學，調對方向就馬上過 SB，調不對你可能一個禮拜都沒辦法完成，而且因為這學期的主軸是大模型，很多時候training 一次就要 3hr，inference 一次又要 2hr，除了免費的colab很快就沒了之外，花很多時間也是很大的問題，所以真的很推薦大家揪團來修，在這裡我要非常感謝親愛的[**洋蔥同學**](https://hackmd.io/@onion0905/SJVk85BVeg?fbclid=IwY2xjawLGaA5leHRuA2FlbQIxMQBicmlkETExQUljUUJXeTR3RTNhTVZjAR4AoDdi0iaTCu7QR-KnnRT-wsly9MdTxAFkVnwge-IYld3QMLfA92-1VYoIcw_aem_RHKO4Ke5ZJiXgYwbpUK4Qw#%E6%A9%9F%E5%99%A8%E5%AD%B8%E7%BF%92)（這是他的修課心得），我在修這門課的時候就是一直問問問他還有另一位同學調整參數的方向，還有因為運算資源不是免費的，我們常常都需要用各種方法取得運算資源（課金），但幸運的是台大資訊系有 GPU 工作站讓大家可以用，如果是資工系的話可以參考這篇[**如何在 CSIE Workstation 跑 notebook**](https://hackmd.io/@onion0905/rJREAj7kxg)，一樣是親愛的洋蔥同學寫的，讓我們讚頌他。
 
-<details class="info-box">
-<summary><b>&nbsp;關於 作業</b></summary>
+<details class="note-box">
+<summary>關於 作業</summary>
 
 一定要記得加 line 群，雖然不是助教創的，但裡面的同學各個都是好心人，各路大神都會在裡面給大家提示，有時候看一看改一改就莫名其妙試出來了（不是borrow code），在問朋友前可以試試看這個方法，期中的時候本來有創一個 DC 群，但根本沒人在用。
 
@@ -422,17 +364,7 @@ Term Project 老師有給大家14個題目，還有相應的 paper，1~3 人一�
 
 ### 英文二（附兩小時英聽）
 
-<div class="course-info-card">
-
-- **授課教授：** 胥嘉陵
-- **學分：** 3
-- **等第：** A+
-
-- **甜度：** 4.5/5
-- **涼度：** 2/5
-- **收穫：** 4/5
-
-</div>
+<CourseInfo teacher="胥嘉陵" credits={3} grade="A+" sweet="4.5/5" cool="2/5" gain="4/5" />
 
 基本上跟上學期一模一樣，上學期寫的在[**👉這裡**](https://vinsong.csie.org/blog/ntu-csie-freshman-1/#%E8%8B%B1%E6%96%87%E4%B8%80%E9%99%84%E5%85%A9%E5%B0%8F%E6%99%82%E8%8B%B1%E8%81%BD)
 
@@ -461,17 +393,7 @@ Term Project 老師有給大家14個題目，還有相應的 paper，1~3 人一�
 
 ### 東坡詞
 
-<div class="course-info-card">
-
-- **授課教授：** 劉少雄
-- **學分：** 3
-- **等第：** A
-
-- **甜度：** 4/5
-- **涼度：** 3/5
-- **收穫：** 5/5
-
-</div>
+<CourseInfo teacher="劉少雄" credits={3} grade="A" sweet="4/5" cool="3/5" gain="5/5" />
 
 因為修完老師的國文課後，實在很喜歡老師的講課風格，所以我又選了老師開設的 A1 通識課。據說老師講授東坡詞才是他最有名的課程之一。
 
@@ -515,11 +437,11 @@ Term Project 老師有給大家14個題目，還有相應的 paper，1~3 人一�
 
 因為真的很喜歡這門課，最後還去找老師要了簽名跟寄語
 
-<details class="info-box">
-<summary> <b>&nbsp;簽名和寄語</b></summary>
+<details class="note-box">
+<summary>簽名和寄語</summary>
 
 <figure class="custom-figure">
-    <img src="/images/東坡.webp" alt="圖片描述">
+    <img src="/images/東坡.webp" alt="圖片描述" />
     <figcaption>簽名與寄語</figcaption>
 </figure>
 

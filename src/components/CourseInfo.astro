@@ -1,0 +1,180 @@
+---
+// 修課心得的課程資訊卡：授課教授 / 學分 / 等第，以及 甜度 / 涼度 / 收穫 三條評分。
+// 視窗條規格與 PDFCard / CourseIntro 一致；卡身跟隨主題色，內容保持安靜 ——
+// 一篇文章會出現 8～12 張，靠重複的視窗條建立節奏，而不是靠裝飾。
+interface Props {
+  teacher: string
+  /** 學分數；偶爾是 `2, 2` 這種上下學期併記，所以收字串。 */
+  credits?: string | number
+  /** 等第，例如 `A+`。助教／還沒結算的課可省略。 */
+  grade?: string
+  /** 課後學習時數，例如 `1小時`。 */
+  hours?: string
+  sweet?: string | number
+  cool?: string | number
+  gain?: string | number
+}
+
+const { teacher, credits, grade, hours, sweet, cool, gain } = Astro.props
+
+const SEGMENTS = 5
+
+// 評分常常是刻意超標的玩笑值（10/5、200/5、3000）或非數字（（待補）），
+// 長條一律只填 0–5 格，原始文字照樣列在旁邊 —— 笑點留在文字上，不靠特效。
+const filledCount = (value: string) => {
+  const m = value.match(/-?\d+(?:\.\d+)?/)
+  if (!m) return 0
+  const n = Number.parseFloat(m[0])
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, Math.min(SEGMENTS, Math.round(n)))
+}
+
+// 長條已經表達了「滿分 5」，開頭的 `/5` 就是贅字；後面的註解原樣保留。
+const trimDenominator = (value: string) => value.replace(/^(\s*-?\d+(?:\.\d+)?)\/5/, '$1').trim()
+
+const ratings = (
+  [
+    ['甜度', sweet],
+    ['涼度', cool],
+    ['收穫', gain]
+  ] as const
+)
+  .filter(([, value]) => value !== undefined && value !== '')
+  .map(([label, value]) => {
+    const text = String(value)
+    return { label, filled: filledCount(text), text: trimDenominator(text) }
+  })
+
+const meta = (
+  [
+    ['授課教授', teacher],
+    ['學分', credits],
+    ['等第', grade],
+    ['課後學習時數', hours]
+  ] as const
+).filter(([, value]) => value !== undefined && value !== '') as [string, string][]
+
+// 教授欄偶爾用 ~~原本的老師~~ 註記中途換人，把刪除線還原成 <s>。
+const strikeParts = (value: string) =>
+  value
+    .split(/~~(.+?)~~/g)
+    .map((text, i) => ({ text, struck: i % 2 === 1 }))
+    .filter((part) => part.text !== '')
+---
+
+<div class='course-info not-prose my-6 overflow-hidden rounded-xl border bg-card'>
+  {/* 視窗條：交通燈 + 檔名，規格同 PDFCard / CourseIntro */}
+  <div class='course-titlebar flex items-center gap-2 border-b px-4 py-2.5'>
+    <span class='flex items-center gap-1.5' aria-hidden='true'>
+      <span class='course-dot' style='background:#ff5f56'></span>
+      <span class='course-dot' style='background:#ffbd2e'></span>
+      <span class='course-dot' style='background:#27c93f'></span>
+    </span>
+    <span class='flex-1 truncate text-center text-xs text-muted-foreground'>info.md</span>
+    {/* 交通燈的等寬佔位，讓檔名落在真正的正中間 */}
+    <span class='w-[2.85rem]' aria-hidden='true'></span>
+  </div>
+
+  <div class='course-body px-5 py-4'>
+    <dl class='course-row'>
+      {
+        meta.map(([label, value]) => (
+          <div class='course-item'>
+            <dt>{label}</dt>
+            <dd>
+              {strikeParts(String(value)).map((part) =>
+                part.struck ? <s>{part.text}</s> : <span>{part.text}</span>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    {
+      ratings.length > 0 && (
+        <>
+          <hr class='course-rule' />
+          <dl class='course-row'>
+            {ratings.map((rating) => (
+              <div class='course-item'>
+                <dt>{rating.label}</dt>
+                <dd class='course-rating'>
+                  <span class='course-bar' aria-hidden='true'>
+                    {Array.from({ length: SEGMENTS }, (_, i) => (
+                      <i class:list={[i < rating.filled && 'on']} />
+                    ))}
+                  </span>
+                  <span class='course-score'>{rating.text}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .course-info {
+    font-size: 0.9rem;
+  }
+  .course-titlebar {
+    background: hsl(var(--muted));
+  }
+  .course-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 9999px;
+  }
+  .course-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.75rem;
+    margin: 0;
+  }
+  .course-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .course-item dt {
+    flex-shrink: 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.8rem;
+  }
+  .course-item dd {
+    margin: 0;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .course-rule {
+    margin: 0.85rem 0;
+    border: 0;
+    border-top: 1px solid hsl(var(--border));
+  }
+  .course-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .course-bar {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .course-bar i {
+    width: 14px;
+    height: 6px;
+    border-radius: 2px;
+    background: hsl(var(--muted-foreground) / 0.22);
+  }
+  .course-bar i.on {
+    background: hsl(var(--primary));
+  }
+  .course-score {
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    font-variant-numeric: tabular-nums;
+  }
+</style>

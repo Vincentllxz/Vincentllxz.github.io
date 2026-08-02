@@ -2,7 +2,6 @@
 import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import type { SiteMeta } from 'astro-pure/types'
 import BaseHead from '@/components/BaseHead.astro'
-import CourseRatingBars from '@/components/CourseRatingBars.astro'
 import RichBlocks from '@/components/RichBlocks.astro'
 import config from '@/site-config'
 
@@ -93,21 +92,10 @@ const {
       <div class='flex-1 w-full'>
         <slot />
       </div>
-      {/* Vim-style statusline — decorative site-wide signature (styles in app.css). */}
-      <div class='statusline' aria-hidden='true'>
-        <span class='sl-mode'>NORMAL</span>
-        <span class='sl-path'>~/vinsong</span>
-        <span class='sl-git'>git:(<b>main</b>)</span>
-        <span class='sl-spacer'></span>
-        <span class='sl-meta'>zh-tw</span>
-        <span class='sl-meta sl-hide-sm'>utf-8</span>
-        <span class='sl-meta'>100%</span>
-      </div>
       <Footer />
     </div>
 
     <RichBlocks />
-    <CourseRatingBars />
 
     {/* Mark the current page's nav link — powers the active underline in the header. */}
     <script is:inline>

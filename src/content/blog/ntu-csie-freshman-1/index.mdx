@@ -10,12 +10,13 @@ language: 'zh-TW'
 heroImage: { src: './back.png', color: '#4891B2' }
 comment: true
 ---
+import CourseInfo from '@/components/CourseInfo.astro';
 
 ## 前言
 
 因為是分科生，大一上入學前我超級緊張，到處找資料，結果發現怎麼都是真強者們在寫資料，好不容易找到一個比較親民的學長就只能參考他寫的[資料](https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8B%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/)，看完一輪就覺得自己獲益良多，所以想說來讓一個「普通人」寫修課心得應該也很有價值（我應該比上面那篇的學長更弱XD）
 
-<!-- more -->
+{/* more */}
 
 ## 修課目錄
 
@@ -55,17 +56,7 @@ comment: true
 
 ### 計算機程式設計
 
-<div class="course-info-card">
-
-- **授課教授：** 劉邦鋒
-- **學分：** 3
-
-- **甜度：** 1.5/5
-- **涼度：** 2/5
-- **收穫：** 4/5
-- **課後學習時數：** 20小時
-
-</div>
+<CourseInfo teacher="劉邦鋒" credits={3} hours="20小時" sweet="1.5/5" cool="2/5" gain="4/5" />
 
 這門課最大的特色就是——**沒有作業，整學期成績完全來自考試**。教授認為出作業容易讓人代寫，聽說依照以前的經驗「作業再難也大家都會寫，考試再簡單大家都不會寫」，因為這樣的設計，造就了他的最大名言
 
@@ -92,8 +83,8 @@ comment: true
 
 想了解更多有關這們課的制度的話，可以參考這篇[修課心得](https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8B%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/)裡面有詳細介紹何謂「真強者」
 
-<details class=warning-box>
-<summary> <b>我的情況（給覺得自己是0基礎的你）</b></summary>
+<details class="note-box">
+<summary>我的情況（給覺得自己是0基礎的你）</summary>
 
 我高中的時候也考過 APCS（觀念 5／實作 3），所以我一直認為我應該過得了這門課，但結果就是我從第11週左右開始，突然腦霧，不是`i`寫成`j`就是指標忘記加上`*`，這樣兩次之後我的成績直接從A+調到B+，導致我真的有點小崩潰，當時我第一次開始考慮停修，也就是這時候我開始上網找資料，我就看到了這段話：
 
@@ -107,18 +98,7 @@ comment: true
 
 ### 微積分12
 
-<div class="course-info-card">
-
-- **授課教授：** ~~蘇瑋柏~~ 蔡國榮
-- **學分：** 2/2
-- **等第：** A+/A
-
-- **甜度：** 3/5
-- **涼度：** 5/5
-- **收穫：** 5/5 (蔡國榮)
-- **課後學習時數：** 1小時
-
-</div>
+<CourseInfo teacher="~~蘇瑋柏~~ 蔡國榮" credits="2/2" grade="A+/A" hours="1小時" sweet="3/5" cool="5/5" gain="5/5 (蔡國榮)" />
 
 這是我自己的問題，學期一開始，我超級認真上蘇瑋柏的課，但我在第一次小考直接滑鐵盧，具體多少就不說，但總之就是很慘，我後來直接上NTU OCW去上蔡國榮的課，藉由一些神秘小管道獲得講義然後自己看，我只能說效果極佳，我即將加入[蔡國榮粉絲後援會](https://www.facebook.com/p/%E8%94%A1%E5%9C%8B%E6%A6%AE%E7%B2%89%E7%B5%B2%E5%BE%8C%E6%8F%B4%E6%9C%83-Kwok-Wing-Tsoi-fans-100090291350231/?locale=zh_TW)，直接走上人生巔峰，從此再也不懼怕微積分，雖然國榮是英文授課，但是完全不用怕聽不懂，但是國榮其實是教05\~09模組班的微積分，但資工系必修是01\~04，我本來擔心會有難度上的問題，結果我最後用國榮的講義配OCW期考直接95，拿了個奇蹟的A+，以至於我微2直接跑到機械班去上課，不過微2兩班的課綱有點差距，微分方程的部分我是自己讀的。
 
@@ -128,18 +108,7 @@ comment: true
 
 ### 普通化學甲上
 
-<div class="course-info-card">
-
-- **授課教授：** 蔡蘊明
-- **學分：** 3
-- **等第：** A
-
-- **甜度：** 2/5
-- **涼度：** 3/5
-- **收穫：** 4/5
-- **課後學習時數：** 1小時
-
-</div>
+<CourseInfo teacher="蔡蘊明" credits={3} grade="A" hours="1小時" sweet="2/5" cool="3/5" gain="4/5" />
 
 從化學史開始接著是高中化學的延伸
 
@@ -171,18 +140,7 @@ comment: true
 
 ### 計算機概論
 
-<div class="course-info-card">
-
-- **授課教授：** 莊永裕
-- **學分：** 3
-- **等第：** A+
-
-- **甜度：** 5/5
-- **涼度：** 4/5
-- **收穫：** 5/5
-- **課後學習時數：** 0.5小時
-
-</div>
+<CourseInfo teacher="莊永裕" credits={3} grade="A+" hours="0.5小時" sweet="5/5" cool="4/5" gain="5/5" />
 
 從最底層開始了解電腦，對電腦運作有初步認識。課程設計是一步步帶你從邏輯閘組出整台電腦：
 
@@ -241,17 +199,7 @@ comment: true
 
 ### 健康體適能
 
-<div class="course-info-card">
-
-- **授課教授：** 周德賢
-- **學分：** 1
-- **等第：** A+
-
-- **甜度：** 3.5/5
-- **涼度：** 2/5
-- **收穫：** 3/5
-
-</div>
+<CourseInfo teacher="周德賢" credits={1} grade="A+" sweet="3.5/5" cool="2/5" gain="3/5" />
 
 （~~照抄~~借鑑自[學長](https://yunxiurz.github.io/posts/%E5%8F%B0%E5%A4%A7%E8%B3%87%E5%B7%A5%E5%A4%A7%E4%B8%80%E4%B8%8A%E4%BF%AE%E8%AA%B2%E5%BF%83%E5%BE%97/)）資工系會根據學號後兩碼 mod 3 分配體育課老師，餘數是 0 的人就會被分到德賢的班。這班的學期成績中有 **20 分是體育活動加分**，而且不是參加一項就夠，要湊到滿分 20 分，才能保分穩定。
 
@@ -267,11 +215,11 @@ comment: true
 
 老師背景很酷，是中華職棒三商虎球員，還經歷過假球時期。附上[報導](https://twbsball.dils.tku.edu.tw/wiki/index.php?title=%E9%BB%91%E8%99%8E%E4%BA%8B%E4%BB%B6)，還有棒球卡
 
-<details class="info-box">
-<summary>&nbsp;棒球卡</summary>
+<details class="note-box">
+<summary>棒球卡</summary>
 
 <figure class="custom-figure">
-    <img src="/images/得閒.webp" alt="圖片描述">
+    <img src="/images/得閒.webp" alt="圖片描述" />
     <figcaption>棒球卡</figcaption>
 </figure>
 
@@ -279,18 +227,7 @@ comment: true
 
 ### 英文一（附兩小時英聽）
 
-<div class="course-info-card">
-
-- **授課教授：** 胥嘉陵
-- **學分：** 3
-- **等第：** A+
-
-- **甜度：** 4.5/5
-- **涼度：** 2/5
-- **收穫：** 4/5
-- **課後學習時數：** 1小時（寫作業）
-
-</div>
+<CourseInfo teacher="胥嘉陵" credits={3} grade="A+" hours="1小時（寫作業）" sweet="4.5/5" cool="2/5" gain="4/5" />
 
 五花八門，各個領域都有。老師的講義裡面列了一大坨東西，老師很資深，都有固定排好的時間（但這學期意外頗多）。老師很有趣，看起來像一個鄰家阿罵（講話很快那種）。
 
@@ -323,18 +260,7 @@ comment: true
 
 ### 大學國文（一）：文學鑑賞與寫作
 
-<div class="course-info-card">
-
-- **授課教授：** 劉少雄
-- **學分：** 3
-- **等第：** A
-
-- **甜度：** 4/5
-- **涼度：** 3/5
-- **收穫：** 5/5
-- **課後學習時數：** 0.5小時
-
-</div>
+<CourseInfo teacher="劉少雄" credits={3} grade="A" hours="0.5小時" sweet="4/5" cool="3/5" gain="5/5" />
 
 以下節錄自 NTU COOL：
 
@@ -388,18 +314,7 @@ comment: true
 
 ### 邏輯思考與應用
 
-<div class="course-info-card">
-
-- **授課教授：** 王銀國
-- **學分：** 2
-- **等第：** A+
-
-- **甜度：** 5/5
-- **涼度：** 5/5
-- **收穫：** 3/5
-- **課後學習時數：** 0小時
-
-</div>
+<CourseInfo teacher="王銀國" credits={2} grade="A+" hours="0小時" sweet="5/5" cool="5/5" gain="3/5" />
 
 這門課是我同學在群組說老師說還有加簽名額，我剛好缺通識所以才寫信去拿加簽碼的，所以我是第三周才開始去上課，老師的上課內容就是邏輯學，從邏輯學的歷史到到理論，老師很會舉生活中的例子講解，上課起來不會很無聊，認真上課的話也可以學到很多邏輯學的知識。
 
@@ -411,8 +326,8 @@ comment: true
 
 基本不用擔心不會A+，有在聽老師~~偷洩題~~畫重點應該都很容易，出席成績是掃描google表單來登記，每堂課都會有一份google表單，期中期末都是線上NTUCOOL考試，很輕鬆，我自己是出席拿滿、期中98、期末91（滿分114），最後A+。
 
-<details class="warning-box">
-<summary> <b>&nbsp;真實情況</b></summary>
+<details class="note-box">
+<summary>真實情況</summary>
 
 我沒有真的認真上過課，我都是去點名而已，甚至有時候只去掃描表單就從普通103後門溜走，去上蔡國榮微積分，真的很抱歉，期中期末我就當天前一個小時開始看PPT，啊考試也開著PPT考，所以就......真的很抱歉。
 
