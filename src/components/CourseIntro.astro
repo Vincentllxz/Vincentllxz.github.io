@@ -8,8 +8,6 @@ interface Props {
   courseZh?: string
   /** Course shorthand for the window badge / filename, e.g. `SP`. */
   abbr: string
-  /** Accent color as an hsl triple `H S% L%`, e.g. `'217 85% 54%'`. */
-  accent?: string
   /** Term, e.g. `2025 Fall`. */
   semester?: string
   /** Instructor name (the ` 老師` suffix is added automatically). */
@@ -20,16 +18,7 @@ interface Props {
   textbook?: string
 }
 
-const {
-  course,
-  courseZh,
-  abbr,
-  semester,
-  teacher,
-  code,
-  textbook,
-  accent = '193 70% 50%'
-} = Astro.props
+const { course, courseZh, abbr, semester, teacher, code, textbook } = Astro.props
 
 const filename = `${abbr.toLowerCase()}/README.md`
 const when = [semester, teacher ? `${teacher} 老師` : null].filter(Boolean).join(' · ')
@@ -40,7 +29,6 @@ const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : n
 
 <div
   class='course-card not-prose my-7 overflow-hidden rounded-xl border bg-card font-mono shadow-sm'
-  style={`--ac: ${accent}`}
 >
   {/* 視窗條：交通燈 + 檔名頁籤 + 縮寫徽章 */}
   <div class='course-titlebar flex items-center gap-2 border-b px-4 py-2.5'>
@@ -78,12 +66,9 @@ const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : n
 </div>
 
 <style>
+  /* 全站統一一個強調色，不一課一色；`--primary` 在明暗兩個主題各有定義。 */
   .course-card {
-    --accent: hsl(var(--ac));
-  }
-  /* Lift the accent in dark mode so mid-lightness hues stay readable. */
-  :global(html.dark) .course-card {
-    --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
+    --accent: hsl(var(--primary));
   }
   .course-titlebar {
     background: color-mix(in srgb, var(--accent) 6%, hsl(var(--muted)));
@@ -101,7 +86,7 @@ const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : n
     content: '';
     position: absolute;
     inset: 0;
-    background: radial-gradient(110% 120% at 95% 0%, hsl(var(--ac) / 0.1), transparent 58%);
+    background: radial-gradient(110% 120% at 95% 0%, hsl(var(--primary) / 0.1), transparent 58%);
     pointer-events: none;
   }
   .course-body > * {

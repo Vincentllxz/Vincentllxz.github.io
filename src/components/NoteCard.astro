@@ -1,0 +1,171 @@
+---
+// `/notes` 的卡片。站內逐章的課程跟 PDF 講義都是同一批筆記，所以長同一個樣子，
+// 不分區也不分形狀 —— 差別只有右下角的箭頭（`›` 留在站內、`↗` 開新分頁）。
+//
+// 卡片分三段：上面學期當標籤，中間課名，底下一條細線隔開老師。三段的字級與灰度
+// 拉得很開，卡片才有結構；靠的是排版層級，不是外框裝飾。
+// 顏色全站統一用 `--primary`，不一課一色。平常整張卡不帶顏色，滑過或按下時整張
+// 反白 —— 底色與字色見下面的 `--fill` / `--fill-text`，兩個都是從主題 token
+// 推出來的，不是寫死的深色面板。
+interface Props {
+  /** 主標。通常是英文課名；沒有英文名的（東坡詞）就直接放中文。 */
+  title: string
+  /** 中文課名。跟 `title` 同字的就不要給。 */
+  titleZh?: string
+  teacher?: string
+  href: string
+  /** 修課學期，例如 `2025 Fall`。 */
+  term?: string
+  /** `pdf` 開新分頁；`note` 連到站內筆記頁。 */
+  type?: 'pdf' | 'note'
+}
+
+const { title, titleZh, teacher, href, term, type = 'pdf' } = Astro.props
+const isPdf = type === 'pdf'
+---
+
+<a
+  href={href}
+  target={isPdf ? '_blank' : undefined}
+  rel={isPdf ? 'noreferrer' : undefined}
+  data-astro-prefetch={isPdf ? undefined : true}
+  class='notecard not-prose flex flex-col rounded-xl border bg-card'
+>
+  {term && <span class='nc-term'>{term}</span>}
+
+  {/* 課名獨立一段：底線靠 `margin-top: auto` 釘在卡片底部，最高的那張卡沒有剩餘
+      空間，所以留白要寫在這一段下面，不能指望 auto。 */}
+  <span class='nc-body'>
+    <span class='nc-title'>{title}</span>
+    {titleZh && <span class='nc-title-zh'>{titleZh}</span>}
+  </span>
+
+  <span class='nc-foot'>
+    <span class='nc-teacher'>{teacher}</span>
+    <span class='nc-mark' aria-hidden='true'>{isPdf ? '↗' : '›'}</span>
+  </span>
+</a>
+
+<style>
+  /* 反白用的底色與字色。`--primary` 是設計來當文字的亮度，整張卡填滿會太亮，
+     所以往黑色壓一階再用；深色主題壓得更多，並改用一般前景色當字色 ——
+     深色主題的 `--primary-foreground` 是近黑，配深藍底會看不見。 */
+  .notecard {
+    --fill: color-mix(in srgb, hsl(var(--primary)), black 12%);
+    --fill-text: hsl(var(--primary-foreground));
+    padding: 1.1rem 1.25rem 0.9rem;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      transform 0.1s ease;
+  }
+  :global(html.dark) .notecard {
+    --fill: color-mix(in srgb, hsl(var(--primary)), black 55%);
+    --fill-text: hsl(var(--foreground));
+  }
+  /* 滑過／按下就整張反白。`:focus-visible` 一起帶，鍵盤 Tab 過去才有一樣的回饋。 */
+  .notecard:hover,
+  .notecard:focus-visible,
+  .notecard:active {
+    border-color: var(--fill);
+    background: var(--fill);
+  }
+  .notecard:active {
+    transform: translateY(1px);
+  }
+
+  /* 學期當標籤：等寬、拉開字距，跟下面的課名在視覺上不同類。 */
+  .nc-term {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground) / 0.8);
+    transition: color 0.2s ease;
+  }
+
+  .nc-body {
+    display: block;
+    margin-bottom: 0.9rem;
+  }
+  .nc-title {
+    display: block;
+    margin-top: 0.85rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    overflow-wrap: break-word;
+    color: hsl(var(--foreground));
+    transition: color 0.2s ease;
+  }
+  :is(.notecard:hover, .notecard:focus-visible, .notecard:active) .nc-title {
+    color: var(--fill-text);
+  }
+  .nc-title-zh {
+    margin-top: 0.2rem;
+    font-size: 0.8125rem;
+    color: hsl(var(--muted-foreground));
+    transition: color 0.2s ease;
+  }
+
+  /* 老師那行推到卡片底部，一排卡片的細線才會對齊成同一條。 */
+  .nc-foot {
+    display: flex;
+    transition: border-color 0.2s ease;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 0.8rem;
+    border-top: 1px solid hsl(var(--border));
+  }
+  .nc-teacher {
+    font-size: 0.78rem;
+    color: hsl(var(--muted-foreground));
+    transition: color 0.2s ease;
+  }
+  .nc-mark {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+    transition:
+      color 0.2s ease,
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  :is(.notecard:hover, .notecard:focus-visible, .notecard:active) .nc-mark {
+    transform: translateX(3px);
+  }
+
+  /* 反白時的其餘三段：學期、中文課名、老師收在 75% 不透明度，
+     維持原本的主次；分隔線改用前景色的淡影，才不會在藍底上消失。 */
+  :is(.notecard:hover, .notecard:focus-visible, .notecard:active)
+    :is(.nc-term, .nc-title-zh, .nc-teacher, .nc-mark) {
+    color: color-mix(in srgb, var(--fill-text) 78%, transparent);
+  }
+  :is(.notecard:hover, .notecard:focus-visible, .notecard:active) .nc-foot {
+    border-top-color: color-mix(in srgb, var(--fill-text) 25%, transparent);
+  }
+
+  /* 老師那行以上要留得夠空，卡片才不會擠成一團；窄螢幕收一點。 */
+  @media (max-width: 640px) {
+    .notecard {
+      padding: 1rem 1.1rem 0.8rem;
+    }
+    .nc-title {
+      margin-top: 0.7rem;
+      font-size: 1.0625rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .notecard,
+    .nc-term,
+    .nc-title,
+    .nc-title-zh,
+    .nc-foot,
+    .nc-teacher,
+    .nc-mark {
+      transition: none;
+    }
+  }
+</style>

@@ -1,88 +1,111 @@
 ---
-import PageLayout from '@/layouts/CommonPage.astro'
-import PDFCard from '@/components/PDFCard.astro'
+import { Button } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import NoteCard from '@/components/NoteCard.astro'
 
 export const prerender = true
 
-// 站內筆記留自己的主題色 —— 那個顏色會延續到課程頁的 CourseIntro，所以它是
-// 「這門課有站內頁面可以逐章看」的訊號，不是裝飾。
+const meta = {
+  description: 'Lecture notes from the course in NTU',
+  title: 'Notes'
+}
+
+// 學期是自己修課的那一學期（來源是各學期的修課心得）。注意 OS 的
+// `notes/os/index.mdx` 裡寫的 `2021 Spring` 是忠緯錄影的年份，不是修課學期。
+//
+// 這一頁不帶顏色 —— 卡片的 hover 統一用站上的 `--primary`，不一課一色。
 const series = [
   {
     title: 'Operating System',
-    subtitle: '作業系統 林忠緯 教授',
+    titleZh: '作業系統',
+    teacher: '林忠緯 教授',
+    term: '2026 Spring',
     href: '/notes/os',
-    abbr: 'OS',
-    accent: '350 72% 52%',
     type: 'note' as const
   },
   {
     title: 'System Programming',
-    subtitle: '系統程式設計 鄭卜壬 教授',
+    titleZh: '系統程式設計',
+    teacher: '鄭卜壬 教授',
+    term: '2025 Fall',
     href: '/notes/sp',
-    abbr: 'SP',
-    accent: '217 85% 54%',
     type: 'note' as const
   },
   {
     title: 'Computer Networking',
-    subtitle: '計算機網路 逄愛君 教授',
+    titleZh: '計算機網路',
+    teacher: '逄愛君 教授',
+    term: '2025 Fall',
     href: '/notes/cn',
-    abbr: 'CN',
-    accent: '145 60% 38%',
     type: 'note' as const
   }
 ]
 
-// PDF 點下去就離開站了，顏色沒有下文，所以統一收成中性灰：8 種色相各據一角
-// 只是讓整頁變彩虹。色相沿用 --muted-foreground，在明暗兩個主題下都站得住。
-const MUTED = '15 10% 45%'
-
 const handouts = [
   {
     title: 'Introduction to Computation Theory',
-    subtitle: '自動機與形式語言 林智仁 教授',
-    href: '/pdf/IntroComputation.pdf',
-    abbr: 'TOC'
+    titleZh: '自動機與形式語言',
+    teacher: '林智仁 教授',
+    term: '2025 Fall',
+    href: '/pdf/IntroComputation.pdf'
   },
   {
     title: 'Numerical Method',
-    subtitle: '數值方法 林智仁 教授',
-    href: '/pdf/NumericalMethod.pdf',
-    abbr: 'NM'
+    titleZh: '數值方法',
+    teacher: '林智仁 教授',
+    term: '2026 Spring',
+    href: '/pdf/NumericalMethod.pdf'
   },
   {
     title: 'Algorithm Design and Analysis',
-    subtitle: '演算法設計與分析 呂學一 教授',
-    href: '/pdf/ADA_cut.pdf',
-    abbr: 'ADA'
+    titleZh: '演算法設計與分析',
+    teacher: '呂學一 教授',
+    term: '2025 Fall',
+    href: '/pdf/ADA_cut.pdf'
   },
   {
     title: 'Linear Algebra',
-    subtitle: '線性代數 李明穗 教授',
-    href: '/pdf/LinearAlgebra.pdf',
-    abbr: 'LA'
+    titleZh: '線性代數',
+    teacher: '李明穗 教授',
+    term: '2025 Fall',
+    href: '/pdf/LinearAlgebra.pdf'
   },
+  // 這門沒有英文課名，主標就放中文，中文小字那行自然空著。
   {
     title: '東坡詞',
-    subtitle: '劉少雄 教授',
-    href: '/pdf/東坡詞.pdf',
-    abbr: '東坡詞'
+    teacher: '劉少雄 教授',
+    term: '2025 Spring',
+    href: '/pdf/東坡詞.pdf'
   }
-].map((h) => ({ ...h, accent: MUTED }))
+]
+
+// 站內逐章的跟 PDF 的都是同一批筆記，所以同一個網格，不分區、不分先後 ——
+// 只按學期新到舊排。`Spring` 屬於該學年的下學期，所以 2026 Spring 比 2025 Fall 新。
+// 同一學期維持陣列原本的順序（sort 是穩定的）。
+const termRank = (term: string) => {
+  const [year, season] = term.split(' ')
+  return Number(year) * 10 + (season === 'Fall' ? 1 : 0)
+}
+const items = [...series, ...handouts].sort((a, b) => termRank(b.term) - termRank(a.term))
 ---
 
-<PageLayout title='Notes'>
-  <p class='text-muted-foreground'>這裡放一些我修課時整理的筆記，點擊卡片即可開啟。</p>
+{/* 版面跟 /blog 同一套：BaseLayout + 頁內 h1 + 一行 text-sm 說明，h1 才不會被
+    CommonPage 的 header slot 推遠。 */}
+<PageLayout {meta}>
+  <Button title='Back' href='/' variant='back' />
+  <main class='mt-6 lg:mt-10'>
+    <div id='content-header' class='animate'>
+      <h1 class='mb-6 mt-6 text-3xl font-medium sm:mt-10'>Notes</h1>
+    </div>
 
-  <h2 class='mt-8 text-lg font-semibold'>課程筆記</h2>
-  <p class='mt-1 text-sm text-muted-foreground'>站內逐章整理，可以直接在網頁上讀。</p>
-  <div class='not-prose mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
-    {series.map((note) => <PDFCard {...note} />)}
-  </div>
+    <section id='content' class='animate' aria-label='Notes list'>
+      <div class='mb-3 text-sm text-muted-foreground sm:mb-5'>
+        Lecture notes from the course in NTU
+      </div>
 
-  <h2 class='mt-10 text-lg font-semibold'>PDF 講義</h2>
-  <p class='mt-1 text-sm text-muted-foreground'>手寫或排版好的完整講義，開新分頁下載。</p>
-  <div class='not-prose mt-4 grid grid-cols-1 gap-6 lg:grid-cols-2' data-reveal>
-    {handouts.map((note) => <PDFCard {...note} />)}
-  </div>
+      <div class='grid grid-cols-1 gap-4 sm:grid-cols-2' data-reveal>
+        {items.map((item) => <NoteCard {...item} />)}
+      </div>
+    </section>
+  </main>
 </PageLayout>

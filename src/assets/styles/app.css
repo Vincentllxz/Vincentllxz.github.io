@@ -150,7 +150,6 @@ figcaption {
   margin-bottom: 0.75em;
   max-width: 100%;
   height: auto;
-  box-shadow: 0 10px 25px hsl(var(--border) / 0.3);
 }
 .custom-figure figcaption {
   font-style: italic;
@@ -252,19 +251,15 @@ figcaption {
 }
 /* Use Tailwind's prose `:not(:where([class~="not-prose"] *))` pattern so
    `.not-prose` descendants (e.g. PDFCard) opt out of the bumped margins.
-   Every article image sits in a bezel — a mat, thin border, rounded corners —
-   so white-background diagrams read as intentional panels instead of pasted
-   screenshots. The mat follows the theme: quiet in light, deep in dark. */
+   Article images carry rounded corners and nothing else — the mat, border and
+   drop shadow that used to frame them were removed on 2026-08-15 (「不要有那個
+   奇怪的框框」); keep the radius, don't put the bezel back. */
 .prose :where(img):not(:where([class~='not-prose'] *)) {
   margin-top: 1.6em;
   margin-bottom: 1.6em;
-  padding: 0.55rem;
-  background: hsl(var(--muted) / 0.6);
-  border: 1px solid hsl(var(--border));
   border-radius: 10px;
-  box-shadow: 0 8px 24px hsl(var(--border) / 0.35);
 }
-/* Captioned figures keep their tight image→caption gap (the bezel rule above
+/* Captioned figures keep their tight image→caption gap (the rule above
    would otherwise stretch it to 1.6em; (0,2,1) outranks its (0,1,1)). */
 .prose .custom-figure img {
   margin-bottom: 0.75em;

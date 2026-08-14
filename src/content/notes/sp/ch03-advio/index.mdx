@@ -47,7 +47,6 @@ Blocking 與 Non-blocking mode 是 I/O 一個處理這種問題的 property
 
 > 雖然 Disk I/O 是很慢，但我們並不會把它歸類為 slow system call，因為它不會 forever block
 
-
 通常我們會用以下方法來改變 file status flags
 - `val | flags`: turn on flags
 - `val &= ~flags`: clear the flag

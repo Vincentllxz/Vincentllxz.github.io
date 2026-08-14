@@ -12,17 +12,15 @@ interface Chapter {
 
 interface Props {
   chapters: Chapter[]
-  /** 主色，hsl 三元組 `H S% L%`；預設終端機藍。 */
-  accent?: string
   /** `book` 欄的前綴，例如 `OSC`。有章節帶 `book` 時才會顯示。 */
   bookLabel?: string
 }
 
-const { chapters, accent = '217 85% 54%', bookLabel = '' } = Astro.props
+const { chapters, bookLabel = '' } = Astro.props
 const showBook = chapters.some((c) => c.book !== undefined)
 ---
 
-<ol class='chapterlist not-prose my-6' style={`--ac: ${accent}`}>
+<ol class='chapterlist not-prose my-6'>
   {
     chapters.map((c) => {
       const Tag = c.href ? 'a' : 'div'
@@ -52,16 +50,13 @@ const showBook = chapters.some((c) => c.book !== undefined)
 </ol>
 
 <style>
+  /* 全站統一一個強調色，不一課一色；`--primary` 在明暗兩個主題各有定義。 */
   .chapterlist {
-    --accent: hsl(var(--ac));
+    --accent: hsl(var(--primary));
     list-style: none;
     margin-inline: 0;
     padding: 0;
     border-top: 1px solid hsl(var(--border));
-  }
-  /* 中等亮度的色相在深色底上會沉下去，提亮一點。 */
-  :global(html.dark) .chapterlist {
-    --accent: color-mix(in srgb, hsl(var(--ac)), white 22%);
   }
   .chapterlist li {
     border-bottom: 1px solid hsl(var(--border));

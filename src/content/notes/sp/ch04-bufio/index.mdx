@@ -15,22 +15,30 @@ import Fig from '@/components/Fig.astro'
 
 # Buffered I/O
 
+Buffer I/O 是一種 abstraction 的概念，主要是為了減少 system call 的次數，本質上是一種 API 而非是 System interface，Buffer I/O 會在 user space allocate 一塊 buffer，然後把 buffer 裡面的東西透過 Unbuffer I/O 送出去
+
 ## Standard Library of C
-- Call `fopen()` 會得到一個 file object pointer 會放在 Virtual Memory
 
-<Aside type="note" title="">
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-1.webp" caption="Standard Library of C 1" />
-- 依然會透過 Unbuffered I/O 出去，只是在包裝而已
-- `strace` 可以 trace 所有 Buffer I/O
-</Aside>
+Standard Library of C 就是一種提供 Buffered I/O 的 abstraction
+- Call `fopen()` 會得到一個 **file object pointer** 會放在 Virtual Memory
 
-<Aside type="note" title="">
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-2.webp" caption="Standard Library of C 2" />
-- C library 會 allocate 一塊 buffer 去防止直接碰到 Kernel
-- 直接碰到 system call 是 high cost 的
-- 有 Prefetch 的效果
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-3.webp" caption="Standard Library of C 3" />
-</Aside>
+File object 會有一個 buffer，裡面還會記錄一些 File 相關的資訊，像是
+- File descriptor
+- Pointer to buffer
+- Buffer size
+- \# of remaining chars, ...etc.
+
+<Fig src="/images/sp/ch04-bufio/standard-library-of-c-1.webp" caption="File object in Standard Library of C" />
+Buffer I/O 最後依然會透過 Unbuffered I/O 出去，只是他可以做更多的控制操作（e.g. 累積後一次呼叫 system call）
+- Command line 裡面打 `strace` 可以 trace 所有 Buffer I/O
+
+<Fig src="/images/sp/ch04-bufio/standard-library-of-c-2.webp" caption="The Illustration of Standard Library of C" />
+
+直接碰到 system call 是 high cost (time) 的，所以 C library 會先 allocate 一塊 buffer 去防止直接碰到 kernel
+
+而這樣做的結果除了可以有效加快 I/O Efficiency，還有 Prefetch 的效果
+
+<Fig src="/images/sp/ch04-bufio/standard-library-of-c-3.webp" caption="Prefetch" />
 
 **`FILE *fopen(const char *pathname, const char *type);`**
 - 可以 support atomic operation

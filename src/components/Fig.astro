@@ -2,9 +2,9 @@
 // 課程筆記裡的插圖。取代原本手刻的
 // `<div style="text-align:center"><img style="width:N%"/><br/><span style="color:grey">…</span></div>`。
 //
-// 刻意不提供寬度參數：原本那 9 種百分比其實是在用寬度控制高度（方形圖縮小、
-// 寬扁的投影片放滿），所以這裡直接壓高度上限，寬度讓瀏覽器依長寬比算。
-// 實測能還原原本的手動寬度到誤差 10% 以內，而且以後貼圖不用再想寬度。
+// 尺寸就是原本 `<img>` 的語意：寬度預設 100%，要縮再給 `width`，高度讓瀏覽器
+// 依長寬比算。方形／直式的圖 100% 會很高，那種才需要手動調（原本手刻的 9 種
+// 百分比就是在做這件事）。
 // 圖太小看不清時可以點開放大（medium-zoom 的 selector 是 `.prose img`）。
 interface Props {
   /** `/images/...` 底下的路徑。 */
@@ -13,30 +13,34 @@ interface Props {
   caption?: string
   /** 需要跟圖說不同的替代文字時才給。 */
   alt?: string
+  /**
+   * 圖片寬度，預設佔滿版面。數字當百分比（`width={60}` → 60%），
+   * 字串原樣輸出（`width="20rem"`、`width="60%"` 都可以）。
+   */
+  width?: number | string
 }
 
-const { src, caption, alt } = Astro.props
+const { src, caption, alt, width } = Astro.props
+const figWidth = typeof width === 'number' ? `${width}%` : width
 ---
 
-<figure class='fig'>
+<figure class='fig' style={figWidth && `--fig-width: ${figWidth}`}>
   <img {src} alt={alt ?? caption ?? ''} loading='lazy' decoding='async' />
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 
 <style>
-  /* 置中靠 flex 的 align-items，不靠 `width: fit-content` —— 高度上限壓過的寬度
-     跟圖片原始寬度不一樣，fit-content 兩者都可能拿到，圖說會相對圖片偏掉。 */
+  /* 置中靠 flex 的 align-items，不靠 `width: fit-content` —— 圖說會相對圖片偏掉。 */
   .fig {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin: 2em auto;
   }
-  /* 高度上限就是版面規則本身 —— 見上方註解。外框（襯底、邊框、圓角）沿用
-     app.css 的 `.prose img`，這裡只負責尺寸與間距。 */
+  /* 圓角沿用 app.css 的 `.prose img`（襯底與邊框已於 2026-08-15 拿掉），
+     這裡只負責尺寸與間距。 */
   .fig img {
-    max-height: 22rem;
-    width: auto;
+    width: var(--fig-width, 100%);
     height: auto;
     max-width: 100%;
     margin: 0;
