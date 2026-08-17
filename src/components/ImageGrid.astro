@@ -29,11 +29,12 @@ const smColMap: Record<number, string> = {
   4: 'sm:grid-cols-4'
 }
 const smColClass = smColMap[resolvedCols] ?? 'sm:grid-cols-2'
-const baseColClass = images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
 ---
 
+{/* 窄螢幕一律上下堆疊 —— 並排的圖多半是流程圖，擠成半個螢幕寬就看不清了；
+    多欄從 sm 才開始。 */}
 <figure class:list={['not-prose my-7 flex flex-col gap-2', className]}>
-  <div class:list={['grid gap-3', baseColClass, smColClass]}>
+  <div class:list={['grid grid-cols-1 gap-3', smColClass]}>
     {
       images.map((img) => (
         <figure class='m-0 flex flex-col gap-1.5'>

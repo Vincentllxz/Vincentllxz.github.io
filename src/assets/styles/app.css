@@ -90,6 +90,43 @@ details.warning-box {
   margin: 1.25em 0;
 }
 
+/* === <Aside> 配色 ===================================================
+   astro-pure 的 Aside 整塊（左邊粗線、7% 底色、標題文字）都是從容器上的
+   `--primary` 推出來的，`note` 因此直接吃站上的主色，另外三型則被 component
+   內建的 scoped style 覆寫成 tip 234/60/60、caution 41/90/50、danger
+   339/90/60 —— 飽和度 60–90%，而本站整套 token 最濃的也只到 55%，所以只有
+   note 看起來像這個站的顏色，其餘三個像外掛上去的。
+
+   下面重新指定那三個色，作法是對齊 note 的「感知重量」而不是換個順眼的色相：
+   以 OKLab 量，亮模式的 note 是 L 0.62 / C 0.09，四型就都落在 L 0.50–0.62、
+   C 0.09–0.15；暗模式 note 是 L 0.75 / C 0.08，其餘對到 L 0.69–0.75。
+   色相各自留著語意（綠 152 / 琥珀 35 / 紅 358，紅偏濃一階是刻意的），但濃度
+   同級，四種 Aside 才會讀起來是同一套系統。
+
+   component 的 scoped style 編出來是 `.aside:where(.astro-xxx) >
+   .aside-container:where(.astro-xxx).aside-tip`，`:where()` 不計權重，所以是
+   (0,3,0)；前面加一個 `html` 拿到 (0,3,1) 就能穩定壓過，不必靠載入順序也不必
+   用 `!important`。暗色再加 `.dark` 是 (0,4,1)。
+   註：component 只給一組值、不分明暗，暗色變體是這裡補的。 */
+html .aside > .aside-container.aside-tip {
+  --primary: 152 42% 38%;
+}
+html .aside > .aside-container.aside-caution {
+  --primary: 35 62% 43%;
+}
+html .aside > .aside-container.aside-danger {
+  --primary: 358 48% 46%;
+}
+html.dark .aside > .aside-container.aside-tip {
+  --primary: 152 42% 59%;
+}
+html.dark .aside > .aside-container.aside-caution {
+  --primary: 35 61% 60%;
+}
+html.dark .aside > .aside-container.aside-danger {
+  --primary: 358 62% 68%;
+}
+
 @keyframes term-cursor-blink {
   0%,
   100% {

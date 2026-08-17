@@ -12,6 +12,7 @@ comment: true
 ---
 import { Card, Aside, Timeline, Steps, Button, Spoiler, FormattedDate, Collapse } from 'astro-pure/user'
 import Fig from '@/components/Fig.astro'
+import ImageGrid from '@/components/ImageGrid.astro'
 
 # Buffered I/O
 
@@ -32,108 +33,189 @@ File object 會有一個 buffer，裡面還會記錄一些 File 相關的資訊�
 Buffer I/O 最後依然會透過 Unbuffered I/O 出去，只是他可以做更多的控制操作（e.g. 累積後一次呼叫 system call）
 - Command line 裡面打 `strace` 可以 trace 所有 Buffer I/O
 
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-2.webp" caption="The Illustration of Standard Library of C" />
+<ImageGrid
+  cols={2}
+  images={[
+    { src: '/images/sp/ch04-bufio/standard-library-of-c-2-1.webp', caption: 'Unbuffered I/O' },
+    { src: '/images/sp/ch04-bufio/standard-library-of-c-2.webp', caption: 'Buffered I/O' }
+  ]}
+/>
 
 直接碰到 system call 是 high cost (time) 的，所以 C library 會先 allocate 一塊 buffer 去防止直接碰到 kernel
 
 而這樣做的結果除了可以有效加快 I/O Efficiency，還有 Prefetch 的效果
 
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-3.webp" caption="Prefetch" />
+<Fig src="/images/sp/ch04-bufio/standard-library-of-c-3.webp" caption="只需要一個 write() 減少 system call" width={60}/>
 
-**`FILE *fopen(const char *pathname, const char *type);`**
-- 可以 support atomic operation
-- <Fig src="/images/sp/ch04-bufio/standard-library-of-c-4.webp" caption="Standard Library of C 4" />
+### `fopen()`
 
-**`FILE *freopen(const char *pathname, const char *type, FILE *fp);`**
-- 可以指定某個 fp (通常是常見 e.g. `STDOUT`) 來放這個 file
-- ```c
-  FILE *fp;
-  fp = freopen ("/tmp/logfile", "a+", stdout);
-  printf(“Sent to stdout and redirected to /tmp/logfile”);
-  fclose(stdout);
-  ```
-**`FILE *fdopen(int fildes, const char *type);`**
-- 做 unbuffer I/O 後想重新指定型別，所以可以把開好的 fd 來指定型別
-    - 一定要是前一個 open 的 subset
-- 如果此時開成 `w` 會沒有 truncate
+```c noLineNumbers
+FILE *fopen(const char *pathname, const char *type);
+```
 
-**`int fileno(FILE *fp);`**
-- 得到 `fd`
+這個 funciton call 可以支援 atomic 的 open，會同時做 open + read/write 的動作，並且會回傳一個 `FILE *`，這個 `FILE *` 會放在 Virtual Memory 裡面，裡面會有 buffer、file descriptor、buffer size、remaining chars 等等資訊
 
-**`int fclose(FILE *fp);`**
-- fstream 裡面的 buffer 必須有效
-- 可以把裡面的東西
-    - Discard Input
-    - Flush Output
-- ```c
-  FILE *open_data(void)
-  {
-       FILE *fp;
-      char databuf[BUFSIZ];  /* setvbuf makes this the stdio buffer */
+以下是各種 flag 的代表意義
 
-      if ((fp = fopen(DATAFILE, "r")) == NULL)
-          return (NULL);
-      if (setvbuf(fp, databuf, _IOLBF, BUFSIZ) != 0)
-          return (NULL);
+| Restriction | `r` | `w` | `a` | `r+` | `w+` | `a+` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| file must already exist | ● | | | ● | | |
+| previous contents of file discarded | | ● | | | ● | |
+| stream can be read | ● | | | ● | ● | ● |
+| stream can be written | | ● | ● | ● | ● | ● |
+| stream can be written only at end | | | ● | | | ● |
 
-      return (fp);
-  }
-  ```
-- 這裡的 `databuf` 是 local 的出去之後 `fclose` 會失效
+### `freopen()`
+
+```c noLineNumbers
+FILE *freopen(const char *pathname, const char *type, FILE *fp);
+```
+
+這個 function 可以把某個已經 open 的 `FILE *` 重新指定到另一個 file，並且可以指定新的 type (通常是常見 e.g. `stdout`)，下面這段 code 會把掛在 `stdout` 底下的 file 重新指定到 `/tmp/logfile`，並且可以同時做 append 的動作
+```c title="freopen.c"
+FILE *fp;
+fp = freopen ("/tmp/logfile", "a+", stdout);
+printf(“Sent to stdout and redirected to /tmp/logfile”);
+fclose(stdout);
+```
+
+### `fdopen()`
+
+```c noLineNumbers
+FILE *fdopen(int fildes, const char *type);
+```
+做 unbuffer I/O 後想重新指定型別，也可以把開好的 fd 來指定型別
+- 開啟的 type 一定要是前一個 open 的 type 的 subset，就是 permission 的 subset，e.g. `r+` 可以指定成 `r` 但是不能指定成 `w`
+- 如果用這個 function call 用 `w` type 開啟檔案的話不會先行 truncate
+
+### `fileno()`
+
+```c noLineNumbers
+int fileno(FILE *fp);
+```
+
+可以拿到 `FILE` object 的 file descriptor (`fd`)
+
+
+### `fclose()`
+
+```c noLineNumbers
+int fclose(FILE *fp);
+```
+
+要做這個 function call 指定的 fstream 裡面的 buffer 必須有效，不然會失效，這個 function 的流程是
+<Steps>
+
+1. Discard input buffer
+2. Flush output buffer
+3. Close file descriptor
+4. Deallocate file object
+
+</Steps>
+
+```c title="open_data.c"
+FILE *open_data(void)
+{
+    FILE *fp;
+    char databuf[BUFSIZ];  /* setvbuf makes this the stdio buffer */
+
+    if ((fp = fopen(DATAFILE, "r")) == NULL)
+        return (NULL);
+    if (setvbuf(fp, databuf, _IOLBF, BUFSIZ) != 0)
+        return (NULL);
+
+    return (fp);
+}
+```
+`databuf` 是一個 local variable 在這個 function 結束後 call `fclose(fp)` 會失效
 
 ## Buffering
-- 最主要目的是要減少 system call 的次數
-- Call standard I/O 會自動 allocate 但是也可以自行 `setbuf()`, `setvbuf()`
-- 最終會往 Unbuffer I/O 送
+
+Buffer I/O 最主要目的是要減少 system call 的次數，而 buffer 機制就是可以達到這個目的方法。直接 call standard I/O 會自動 allocate buffer，但是也可以自行用 `setbuf()`, `setvbuf()` 設定
+
+> 雖然說是 buffered I/O 但最終還是會往 Unbuffer I/O 送，由 Unbuffer I/O 做真正的 I/O
+
+以下為常見的三種 buffer type
 
 ### Fully Buffered
-- Default 通常是這個 e.g. **Disk**, **Pipe**, **Socket**
-- 滿了才會送出去，才 trigger Unbuffer I/O
+
+Fully buffered 會等到 buffer 滿了才會送出去，通常是用在 **disk**、**pipe**、**socket** 等等，這些都是需要等到 buffer 滿了才會送出去的
 
 ### Line Buffered
-- New line 就會送一次 e.g. **terminal**
-- 兩種情況要特殊處理
-    - **Full**: 滿了就一定得送出去
-    - **Flush**: 系統要求一定要馬上 flush
-        - 下面這個 code，新一行雖然沒看到 `\n` 但 terminal 必須先輸出 `$ `
-        - ```c
-          char buf[100];
-          printf(“$ “); 
-          scanf(“%s”, buf); 
-          ```
+每個 new line 就會送一次像是 terminal 就是一種 line buffered 環境，通常兩種情況要特殊處理
+- **Full**: buffer 滿了就一定得送出去
+- **Flush**: 系統要求一定要馬上 flush
+
+下面這個 code，新一行雖然沒看到 `\n` 但 terminal 必須先輸出 `$ ` 就是一種典型的 flush
+```c 
+char buf[100];
+printf(“$ “); 
+scanf(“%s”, buf); 
+```
 
 ### Unbuffered
-- 需要有錯誤就馬上輸出
-    - `stderr`
+需要有錯誤就馬上輸出不能拖著 (e.g., `stderr`)
 
-<Aside type="tip" title="**ANSI C Requirements**">
+<Aside type="note" title="ANSI C Requirements">
 - Fully buffered for stdin and stdout unless interactive devices.
     - SVR4/4.3+BSD – line buffered
 - Standard error is never fully buffered.
     - SVR4/4.3+BSD – unbuffered
 </Aside>
 
-**`int fflush(FILE *fp);`**
+### `fflush()`
+
+```c noLineNumbers
+int fflush(FILE *fp);`
+```
+
 - 把 `fp` 裡面的 buffer 內容透過 Unbuffer I/O 送出去
 - 如果設定 `fp == NULL` 就會把所有 output buffer 送出去
 - 送是送到 buffer cache 而不是直接進去 DISK 還要呼叫 `sysc()`, `fsysc()`, `fdatasysc()`
 
-**`void setbuf(FILE *fp, char *buf);`**
-- 沒指定 size 會是 system 指定 type
+### `setbuf()`
 
-**`int setvbuf(FILE *fp, char *buf, int mode, size_t size);`**
-- 可以指定 size，也就是 type 可以指定
-- 透過 `stat` 去得到 file metadata
-    - `_IOFBF`, `_IOLBF`, `_IONBF`
+```c noLineNumbers
+void setbuf(FILE *fp, char *buf);
+```
 
-**`long ftell(FILE *fp);`**
-- 找尋目前 `offset`
+對一個 file object 指定要使用某段 memory 作為 buffer，但缺點是不能指定 buffer size（固定是 `BUFSIZ`）跟 buffer type
+- `setbuf(fp, NULL);` 就是把 buffer 關掉
 
-**`int fseek(FILE *fp, long offset, int whence);`**
+### `setvbuf()`
+
+```c noLineNumbers
+int setvbuf(FILE *fp, char *buf, int mode, size_t size);
+```
+可以指定 buffer type, buffer size，也可以選擇是否讓 LibC allocate buffer，有三種 mode 可以選擇 - `_IOFBF`: Fully buffered
+- `_IOLBF`: Line buffered
+- `_IONBF`: Unbuffered
+
+> 這類型的 `setbuf()` 操作應該出現在 `fopen()` 之後，任何對 `fp` 的 I/O 操作之前，否則會失效
+
+### `ftell()`
+
+```c noLineNumbers
+long ftell(FILE *fp);
+```
+
+找尋目前 `offset`
+
+### `fseek()`
+
+```c noLineNumbers
+int fseek(FILE *fp, long offset, int whence);
+```
+在 file object 裡面指定 offset 的功能，跟 `lseek()` 很像但是有一個差別就是 `fseek()` 會先把 buffer flush 掉，然後再去做 offset 的動作 
+- `whence` 可以是 `SEEK_SET`, `SEEK_CUR`, `SEEK_END`
+- `offset` 可以是正數或負數
 - Binary file `SEEK_END` 無用因為 buffer 性質會 append 一堆奇怪東西
 - Text file `SEEK_SET` 就是 0 或著 `ftell()` 的 return value
 
 ## Unformatted I/O
+
+> Formatted I/O 是指有格式的輸入輸出，像是 `printf()`、`scanf()`，裡面的 `%` 就是格式化的符號，Unformatted I/O 就是沒有格式化的輸入輸出，像是 `read()`、`write()`、`fread()`、`fwrite()`
+
 - Character-at-a-time I/O, e.g., `getc()`
     - Buffering handled by standard I/O lib
 - Line-at-a-time I/O, e.g., `fgets()`
@@ -143,79 +225,136 @@ Buffer I/O 最後依然會透過 Unbuffered I/O 出去，只是他可以做更�
 
 ### Character-at-a-time I/O
 
-**`int getc(FILE *fp);`**
-**`int fgetc(FILE *fp);`**
-**`int getchar(void);`**
+#### `getchar()`, `getc()`, `fgetc()`
 
-- `getc()` 有可能是 macro, `getchar()` 必定是 function
-- `-1` 會是 EOF 或 Error
+```c noLineNumbers
+int getc(FILE *fp);
+int getchar(void);
+int fgetc(FILE *fp);
+```
 
-<Aside type="caution" title="">
-```c
+這些都是一次接一個 character 的 I/O，`getc()` 會有可能是 macro，`getchar()` 一定是 function，所以 `getc()` 會比 `getchar()` 快一點，EOF 或是 error 都會回傳 `-1`
+
+```c title="getchar.c"
 int main() {
     char c;
     while ((c = getchar()) != EOF) 
         putchar(c);
 }
 ```
-- `char` 是 `unsigned` 所以永遠不會停永遠不會是 `-1`
-- 如果換成 signed 出現 `-1` 就會爆炸，不一定是檔尾
-- 用 `int` 就好 不要亂做型別轉換
+
+因為 `char` 是 `unsigned` 所以永遠不會停永遠不會是 `-1`，而如果用 signed char，就會常常有 `-1` 出現而不一定是在 `EOF`，所以 `c` 必須要是 `int`
+
+#### `putchar()`, `putc()`, `fputc()`
+
+```c noLineNumbers
+int putc(int c, FILE *fp);
+int putchar(int c);
+int fputc(int c, FILE *fp);
+```
+
+這些都是一次輸出一個的 I/O，`putc()` 會有可能是 macro，`putchar()` 一定是 function
+
+#### `fgets()`
+```c noLineNumbers
+char *fgets(char *buf, int size, FILE *fp);
+```
+一次讀一行，會把 `\n` 也讀進去，直到 buffer 滿了或是遇到 `\n` 或是 EOF 才會停下來
+
+#### `gets()`
+```c noLineNumbers
+char *gets(char *buf);
+```
+一次讀一行，會把 `\n` 也讀進去，但沒有指定 buffer size，會 overflow. 
+
+#### `fputs()`, `puts()`
+
+```c noLineNumbers
+int fputs(const char *s, FILE *fp);
+int puts(const char *s);
+```
+
+`puts()` 會自動在字串後面加上 `\n`，並且是一直寫到 `stdout`，而 `fputs()` 不會，而這兩個 function 都不會有 overflow 的問題，因為只要輸出空間夠大就可以了
+
+#### `fread()`, `fwrite()`
+
+```c noLineNumbers
+size_t fread(void *ptr, size_t size, size_t nobj, FILE *fp);
+size_t fwrite(const void *ptr, size_t size, size_t nobj, FILE *fp);
+```
+
+是一種 Binary I/O 可以以 Object 為單位寫入讀取
+```c title="fwrite.c"
+struct {
+    short count;
+    long total;
+    char name[NAME_SIZE];
+} item;
+if (fwrite(&item, sizeof(item), fp) != 1)
+    err_sys("fwrite error");
+```
+
+這段程式就是把 `item` 這個 struct 寫入到 `fp` 指定的檔案裡面，並且以 `sizeof(item)` 為單位寫入，寫入的數量是 1 個 object，如果寫入失敗就會回傳錯誤訊息
+
+<Aside type="note" title="Binary I/O is not portable">
+
+對於某些 system call 或是 object，每個 environment 的參數、資料型態、位址都可能不一樣，會放在不同地方，排列也不同，寫出來讀出來的東西不一樣，所以會出現 `size_t` 這種為了 portability 而設計的資料型別，並且 **每個 complier alignment 的 method 都不一樣**
+
+需要做 alignment 的目的是為了讓 CPU 可以更快的存取資料，因為 CPU 存取資料是以 4 bytes 為單位，如果資料沒有對齊，就會需要多次存取，會降低效能
+<Fig src="/images/sp/ch04-bufio/character-at-a-time-i-o-2.webp" caption="Decoder and data bus of Register" width={90}/>
+
+以這個 struct 為例，四個成員加起來只有 8 bytes
+
+```c title="mixed_data.c"
+struct MixedData
+{
+    char Data1;
+    short Data2;
+    int Data3;
+    char Data4;
+};
+```
+
+但 compiler 會自己補 padding，變成實際佔 12 bytes
+
+```c title="mixed_data_padding.c"
+struct MixedData
+{
+    char Data1;         /* 1 byte  */
+    char Padding1[1];   /* 1 byte  */
+    short Data2;        /* 2 bytes */
+    int Data3;          /* 4 bytes */
+    char Data4;         /* 1 byte  */
+    char Padding2[3];   /* 3 bytes */
+};
+```
+
+- `Data1` 後面補 1 byte，`Data2` 才能對齊在 2 的倍數
+- `Data3` 要對齊 4 的倍數，所以自己佔滿一列
+- `Data4` 後面補 3 bytes，整個 struct 的大小才會是 4 的倍數
+
 </Aside>
 
-**`int putc(int c, FILE *fp);`**
-**`int fputc(int c, FILE *fp);`**
-**`int putchar(int c);`**
-- `putc()` 有可能是 macro, `putchar()` 必定是 function
+## I/O Functions in Standard C Library
 
-**`char *fgets(char *buf, int n, FILE *fp);`**
-- `\0` 才會停下，`\n` 會被讀入
+以下這些都是 Standard C Library 提供的 Formatted I/O functions
 
-**`char *gets(char *buf);`**
-- 沒有指定 buffer size，會 overflow. 
-
-**`char *fputs(const char *str, FILE *fp);`**
-**`char *puts(const char *str);`**
-- 一個一個 string 寫入 terminal，沒有 overflow 的問題
-
-**`size_t fread(void *ptr, size_t size, size_t nobj, FILE *fp);`**
-**`size_t fwrite(const void *ptr, size_t size, size_t nobj, FILE *fp);`**
-- Binary I/O
-- 可以一個一個 Object 寫入
-- ```c
-  struct {
-      short count;
-      long total;
-      char name[NAME_SIZE];
-  } item;
-  if (fwrite(&item, sizeof(item), fp) != 1)
-      err_sys("fwrite error");
-  ```
-<Aside type="caution" title="Binary I/O is not portable">
-- 每個 environment 的參數不一樣，會放在不同地方，排列也不同，寫出來讀出來的東西不一樣
-- 每個 complier alignment 的 method 都不一樣
-<Fig src="/images/sp/ch04-bufio/character-at-a-time-i-o-1.webp" caption="Character-at-a-time I/O 1" />
-- 為了 alignment Data Bus 的寬度，減少 CPU clock cycle
-<Fig src="/images/sp/ch04-bufio/character-at-a-time-i-o-2.webp" caption="Character-at-a-time I/O 2" />
-</Aside>
-
-**Input Functions**:
+### Input Functions:
 - `int scanf(const char *format, …);`
 - `int fscanf(FILE *fp, const char *format, …);`
 - `int sscanf(char *buf, const char *format, …);`
 
-**Output Functions**:
+### Output Functions:
 - `int printf(const char *format, …);`
 - `int fprintf(FILE *fp, const char *format, …);`
 - `int sprintf(char *buf, const char *format, …);`
-Overflow is possible for sprintf() –
-- ‘\0’ appended at the end of the string. A better substitute: `snprintf()`
+    Overflow is possible for sprintf() `\0` appended at the end of the string. A better substitute: `snprintf()`
 - `int vprintf(const char *format, va_list arg);`
 - `int vfprintf(FILE *fp, const char *format, va_list arg);`
 - `int vsprintf(char *buf, const char *format, va_list arg);`
 
 
-<Aside type="caution" title="Unsafe function in Standard C lib">
+<Aside type="note" title="Unsafe function in Standard C lib">
 可能會出現 buf 未指定 size 的問題，會出現 overflow
 - `strcpy(char *dest, const char *src)`
 - `strcat(char *dest, const char *src)`
@@ -223,12 +362,12 @@ Overflow is possible for sprintf() –
 - `sprintf(char *buf, const char *format, …);`
 </Aside>
 
-<Aside type="caution" title="">
-讀完不能直接寫， buffer I/O 通常會出現 pointer 問題
-- `fseek()` check pointer
+
+<Aside type="note" title="Buffer I/O Pointer Issues">
+buffer I/O 通常會出現 pointer 問題，讀完不能直接寫，最好先用 `fseek()` check pointer
 </Aside>
 
-### Standard I/O Performance
+## Standard I/O Performance
 | Function                         | User CPU (s) | System CPU (s) | Clock Time (s) | Bytes of Program Text |
 | -------------------------------- | ------------ | -------------- | -------------- | --------------------- |
 | Best time using `read`/`write`   | 0.01| <span class="red">**0.18**</span>       | 6.67       | –              |
@@ -237,14 +376,16 @@ Overflow is possible for sprintf() –
 | `fgetc`, `fputc`                 | 10.44| <span class="red">**0.27**</span>           | 11.42          | 120      |
 | Single byte using `read`/`write` | 124.89| 161.65         | 288.64         | –                     |
 
-- 真正用 System CPU 的時間，Best use 跟其他 Standard Library 的其實一樣
-    - Standard library 是在節省 System CPU time 
+真正用 System CPU 的時間，Best user CPU time 跟其他 Standard Library 的其實一樣，因此 **Standard library 是在節省 System CPU time**
 
-**`int fwide(FILE *fp, int mode)`**
-- Standard I/O in C lib 會有 orientation
-    - single byte character 
-    - multiple byte character
-- 一但被 set 就不能 reset
+### `fwide()`
+```c noLineNumbers
+int fwide(FILE *fp, int mode)
+```
+Standard I/O in C lib 會有 orientation
+- single byte character 
+- multiple byte character
+比如某些 emoji 就是 multi-byte character，這個 function 可以指定 orientation，但是 orientation 一但被 set 就不能 reset
 
 ---
 
