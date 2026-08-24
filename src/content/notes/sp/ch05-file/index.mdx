@@ -19,7 +19,7 @@ import Fig from '@/components/Fig.astro'
 
 - Session for **"i-node"** 裡面的資料
 - Unix 系統裡面都有很多 header 可以查詢 file 的各種 attribute，就會放在 i-node 裡面
-    ```c
+    ```c noLineNumbers
     struct stat {
         mode_t st_mode;    /* file type & mode (permissions) */
         ino_t st_ino;      /* i-node number (serial number) */
@@ -37,6 +37,7 @@ import Fig from '@/components/Fig.astro'
                                * Block size might be 512 or 1024 */
     };
     ```
+    
 <Aside type="caution" title="">
 大部份 i-node 都有這些 parameter，但會有些許不同
 </Aside>
