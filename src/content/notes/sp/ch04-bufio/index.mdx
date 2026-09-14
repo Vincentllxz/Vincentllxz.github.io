@@ -29,7 +29,7 @@ File object 會有一個 buffer，裡面還會記錄一些 File 相關的資訊�
 - Buffer size
 - \# of remaining chars, ...etc.
 
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-1.webp" caption="File object in Standard Library of C" />
+<Fig src="/images/sp/ch04-bufio/standard-library-of-c-1.webp" caption="File object in Standard Library of C" width="44rem" />
 Buffer I/O 最後依然會透過 Unbuffered I/O 出去，只是他可以做更多的控制操作（e.g. 累積後一次呼叫 system call）
 - Command line 裡面打 `strace` 可以 trace 所有 Buffer I/O
 
@@ -45,7 +45,7 @@ Buffer I/O 最後依然會透過 Unbuffered I/O 出去，只是他可以做更�
 
 而這樣做的結果除了可以有效加快 I/O Efficiency，還有 Prefetch 的效果
 
-<Fig src="/images/sp/ch04-bufio/standard-library-of-c-3.webp" caption="只需要一個 write() 減少 system call" width={60}/>
+<Fig src="/images/sp/ch04-bufio/standard-library-of-c-3.webp" caption="只需要一個 write() 減少 system call" width="28rem" />
 
 ### `fopen()`
 
@@ -301,7 +301,7 @@ if (fwrite(&item, sizeof(item), fp) != 1)
 對於某些 system call 或是 object，每個 environment 的參數、資料型態、位址都可能不一樣，會放在不同地方，排列也不同，寫出來讀出來的東西不一樣，所以會出現 `size_t` 這種為了 portability 而設計的資料型別，並且 **每個 complier alignment 的 method 都不一樣**
 
 需要做 alignment 的目的是為了讓 CPU 可以更快的存取資料，因為 CPU 存取資料是以 4 bytes 為單位，如果資料沒有對齊，就會需要多次存取，會降低效能
-<Fig src="/images/sp/ch04-bufio/character-at-a-time-i-o-2.webp" caption="Decoder and data bus of Register" width={90}/>
+<Fig src="/images/sp/ch04-bufio/character-at-a-time-i-o-2.webp" caption="Decoder and data bus of Register" width="32rem" />
 
 以這個 struct 為例，四個成員加起來只有 8 bytes
 

@@ -26,7 +26,7 @@ Thread 就是 CPU 能夠安排運行的最小單位，擁有
 - Register Set
 - Stack
 
-<Fig src="/images/os/ch04-threads/overview.webp" caption="Overview" />
+<Fig src="/images/os/ch04-threads/overview.webp" caption="Overview" width="36rem" />
 
 跟 Process 最大不同就是會 share resource, code, file
 
@@ -43,10 +43,10 @@ Thread 可以來平行的進行各種計算，Process 是一個 time consuming �
 - **Parallelism**: 完全獨立的運行
 
 Single core 也可以有 Concurrency，但無法 Parallelism
-<Fig src="/images/os/ch04-threads/multicore-programming-1.webp" caption="Multicore Programming 1" />
+<Fig src="/images/os/ch04-threads/multicore-programming-1.webp" caption="Multicore Programming 1" width="32rem" />
 
 下面這張則是同時有 Concurrency 跟 Parallelism
-<Fig src="/images/os/ch04-threads/multicore-programming-2.webp" caption="Multicore Programming 2" />
+<Fig src="/images/os/ch04-threads/multicore-programming-2.webp" caption="Multicore Programming 2" width="32rem" />
 
 ### Challenge
 
@@ -59,11 +59,11 @@ Single core 也可以有 Concurrency，但無法 Parallelism
 ### Parallelism
 - **Data parallelism**
 從資料下手，把資料分成四段，執行一樣的 code 四個 core 執行完畢再由統一一個 core 做整合
-<Fig src="/images/os/ch04-threads/parallelism-1.webp" caption="Parallelism 1" />
+<Fig src="/images/os/ch04-threads/parallelism-1.webp" caption="Parallelism 1" width="32rem" />
 
 - **Task parallelism**
 共用一個 data，但四個 core 在做不同的 task
-<Fig src="/images/os/ch04-threads/parallelism-2.webp" caption="Parallelism 2" />
+<Fig src="/images/os/ch04-threads/parallelism-2.webp" caption="Parallelism 2" width="32rem" />
 
 兩種 parallelism 可以混用，只是概念而已
 
@@ -77,7 +77,7 @@ $$
 
 雖然有平行化，但通常都會多一些 overhead，所以現實情況都會差一點
 
-<Fig src="/images/os/ch04-threads/amdahl-s-law.webp" />
+<Fig src="/images/os/ch04-threads/amdahl-s-law.webp" width="36rem" />
 
 無法平行化的部分越多，multi-core 的效果就越差
 
@@ -95,7 +95,7 @@ $$
 - 站在 kernel 角度其實沒辦法真正 implement multi-thread
 - efficient 但是無法真正發揮 parallelism
 
-<Fig src="/images/os/ch04-threads/many-to-one-model.webp" caption="Many-to-One Model" />
+<Fig src="/images/os/ch04-threads/many-to-one-model.webp" caption="Many-to-One Model" width="32rem" />
 
 
 ### One-to-One Model (kernel-level threading)
@@ -104,7 +104,7 @@ $$
 - 當有 blocking system call 只會讓對應的 kernel thread 被 block 住
 - 高成本
 
-<Fig src="/images/os/ch04-threads/one-to-one-model.webp" caption="One-to-One Model" />
+<Fig src="/images/os/ch04-threads/one-to-one-model.webp" caption="One-to-One Model" width="32rem" />
 
 
 ### Many-to-Many Model (hybrid threading)
@@ -112,11 +112,11 @@ $$
 混合版模型，把 M 個 application 丟給 N 個 thread entities (Virtual Processor)
 - 比較彈性，可以根據 task 的複雜度，來決定到底要多少 thread
 
-<Fig src="/images/os/ch04-threads/many-to-many-model-2.webp" caption="Many-to-Many Model 2" />
+<Fig src="/images/os/ch04-threads/many-to-many-model-2.webp" caption="Many-to-Many Model 2" width="32rem" />
 
 Two-level model 也是一種 Many-to-Many Model 的變形
 
-<Fig src="/images/os/ch04-threads/many-to-many-model-1.webp" />
+<Fig src="/images/os/ch04-threads/many-to-many-model-1.webp" width="28rem" />
 
 > 現今大部分 OS 都是 one-to-one model 因為效能足夠
 
@@ -324,7 +324,7 @@ newCachedThreadPool()
 跟 Process 很像，只是我們這次是用在 Thread 上
 - 站在使用者的角度是分成兩個 **Task**，但是實際上的 implementation 也有可能是 Thread Pool
 
-<Fig src="/images/os/ch04-threads/fork-join-1.webp" caption="Fork join 1" />
+<Fig src="/images/os/ch04-threads/fork-join-1.webp" caption="Fork join 1" width="36rem" />
 
 通常會有 library 來處理，會使用 synchronous thread，也就是全部執行完畢才會回到 main thread
 
@@ -341,7 +341,7 @@ Task(problem)
         result2 = join(subtask2)
         return combined results
 ```
-<Fig src="/images/os/ch04-threads/fork-join-2.webp" caption="Fork join 2" />
+<Fig src="/images/os/ch04-threads/fork-join-2.webp" caption="Fork join 2" width="28rem" />
 - 一直切一直切一直切
 ```java
 protected Integer compute() {
@@ -366,7 +366,7 @@ protected Integer compute() {
 <Aside type="note" title="Fork join">
 
 可以有 Return value 繼承也可以沒有
-<Fig src="/images/os/ch04-threads/fork-join-3.webp" caption="Fork join 3" />
+<Fig src="/images/os/ch04-threads/fork-join-3.webp" caption="Fork join 3" width="32rem" />
 </Aside>
 
 ### OpenMP
@@ -500,7 +500,7 @@ while(!Thread.currentThread().isInterrupted()){
 #### Lightweight Process (LWP)
 Two level model 我們通常都會把 kernel thread 當成一個 virtual processor，而 LWP 就是一種 virtual processor 
 
-<Fig src="/images/os/ch04-threads/lightweight-process.webp" />
+<Fig src="/images/os/ch04-threads/lightweight-process.webp" width="20rem" />
 
 有時候的 communication 是 bottom up 的，我們會叫他 **upcall**
 

@@ -134,7 +134,7 @@ while (true){
 
 假設有 5 格 philosophers，每個人左邊都有一隻筷子，必須拿到兩隻筷子才能吃飯，吃完要放回桌上
 
-<Fig src="/images/os/ch14-synchronization-examples/dining-philosophers-problem.webp" caption="Dining-Philosophers Problem" />
+<Fig src="/images/os/ch14-synchronization-examples/dining-philosophers-problem.webp" caption="Dining-Philosophers Problem" width="20rem" />
 
 想成一個系統問題就是
 - Share data (飯)
@@ -235,7 +235,7 @@ Windows 的做法可以分成 kernel 裡面跟 kernel 外面來看，而 kernel 
 
 就跟 wait, signal 的概念一樣，當 require 的 object 是 signaled 的時候就可以拿到，然後我們把它變成 nonsignaled
 
-<Fig src="/images/os/ch14-synchronization-examples/states-of-dispatcher-object.webp" caption="States of dispatcher object" />
+<Fig src="/images/os/ch14-synchronization-examples/states-of-dispatcher-object.webp" caption="States of dispatcher object" width="36rem" />
 
 ### Synchronization in Linux
 
@@ -362,7 +362,7 @@ Java 裡面有使用到 monitor，每個 object 都會連結到一個 lock，在
 
 > 用完要記得 release
 
-<Fig src="/images/os/ch14-synchronization-examples/java-monitor.webp" caption="Entry set and wait set" />
+<Fig src="/images/os/ch14-synchronization-examples/java-monitor.webp" caption="Entry set and wait set" width="40rem" />
 
 剛剛提到要進入的 **entry set** 等待 acquiring lock，但其實還有一些 thread 本來有這個 lock，中間需要等一些 I/O 或其他 thread 的結果，需要先放掉 lock，這時候他就會 call `wait()`，也就是讓 thread 進入到 obj 的 **wait set** 等待
 

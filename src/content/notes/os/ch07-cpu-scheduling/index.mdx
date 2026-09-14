@@ -28,19 +28,19 @@ CPU 希望可以 maximize usage 或是 minimize time，需要做 Scheduling
 
 我們稱為 **CPU-I/O Burst Cycle**，而從 System 的角度來看，必須讓 CPU 在某個 I/O Burst 的時間去做別的事情 
 
-<Fig src="/images/os/ch07-cpu-scheduling/cpu-schedule-concept.webp" caption="CPU Schedule Concept" />
+<Fig src="/images/os/ch07-cpu-scheduling/cpu-schedule-concept.webp" caption="CPU Schedule Concept" width="20rem" />
 
 我們通常會發現 CPU Burst time 都是非常短的，Distribution 偏小（跟網路封包一樣），根據他們的各自的使用時間，可以分成
 - I/O Bound Program
 - CPU Bound Program
 
-<Fig src="/images/os/ch07-cpu-scheduling/histogram-of-cpu-burst-time.webp" caption="Histogram of CPU Burst time" />
+<Fig src="/images/os/ch07-cpu-scheduling/histogram-of-cpu-burst-time.webp" caption="Histogram of CPU Burst time" width="28rem" />
 
 ### CPU Scheduler
 
 <Aside type="caution" title="Recap Process State">
 
-<Fig src="/images/os/ch07-cpu-scheduling/cpu-scheduler.webp" caption="CPU Scheduler" />
+<Fig src="/images/os/ch07-cpu-scheduling/cpu-scheduler.webp" caption="CPU Scheduler" width="40rem" />
 </Aside>
 
 CPU Scheduler 主要 focus 在 **Ready, Waiting, Running** 三個 State 之間的轉換，基本上做的事情就是在四種情況下
@@ -69,7 +69,7 @@ Scheduling 分成兩種
 
 負責把 Process 分配下去給 CPU run，包含 **Context Switch**, **Switch to User mode** 等一系列工作
 
-<Fig src="/images/os/ch07-cpu-scheduling/workflow-of-dispatcher.webp" caption="Workflow of Dispatcher" />
+<Fig src="/images/os/ch07-cpu-scheduling/workflow-of-dispatcher.webp" caption="Workflow of Dispatcher" width="20rem" />
 
 Dispatcher 負責把 CPU 內的資訊存到 PCB 裡面，然後將 CPU 的內容抽換成另一個 PCB 的內容
 
@@ -94,11 +94,11 @@ Dispatcher 負責把 CPU 內的資訊存到 PCB 裡面，然後將 CPU 的內容
 | **Burst Time**    | 24     | 3     |3|
 
 - 假設 arrival order 是 $P_1 \to P_2 \to P_3$，我們就可以畫出 Gantt Chart
-<Fig src="/images/os/ch07-cpu-scheduling/first-come-first-served-scheduling-1.webp" caption="First-Come, First-Served Scheduling 1" />
+<Fig src="/images/os/ch07-cpu-scheduling/first-come-first-served-scheduling-1.webp" caption="First-Come, First-Served Scheduling 1" width="36rem" />
 Waiting time 分別是 $P_1=0,\ P_2=24,\ P_3=27$, average 是 $\hat{t}=17$
 
 - 接下來假設 arrival order 是 $P_2 \to P_3 \to P_1$ 會拿到
-<Fig src="/images/os/ch07-cpu-scheduling/first-come-first-served-scheduling-2.webp" caption="First-Come, First-Served Scheduling 2" />
+<Fig src="/images/os/ch07-cpu-scheduling/first-come-first-served-scheduling-2.webp" caption="First-Come, First-Served Scheduling 2" width="36rem" />
 Waiting time 分別是 $P_1=6,\ P_2=0,\ P_3=3$, average 是 $\hat{t}=3$
 
 我們可以觀察到 **Convoy effect**：所有 process 在等最大的那個 process，所有人都在等他
@@ -115,7 +115,7 @@ Waiting time 分別是 $P_1=6,\ P_2=0,\ P_3=3$, average 是 $\hat{t}=3$
 | -------- | -------- | -------- |---- | ---- |
 | **Burst Time**    | 6    | 8    |7 |3|
 
- <Fig src="/images/os/ch07-cpu-scheduling/shortest-job-first-scheduling.webp" caption="Shortest-Job-First Scheduling" />
+ <Fig src="/images/os/ch07-cpu-scheduling/shortest-job-first-scheduling.webp" caption="Shortest-Job-First Scheduling" width="36rem" />
 
 Waiting Time $\hat{t} = 7$
 
@@ -150,7 +150,7 @@ $$
 | **Arrival Time**    | 0   | 1   |2 |3|
 | **Burst Time**    | 8   | 4   |9 |5|
 
-<Fig src="/images/os/ch07-cpu-scheduling/shortest-remaining-time-first-scheduling.webp" caption="Shortest-Remaining-Time-First Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/shortest-remaining-time-first-scheduling.webp" caption="Shortest-Remaining-Time-First Scheduling" width="40rem" />
 
 $$
 \hat{t} = [ (10 - 1 - 0) + (1 - 1) + (17 - 2) + (5 - 3) ] / 4 = 26 / 4 = 6.5
@@ -178,7 +178,7 @@ Assume $q = 4$
 
 > 有些 OS 會強制讓 process 把 quantum 用完，即便他結束了
 
-<Fig src="/images/os/ch07-cpu-scheduling/round-robin-scheduling.webp" caption="Round-Robin Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/round-robin-scheduling.webp" caption="Round-Robin Scheduling" width="44rem" />
 
 簡單來講，Avg Turnaround time 比 SJF 高，但在 Response time 會比較好
 
@@ -188,7 +188,7 @@ Assume $q = 4$
 
 **80% 的 CPU burst 都會小於 $q$**，所以 Round Robin 就會是一種還不錯的方法，不會讓 Turnaround time 暴增
 
-<Fig src="/images/os/ch07-cpu-scheduling/quantum-to-avg-turnaround-time.webp" caption="Quantum to Avg Turnaround Time" />
+<Fig src="/images/os/ch07-cpu-scheduling/quantum-to-avg-turnaround-time.webp" caption="Quantum to Avg Turnaround Time" width="24rem" />
 
 ### Priority Scheduling
 
@@ -203,7 +203,7 @@ $$
 | **Burst Time**    | 10 | 1 | 2 | 1 | 5 |
 | **Priority**    | 3   | 1   |4 |5| 2 |
 
-<Fig src="/images/os/ch07-cpu-scheduling/priority-scheduling.webp" caption="Priority Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/priority-scheduling.webp" caption="Priority Scheduling" width="32rem" />
 
 Waiting time: $\hat{t} = [ 6 + 0 + 16 + 18 + 1 ] / 5 = 8.2$
 
@@ -218,19 +218,19 @@ Waiting time: $\hat{t} = [ 6 + 0 + 16 + 18 + 1 ] / 5 = 8.2$
 
 Time Quantum $q= 4$
 
-<Fig src="/images/os/ch07-cpu-scheduling/priority-scheduling-with-round-robin.webp" caption="Priority Scheduling with Round-Robin" />
+<Fig src="/images/os/ch07-cpu-scheduling/priority-scheduling-with-round-robin.webp" caption="Priority Scheduling with Round-Robin" width="44rem" />
 
 基本上就是先以 **Priority** 做排序，如果一樣就用 **Round Robin** 做輪換
 
 ### Multilevel Queue Scheduling
 
-<Fig src="/images/os/ch07-cpu-scheduling/multilevel-queue-1.webp" caption="Multilevel Queue" />
+<Fig src="/images/os/ch07-cpu-scheduling/multilevel-queue-1.webp" caption="Multilevel Queue" width="24rem" />
 
 一次直接選一整個 Queue，先執行最高 Priority 的 Queue
 
 以下是一個真實案例，每個 Queue 可以有自己的 Schedule Algorithm
 
-<Fig src="/images/os/ch07-cpu-scheduling/multilevel-queue-scheduling.webp" caption="Multilevel Queue Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/multilevel-queue-scheduling.webp" caption="Multilevel Queue Scheduling" width="32rem" />
 
 - Real-time Process：代表他是有自己的 Deadline 的 process
 - System Process：維持基本系統功能的 process
@@ -248,7 +248,7 @@ Time Quantum $q= 4$
 - $Q_1$：RR with time quantum 16 milliseconds
 - $Q_2$：FCFS
 
-<Fig src="/images/os/ch07-cpu-scheduling/multilevel-queue-2.webp" caption="Multilevel Queue" />
+<Fig src="/images/os/ch07-cpu-scheduling/multilevel-queue-2.webp" caption="Multilevel Queue" width="28rem" />
 
 1. 如果一個 Process 先進到 $Q_0$，用 RR 做 schedule，在 1 個 quantum (8 ms) 內沒做完的話，我們就放到 $Q_1$ 內
 2. 進到 $Q_1$，用 RR 做 schedule，在 1 個 quantum (16 ms) 內沒做完的話，我們就放到 $Q_2$ 內
@@ -372,10 +372,10 @@ RR 的時候可以先用 SJF 決定誰先做，再把 Quantum 設定成無限大
     - 在 embedding system 比較常見
 - **Symmetric Multiprocessing (SMP)**: 每個 Processor 都是同等地位，每個 Processor 要自己去處理自己的 Schedule 問題，從 Queue 裡面拿出 task，可以分成兩種
     - 共用 Queue，有彈性，但需要處理 Race Condition (需要 Locking)
-    <Fig src="/images/os/ch07-cpu-scheduling/share-queue.webp" caption="Share Queue" />
+    <Fig src="/images/os/ch07-cpu-scheduling/share-queue.webp" caption="Share Queue" width="28rem" />
     
     - 分開 Queue，需要做 Load Balancing
-    <Fig src="/images/os/ch07-cpu-scheduling/seperate-queue.webp" caption="Separate Queue" />
+    <Fig src="/images/os/ch07-cpu-scheduling/seperate-queue.webp" caption="Separate Queue" width="24rem" />
 
 ### Multicore Processors
 
@@ -384,15 +384,15 @@ RR 的時候可以先用 SJF 決定誰先做，再把 Quantum 設定成無限大
 
 因為 core 在執行一個 thread 的時候一定會需要 **memory stall** 也就是需要去讀取 memory，就會需要暫停一下，為了增加效率，我們可以讓 thread 做交替的 Compute, Memory Stall，就可以達成加速
 
-<Fig src="/images/os/ch07-cpu-scheduling/multicore-processors.webp" caption="Multicore Processors" />
+<Fig src="/images/os/ch07-cpu-scheduling/multicore-processors.webp" caption="Multicore Processors" width="40rem" />
 
 
 在 OS 層面上他其實不在乎有多少個 Core 在執行我的 Process，或是硬體 implement 的方法，系統通常會做 **Virtualization**，也就是把真正的硬體，轉化成一個 OS 比較看得懂的形式
 - 真正的把 CPU 對應到 Core 上的 Thread 我們是用 **Chip multithreading (CMT)** 來分配，在 Intel 裡面叫做 **hyper-threading**
 
-<Fig src="/images/os/ch07-cpu-scheduling/multithreaded-multicore-system.webp" caption="Multithreaded Multicore System" />
+<Fig src="/images/os/ch07-cpu-scheduling/multithreaded-multicore-system.webp" caption="Multithreaded Multicore System" width="28rem" />
 
-<Fig src="/images/os/ch07-cpu-scheduling/os-view-of-multithreaded-multicore-system.webp" caption="OS view of Multithreaded Multicore System" />
+<Fig src="/images/os/ch07-cpu-scheduling/os-view-of-multithreaded-multicore-system.webp" caption="OS view of Multithreaded Multicore System" width="28rem" />
 
 Threading 有各種 Thread: User, Kernel, Hardware，我們會做 2 level threading 來實現
 - User Thread，我們通常只會接觸這個，用 LWP 接到 Logical processor 上
@@ -400,7 +400,7 @@ Threading 有各種 Thread: User, Kernel, Hardware，我們會做 2 level thread
 
 > 這樣兩層式的 Scheduling 如果完全切開，那就有可能會把最佳解給切掉，所以我們設計的時候通常會把東西不切得那麼死，這些 thread 不會 mutually exclusive，完全切開的話就是簡單，有時候也是一種好事（有時候如果 level 之間可以有一些 communication 或是 knowledge 就可以讓 performance 變好）
 
-<Fig src="/images/os/ch07-cpu-scheduling/two-level-threading.webp" caption="Two level Threading" />
+<Fig src="/images/os/ch07-cpu-scheduling/two-level-threading.webp" caption="Two level Threading" width="28rem" />
 
 ### Load Balancing
 
@@ -428,7 +428,7 @@ Load Balance 跟 Processor Affinity 其實會有 trade-off，把 load balance �
 
 如果一個 system 是 **NUMA-aware**，那 memory 的地位就不一樣了，需要考慮 Processor Affinity
 
-<Fig src="/images/os/ch07-cpu-scheduling/numa-system.webp" caption="NUMA (Non-Uniform Memory Access) System" />
+<Fig src="/images/os/ch07-cpu-scheduling/numa-system.webp" caption="NUMA (Non-Uniform Memory Access) System" width="32rem" />
 
 ### Heterogeneous Multiprocessing (HMP)
 
@@ -451,7 +451,7 @@ Load Balance 跟 Processor Affinity 其實會有 trade-off，把 load balance �
 
 > 這裡的 reponse time 跟普通 system 的 response time 不太一樣，因為 real-time system 的 response time 是必須要 process 處理完畢並且做出反應才算完成的，而普通 system 的 response time 是從送出 request 到第一次有回應的時間（讓你不會覺得系統卡住）
 
-<Fig src="/images/os/ch07-cpu-scheduling/event-latency.webp" caption="Event latency" />
+<Fig src="/images/os/ch07-cpu-scheduling/event-latency.webp" caption="Event latency" width="24rem" />
 
 通常有兩種 latency 會影響到 Event latency
 - **Interrupt latency**
@@ -463,13 +463,13 @@ Interrupt 到的時間，一直到開始跑 ISR（Interrupt Service Routine）�
 
 > real time system 我們會希望這個時間短
 
-<Fig src="/images/os/ch07-cpu-scheduling/interrupt-latency.webp" caption="Interrupt Latency" />
+<Fig src="/images/os/ch07-cpu-scheduling/interrupt-latency.webp" caption="Interrupt Latency" width="28rem" />
 
 #### Dispatch Latency
 
 我們需要把 Core 上的 Process 轉換成另外一個 Process 來跑，要把資源 release 出來
 
-<Fig src="/images/os/ch07-cpu-scheduling/dispatch-latency.webp" caption="Dispatch Latency" />
+<Fig src="/images/os/ch07-cpu-scheduling/dispatch-latency.webp" caption="Dispatch Latency" width="36rem" />
 
 其實看圖可以知道，後面還有 Real-Time Process Execution 佔了大宗的 Response time，但這其實是 Application 該處理的部分
 
@@ -490,7 +490,7 @@ Interrupt 到的時間，一直到開始跑 ISR（Interrupt Service Routine）�
 
 > 在真實世界 realtime system 需要處理的 task 通常都是週期性的，如果不是週期性，我們很難做到 real time
 
-<Fig src="/images/os/ch07-cpu-scheduling/periodic-process-require-cpu-at-constant-interva.webp" caption="Periodic Process require CPU at constant interval" />
+<Fig src="/images/os/ch07-cpu-scheduling/periodic-process-require-cpu-at-constant-interva.webp" caption="Periodic Process require CPU at constant interval" width="32rem" />
 
 ### Rate-Monotonic Scheduling
 
@@ -503,7 +503,7 @@ Interrupt 到的時間，一直到開始跑 ISR（Interrupt Service Routine）�
 | $t$    | 20   | 35  |
 | $d$ (= $p$)  | 50  | 100   |
 
-<Fig src="/images/os/ch07-cpu-scheduling/example-of-rate-monotonic-scheduling.webp" caption="Example of Rate-Monotonic Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/example-of-rate-monotonic-scheduling.webp" caption="Example of Rate-Monotonic Scheduling" width="44rem" />
 
 > $P_1$, $P_2$ 都在 deadline 前做完了
 
@@ -514,7 +514,7 @@ Interrupt 到的時間，一直到開始跑 ISR（Interrupt Service Routine）�
 | $t$    | 25   | 35  |
 | $d$ (= $p$)  | 50  | 80   |
 
-<Fig src="/images/os/ch07-cpu-scheduling/counter-example-of-rate-monotonic-scheduling.webp" caption="Counter-example of Rate-Monotonic Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/counter-example-of-rate-monotonic-scheduling.webp" caption="Counter-example of Rate-Monotonic Scheduling" width="44rem" />
 
 > 雖然 $P_1$ 都可以符合，但 $P_2$ 失敗了，但其實明明就可以 fulfill，只要不 Preempt $P_1$
 
@@ -532,7 +532,7 @@ Monotonic-Rate 是一種 **Fixed Priority**，只要開始執行就定下來了�
 | $t$    | 25   | 35  |
 | $d$ (= $p$)  | 50  | 80   |
 
-<Fig src="/images/os/ch07-cpu-scheduling/example-of-edf-scheduling.webp" caption="Example of EDF Scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/example-of-edf-scheduling.webp" caption="Example of EDF Scheduling" width="44rem" />
 
 > 在第 50 秒的時候，$P_2$ 第一個 instance 的 Priority 是高於 $P_1$ 的，所以不會被打斷
 > 在第 100 秒的時，$P_2$ 第二個 instance 的 Priority 低於 $P_1$ 所以被打斷
@@ -618,7 +618,7 @@ void *runner(void *param)
 
 #### Linux NUMA-Aware Load Balancing
 可以讓同一個 thread 的工作都被放在同一個 domain 裡面運作
-<Fig src="/images/os/ch07-cpu-scheduling/example-of-domain.webp" caption="Example of domain" />
+<Fig src="/images/os/ch07-cpu-scheduling/example-of-domain.webp" caption="Example of domain" width="32rem" />
 
 ### Windows scheduling
 
@@ -629,7 +629,7 @@ void *runner(void *param)
 並且他們在裡面還有再細分 `TIME_CRITICAL`, `HIGHEST`, `ABOVE_NORMAL`, `NORMAL`, `BELOW_NORMAL`, `LOWEST`, `IDLE`
 
 
-<Fig src="/images/os/ch07-cpu-scheduling/windows-scheduling.webp" caption="Windows scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/windows-scheduling.webp" caption="Windows scheduling" width={100} />
 
 > Real-time IDLE 還是比剩下的高
 
@@ -648,11 +648,11 @@ void *runner(void *param)
 
 也細分，Time Sharing 跟 Interactive，當 expired 的時候，分到的 Priority 會變化
 
-<Fig src="/images/os/ch07-cpu-scheduling/solaris-scheduling.webp" caption="Solaris scheduling" />
+<Fig src="/images/os/ch07-cpu-scheduling/solaris-scheduling.webp" caption="Solaris scheduling" width="40rem" />
 
 在 Solaris 裡面 Priority 數字越高，代表 Priority 越高
 
-<Fig src="/images/os/ch07-cpu-scheduling/solaris-priority.webp" caption="Solaris Priority" />
+<Fig src="/images/os/ch07-cpu-scheduling/solaris-priority.webp" caption="Solaris Priority" width="28rem" />
 
 
 ## Algorithm Evaluation
@@ -670,9 +670,9 @@ void *runner(void *param)
 
 假設我們要 minimize avg waiting time
 
-<Fig src="/images/os/ch07-cpu-scheduling/fcfs-28ms.webp" caption="FCFS：28ms" />
-<Fig src="/images/os/ch07-cpu-scheduling/nonpreemptive-sjf-13ms.webp" caption="Nonpreemptive SJF：13ms" />
-<Fig src="/images/os/ch07-cpu-scheduling/round-robin-23ms.webp" caption="Round Robin：23ms" />
+<Fig src="/images/os/ch07-cpu-scheduling/fcfs-28ms.webp" caption="FCFS：28ms" width="40rem" />
+<Fig src="/images/os/ch07-cpu-scheduling/nonpreemptive-sjf-13ms.webp" caption="Nonpreemptive SJF：13ms" width="40rem" />
+<Fig src="/images/os/ch07-cpu-scheduling/round-robin-23ms.webp" caption="Round Robin：23ms" width="40rem" />
 
 這種方法只能判斷出每個 input 的結論，沒辦法給出全局結果
 

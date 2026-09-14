@@ -16,7 +16,7 @@ import Fig from '@/components/Fig.astro'
 
 # Overview
 
-<Fig src="/images/os/ch01-intro/overview.webp" caption="Overview" />
+<Fig src="/images/os/ch01-intro/overview.webp" caption="Overview" width="32rem" />
 
 ## What OS do?
 
@@ -40,7 +40,7 @@ import Fig from '@/components/Fig.astro'
 
 ## Computer-System Organization
 
-<Fig src="/images/os/ch01-intro/computer-system-organization.webp" caption="Computer-System Organization" />
+<Fig src="/images/os/ch01-intro/computer-system-organization.webp" caption="Computer-System Organization" width="40rem" />
 
 通常一台電腦都會有
 - **Bus**: 連接 CPU, device controllers, share memory
@@ -62,7 +62,7 @@ import Fig from '@/components/Fig.astro'
 - **Hardware** 會 trigger interrupt by sending **signal** to CPU (By bus)
     - 這裡的 signal 是硬體上的「電壓變化」而不是 Unix kernel signal
 - **Interrupt vector**: 紀錄要跳到哪裡
-<Fig src="/images/os/ch01-intro/interrupt-1.webp" caption="Interrupt 1" />
+<Fig src="/images/os/ch01-intro/interrupt-1.webp" caption="Interrupt 1" width={100} />
 
 **Step**
 1. CPU 收到後，會馬上轉換執行某個動作（存在某個 fixed location）
@@ -70,9 +70,9 @@ import Fig from '@/components/Fig.astro'
 3. 執行 ISR (Interrupt service routine)
 4. CPU 回覆原始狀態
 
-<Fig src="/images/os/ch01-intro/interrupt-2.webp" caption="Interrupt 2" />
+<Fig src="/images/os/ch01-intro/interrupt-2.webp" caption="Interrupt 2" width="36rem" />
 
-<Fig src="/images/os/ch01-intro/interrupt-3.webp" caption="Interrupt 3" />
+<Fig src="/images/os/ch01-intro/interrupt-3.webp" caption="Interrupt 3" width="36rem" />
 - I/O request 後控制權到 I/O Device 上
 - I/O 結束後發送 CPU 被 Interrupt 後會先打斷 User Program 去執行 ISR
 - 執行結束後回覆 User Program 
@@ -105,7 +105,7 @@ import Fig from '@/components/Fig.astro'
 
 - 通常一個 Storage 讀寫速度越快就越小，而且 **Volatile**
 - 會有成本問題
-<Fig src="/images/os/ch01-intro/secondary-and-tertiary-storage.webp" caption="Secondary and Tertiary Storage" />
+<Fig src="/images/os/ch01-intro/secondary-and-tertiary-storage.webp" caption="Secondary and Tertiary Storage" width="28rem" />
 </Aside>
 
 #### Direct Memory Access
@@ -118,13 +118,13 @@ import Fig from '@/components/Fig.astro'
     > [!Tip]
     > 有些 high-end system 會用 switch 而不是 bus architecture，DMA 在此情況更有效率
 
-<Fig src="/images/os/ch01-intro/direct-memory-access.webp" caption="Direct Memory Access" />
+<Fig src="/images/os/ch01-intro/direct-memory-access.webp" caption="Direct Memory Access" width="36rem" />
 
 ### Computer-System Architecture
 - Single Processor Systems
 - Multiprocessor Systems
     - 在現今的系統內比較重要
-<Fig src="/images/os/ch01-intro/comuter-system-architecture.webp" caption="Computer-System Architecture" />
+<Fig src="/images/os/ch01-intro/comuter-system-architecture.webp" caption="Computer-System Architecture" width="40rem" />
     - 可以用不同 CPU 控制也可以用不同 core 控制
 - Cluster Systems
 
@@ -155,7 +155,7 @@ import Fig from '@/components/Fig.astro'
     - **Kernel mode** & **User mode**
 - **Mode bit**
     - 用 system call 做到更改
-<Fig src="/images/os/ch01-intro/dual-mode-and-multimode-operation.webp" caption="Dual-Mode &amp; Multimode Operation" />
+<Fig src="/images/os/ch01-intro/dual-mode-and-multimode-operation.webp" caption="Dual-Mode &amp; Multimode Operation" width="36rem" />
 - **Privileged instruction**: 有些指令 hardware 只讓在 kernel mode 的 process 執行
 
 #### Timer
@@ -174,7 +174,7 @@ import Fig from '@/components/Fig.astro'
 - **Security**: Malicious 的 attack protect
 
 ## Virtualization
-<Fig src="/images/os/ch01-intro/virtualization.webp" caption="Virtualization" />
+<Fig src="/images/os/ch01-intro/virtualization.webp" caption="Virtualization" width="32rem" />
 - Virtual machine 可以有多個，各自擁有 Kernel
 
 ## Distributed System
@@ -182,7 +182,7 @@ import Fig from '@/components/Fig.astro'
     - **TCP/IP**
 - Local area network 
 
-<Fig src="/images/os/ch01-intro/distributed-system.webp" caption="Distributed System" />
+<Fig src="/images/os/ch01-intro/distributed-system.webp" caption="Distributed System" width="40rem" />
 - Distributed OS 是只有一個 OS，可以用很多 kernel
 - Network OS 是在 Application 上用 Network 連接
 - Middleware OS 是用 Middleware 連接，通常用 subscribe 的方法連接
