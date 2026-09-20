@@ -16,7 +16,7 @@ import Fig from '@/components/Fig.astro'
 # OS concept
 
 OS 的功能可以分為 vertical 和 horizontal 兩種：
-- **Vetical**: 把硬體 kernel 包裝
+- **Vertical**: 把硬體 kernel 包裝
   - 有分成 kernel mode 跟 user mode => kernel space 跟 user space
   - 用 system call 去 access kernel
 - **Horizontal**: 資源管理
@@ -126,7 +126,7 @@ User 會通過 `crypt()` 來驗證密碼
 
 剛剛這個把 CPU 上的 process 抽換成另一個 process 的過程就叫做 **Context Switch**
 - **Time Slice** 可能只有一個 nano second
-- 為了下次再執行這個 process 我們必須存下這個 process 被踢出時的狀態，我們成為 **store**
+- 為了下次再執行這個 process 我們必須存下這個 process 被踢出時的狀態，我們稱為 **store**
 - 再次執行 process 時，我們必須 **restore** 所有存下來的 status
 - 因為 Memory 的速度不夠快，這個步驟通常會在 **L1, L2 cache** 內運作
 
@@ -138,7 +138,7 @@ User 會通過 `crypt()` 來驗證密碼
 
 7. 當 event 處理完了之後，這個 process 就會被放回 ready queue 裡面等待下一次被 CPU 選中來執行
   <Fig src="/images/sp/ch01-oscon/cpu-scheduling-8.webp" caption="A process is back to ready queue" width="36rem" />
-  在這張圖上我們也可以看到，如果一個 process 執行完畢就會在 CPU 運行完後被踢出這個循環，我們成為 **exit**，而 exit 分成很多種
+  在這張圖上我們也可以看到，如果一個 process 執行完畢就會在 CPU 運行完後被踢出這個循環，我們稱為 **exit**，而 exit 分成很多種
 
 <Aside type="note" title="Mode switch and Context switch">
 **Mode switch** 不一定會造成 **Context switch**，我們可能可以把需要用到的資料先 catch 到 memory 裡面，不用等 disk I/O event
@@ -197,7 +197,7 @@ Linux 內的 memory 都是以這種 layout 來進行 process 管理的
 Unix 系統裡面的 file structure 是一個 tree structure，最上面是 root directory，下面是各個 subdirectory，subdirectory 裡面可以包含 file 或者其他 subdirectory
 - **root** `/`: all unix like system's root.
 - **lib**: library, the include path
-- **bin**: binary, in the system genuinly
+- **bin**: binary, 可以直接執行的程式
 - **var**: dynamic file
 
 <Fig src="/images/sp/ch01-oscon/file-structure-1.webp" caption="File Structure in Unix" width="40rem" />
