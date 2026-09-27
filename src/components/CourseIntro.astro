@@ -1,6 +1,6 @@
 ---
 // Course intro "window" for notes/<course>/index.mdx — terminal/editor-window styling
-// that matches PDFCard. The default slot holds the prose course description.
+// that matches PDFCard and displays course metadata.
 interface Props {
   /** English course name, drawn large as the window heading. */
   course: string
@@ -58,10 +58,6 @@ const info = [when || null, code || null, textbook ? `Textbook: ${textbook}` : n
       )
     }
 
-    {/* 課程介紹（一般字體，方便閱讀） */}
-    <div class='course-intro mt-4 font-sans text-[15px] leading-relaxed text-muted-foreground'>
-      <slot />
-    </div>
   </div>
 </div>
 

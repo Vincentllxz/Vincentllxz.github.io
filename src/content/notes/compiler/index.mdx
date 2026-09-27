@@ -1,0 +1,44 @@
+---
+title: "NTU-Compiler 編譯程式設計"
+description: "NTU Compiler Design 編譯程式設計 課程筆記"
+publishDate: "2026-09-20 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "Compiler"
+  - "note"
+language: "zh-TW"
+comment: true
+---
+import ChapterList from '../../../components/ChapterList.astro'
+import CourseIntro from '../../../components/CourseIntro.astro'
+
+# Compiler Design 編譯程式設計
+
+<CourseIntro
+  course="Compiler Design"
+  courseZh="編譯程式設計"
+  abbr="Compiler"
+  semester="2026 Fall"
+  teacher="洪鼎詠"
+  textbook="Crafting a Compiler"
+/>
+
+
+## Content
+
+{/* 尚未提供內容的章節暫作佔位，待實際課程大綱確認後調整。沒有 href 的會顯示「整理中」。 */}
+
+<ChapterList
+  chapters={[
+    { n: 1, title: 'Introduction', href: '/notes/compiler/ch01-intro' },
+    { n: 2, title: 'Lexical Analysis' },
+    { n: 3, title: 'Syntax Analysis' },
+    { n: 4, title: 'Syntax-Directed Translation' },
+    { n: 5, title: 'Semantic Analysis' },
+    { n: 6, title: 'Intermediate Code Generation' },
+    { n: 7, title: 'Runtime Environments' },
+    { n: 8, title: 'Code Generation' },
+    { n: 9, title: 'Code Optimization' }
+  ]}
+/>

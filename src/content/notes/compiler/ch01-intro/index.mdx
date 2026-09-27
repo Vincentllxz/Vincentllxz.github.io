@@ -1,0 +1,319 @@
+---
+title: "NTU-Compiler 編譯程式設計 Ch1 Introduction"
+description: "NTU Compiler Design 編譯程式設計:Ch1 Introduction"
+publishDate: "2026-09-27 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "Compiler"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import { Aside, Card } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
+
+# Introduction
+
+> **System Software Dragon**
+> GCC compiler 即便已經用 C++ 進行重構，依然超過 1500 萬行
+> <Fig src="/images/compiler/ch01-intro/codes-in-compiler-with-years.webp" caption="Codes in Compiler with years" width={90} />
+> 我們學習用閹割版 `C--`
+> - 不用處理 pointer, `struct`
+> - 不處理外部 lib
+
+## What is a compiler
+
+### Compiler
+
+Compiler 是一個可以把一個 Program 從「某個 Source Language」翻譯成「某個 Machine Language」，並且翻譯要是 **等價的**（自動機可證明），簡而言之功能就是
+
+$$
+\texttt{Automatic translation} + \texttt{Optimization}
+$$
+
+<Fig src="/images/compiler/ch01-intro/compiler.webp" caption="Compiler" width={90} />
+
+> Compiler 即便知道哪裡錯誤也不能自行修正，而應該提醒哪裡錯了
+
+1950's 需要用打孔的的模式，無法驗證，因此有人想設計一種自動驗證翻譯的軟體，讓打孔變得順利，因此設計了 Assembly Language，以及相應的驗證翻譯軟體 **Assembler**
+
+而現今，CPU 功能越來越多 Pipeline 更複雜，Compiler 也變得複雜
+
+<Fig src="/images/compiler/ch01-intro/modern-architecture.webp" caption="Modern Architecture" width={70} />
+
+### Interpreter
+
+Compiler 會把 program compile 成一個 executable file，而 Interpreter 則是把自己當成 executable file，用 simulate 的方式執行，效能較差
+
+
+<Fig src="/images/compiler/ch01-intro/compiler-and-interpreter-1.webp" caption="Compiler and Interpreter 1" width={50} />
+
+<Fig src="/images/compiler/ch01-intro/compiler-and-interpreter-2.webp" caption="Compiler and Interpreter 2" width={50} />
+
+### Hybrid Translator
+
+合併 Compiler, Interpreter，例如 Java，先把 program compile 成 bytecode，然後用 JVM (Interpreter) 去模擬一下，最後再動態 compile 成 executable file，這種模式叫做 **JIT (Just In Time compilation)**，JIT compiler 會把 hot code (一直重複執行的 code) 做 optimize 的 compilation，加速運行
+
+<Fig src="/images/compiler/ch01-intro/hybrid-translator.webp" caption="Hybrid Translator" width={80} />
+
+
+<Aside type="note" title="Fallacy 1">
+很多人可能說去寫 assembly 會比寫 high level language 快，但 modern compiler 已經可以做到超高效能，不建議再手刻，並且 register allocation 這個問題很容易出錯，因此甚至 compiler 出來的東西會比你手刻快，並且 Scalability 比較好
+</Aside>
+
+<Aside type="note" title="Fallacy 2">
+在現在的 Compilation 技術中，我們有很多 runtime compilation 技術，因此你的 program 其實是 dynamically (runtime) 的 compile 的
+1. GPU, CPU 執行分配，OpenCL 等一系列需要 adaptive system
+2. Machine dependency code
+
+現今技術大約可以分為兩大種類
+- Static Compilation
+    * Typical Compilers
+    * Profile-Guided Compilation
+    * Link-time optimization
+    * Post-Link time optimization
+    * AOT (Ahead-of-Time) Compilation
+- Dynamic Compilation
+    * JIT (Just-in-Time) Compilation
+    * Adaptive Compilation
+    * Dynamic/Adaptive Optimization
+</Aside>
+
+## Structure of a compiler
+
+我們大致可以把 compiler 分成 **Analysis**, **Synthesis** 兩個部分，而又可以細分成
+- **Analysis** 分析 program 是否 runable
+    - **Lexical** analysis：抓出關鍵字（**token**: 變數、關鍵字等）
+    - **Syntax** analysis：檢查語法是否正確
+    - **Semantic** Analysis：分成 **type**（變數類型）, **scope**（變數作用區域）等一系列 Semantic 是否正確，也就是檢查宣告正確性
+- **Synthesis** 分析有什麼方法可以優化以及生成 Machine code
+    - Optimization
+    - Code Generation
+
+可以按照 compiler 的運行機制分成很多種，例如：
+
+**Syntax-Directed Compiler** 是一種可以把每一行 code 一行一行進行編譯直接執行的 compiler，按照每一行文法的 rule 寫好就好了
+
+
+<Fig src="/images/compiler/ch01-intro/structure-of-a-syntax-directed-compiler.webp" caption="Structure of a Syntax-Directed Compiler" width={80} />
+
+**Multi-Pass Compiler** 則會先把 high-level language 先轉換成一種 Intermediate language，經過多輪優化後才變成 Target code
+
+<Fig src="/images/compiler/ch01-intro/structure-of-multi-pass-compilation.webp" caption="Structure of Multi-Pass Compilation" width={80} />
+
+### Lexical Analysis
+
+```txt
+Pay := Base + Rate * 160
+```
+
+Lexical analysis 會抓出很多 token
+- `id`：`Pay`, `Base`, `Rate` are identifiers
+- `asign`：`:=` is assignment symbol
+- `op`：`+` and `*` are operators
+- `num`：`160` is a number
+
+假設今天有以下句子
+```txt
+Pay := Base + Rate @ * 160
+```
+
+但我們有規定這個語言沒有 `@` 這個 token，**Scanner** 就會在這個階段把他抓出來
+
+### Syntax analysis
+
+即便每個字元都可以被拆成 token，還是有可能有無法解讀的問題，例如以下這個例子
+
+```txt
+Pay := Base + Rat^^E * 160
+```
+
+`^^` 可能在這個語言是某種 token，但他前後可能不能接兩個變數，在這個例子裡，他的前後分別是 `Rat`, `e` 兩個變數，所以會被回報成 Syntax Error
+
+### Semantic analysis
+
+我們首先會把東西變成一個 parse tree，然後把它變成精簡版的 **AST (Abstract Syntax Tree)**
+
+<Fig src="/images/compiler/ch01-intro/parse-tree-and-syntax-tree-1.webp" caption="Parse tree and Syntax tree 1" width={80} />
+
+
+<Fig src="/images/compiler/ch01-intro/parse-tree-and-syntax-tree-2.webp" caption="Parse tree and Syntax tree 2" width={80} />
+
+我們可以在 AST 裡面找到一些 Semantic 上的 error，例如這裡我們可以看到 float, int 相乘，要把數字轉型成 float
+
+
+<Fig src="/images/compiler/ch01-intro/semantic-analysis.webp" caption="Semantic analysis" width={80} />
+
+
+最終整個編譯流程會長這樣，會有 **Symbol Table Manager**, **Error Handler**，參與全過程，提供資料庫以及檢查的功能
+
+<Fig src="/images/compiler/ch01-intro/compilation-process.webp" caption="Compilation process" width={80} />
+
+> 現代的編譯器會增加最後面的一層，根據 Processor 架構而去進行特殊處理的 Optimization，由於前面的 Optimization 已經幾乎做到極致，我們會需要更多 per-architecture 的 optimization
+> <Fig src="/images/compiler/ch01-intro/modern-compilation-process.webp" caption="Modern Compilation process" width={80} />
+
+<Fig src="/images/compiler/ch01-intro/compilation-example.webp" caption="Compilation Example" width={90} />
+
+1. Lexical analysis 會因為 high level language 變數命名沒限制，要省下記憶體，我們得把它的變數名字縮短，第一個看到的就叫 `id1` 以此類推
+2. 在 parse tree 做出 semantic 的正確語法
+3. 在中介語言 IR 上進行一些優化，比如說 `temp1` 可以直接被省略
+4. 最後生成 Assembly code
+
+### Grouping of Compiler Phases
+
+- **Back end** 是跟 assembly, machine code 相關的部分，只要操作到他們的就叫 back end，也就是最下面兩個部分
+- **Front end**：剩下的都叫 Front end
+
+#### Common Back-end Compiling System
+
+現代 Programming Language 可以透過共用 IR 來達成共用 Back end
+
+<Fig src="/images/compiler/ch01-intro/common-back-end-compiling-system.webp" caption="Common Back-end Compiling System" width={80} />
+
+
+#### Retargetable Compiler
+
+也可以藉由共用 IR 達到在多架構下運行的目的
+
+<Fig src="/images/compiler/ch01-intro/retargetable-compiler.webp" caption="Retargetable Compiler" width={80} />
+
+### Intermediate Representation
+
+現代語言可以藉由 IR 達到簡化設計的目的，讓「多對多」變成「一對多 加上 多對一」
+
+<Fig src="/images/compiler/ch01-intro/intermediate-representation.webp" caption="Intermediate Representation" width={80} />
+
+比較著名的就是 LLVM IR，本來只支援 C/C++ 等 C 系列語言，後來有人開始把 gcc 的 front end 接到 LLVM IR 上，就開始變成一個支援多 Front end 的 IR
+
+<Fig src="/images/compiler/ch01-intro/llvm-ir.webp" caption="LLVM IR" width={80} />
+
+最後再接上一些 Optimization 就可以把它變成高效率 machine code
+
+<Fig src="/images/compiler/ch01-intro/llvm-ir-machine-independent-optimization.webp" caption="LLVM IR + Machine independent Optimization" width={80} />
+
+## Compiler and Tools
+
+### Compiler is AI
+
+Compiler 就像一個 AI，他可以取 token 預測, 優化，並且 Compiler 就是 key of **Software Define Everything (SDE)**，也就是 Retargeting 可以達到這件事
+
+我們也需要很多 Domain Specific Compiler，也就是設計出一套專門為了 Machine Learning, Deep Learning 而專門去優化的東西，比如說 nGraph, Glow, NNVM, XLA 等 compiler，就是專門把 high-level machine learning language 轉化成 machine language 的 comiler，以下是這種 Compiler 的優化流程
+
+
+<Fig src="/images/compiler/ch01-intro/structure-of-machine-learning-compiler.webp" caption="Structure of Machine Learning Compiler" width={80} />
+
+而 AI in compiler 也是一個熱門的領域，由 AI 輔助 compiler 去進行預測、生成、優化
+
+### Static Semantics
+
+**Static Semantics** 就是在我需要 compiler 裡面寫死就可以檢查到的語意，比如說 **Attribute grammars** 是一種熱門的定義方法
+
+#### Imprecise Semantics Challenges
+
+比如說 Pascal 對 short-circuit 並沒有很明確的定義，所以會出現一些奇怪的問題，但這並不是 semantic 上的錯，而是 unexpectable result
+
+
+<Aside type="tip" title="Example">
+short-cut 的意思是在一些 `if`, `switch` 判斷時，假設前面的 case （不）成立，那便不需要執行後面的，e.g. C language 裡面有對 short-cut 做定義
+```c
+int gv = 1;
+
+bool foo() { gv++; }
+
+int main() {
+    if (1 == 1 || foo())
+        printf("%d\n", gv);
+    return 0;    
+}
+```
+呼叫 `foo()` 會執行 `gv++`，使全域變數 `gv` 的值增加 1。不過，邏輯 OR 運算子 `||` 採用 **short-circuit evaluation**：它會先求值左運算元；若結果為真，就能確定整個運算式為真，因此不會再求值右運算元。
+
+在這個例子中，左側的 `1 == 1` 為真，因此右側的 `foo()` 不會被呼叫，`gv++` 也就不會執行。`gv` 仍維持初始值 `1`，所以程式輸出的是 **`1`，而不是 `2`**。
+</Aside>
+
+
+#### Java
+
+Java 定義了 compiler semantic，例如，function 不可以有不回傳 value 的情況，像下面這個 code 就是 illegal 的
+
+```java
+public static int subr(int b) {
+    if (b!=0) return b+100; 
+}
+```
+
+以下這個 code 雖然人類知道他必定有回傳值，但 compiler 還是會報錯
+
+```java
+public static int subr(int b) {
+     if (b!=0) return b+100; 
+     else if (10*b == 0) return 1; 
+}
+```
+
+### How to Design a compiler for New architecture
+
+假設我們完全沒有任何 RISC-V 的軟體，但我們有一台空機器，我們到底要做什麼，才能讓他出現可用的 compiler
+
+- Write a C compiler in C, compiled it on RISC-V machines using GCC.
+
+    <details>
+    <summary>Details</summary>
+
+    怎麼可能叫的出來一個 GCC
+
+    </details>
+- Write a C compiler in RISC-V machine code
+
+    <details>
+    <summary>Details</summary>
+
+    有點難
+
+    </details>
+- Develop a Cross-compiler on x86 PC and use it to compile itself into C/RISC-V.
+
+    <details>
+    <summary>Details</summary>
+
+    **正解**
+
+    </details>
+- Leave it to MicroSoft or Google
+
+    <details>
+    <summary>Details</summary>
+
+    川普不同意
+
+    </details>
+    
+#### Cross-Compilation
+
+Compiler 的 source code 本來就是開源的，而要在什麼架構上運行是 compile 出來的 executable file 的問題 
+
+用一份 source code，可以先後做到兩件事（假設我們是要寫出一個 C compiler
+1. 在 x86 的 machine 上面的用原生 compiler 編譯（e.g. `gcc`），會得到一個可以在 x86 machine 上 compile 出 RISC-V machine code 的 compiler，我們稱它為 **Cross-Compiler**
+2. 把同一份 code 在 x86 machine 上送進 Cross-compiler，得到一個新的 Compiler，也就是一份，由 RISC-V machine code 寫成的 Native RISC-V compiler
+
+<Fig src="/images/compiler/ch01-intro/construct-a-c-compiler-through-cross-compiler.webp" caption="Construct a C compiler through Cross-Compiler" width={80} />
+
+#### Bootstrapping
+
+如果不能用的話我們就用這方法，我們先用 Assembly 弄出一個 C0 Language compiler，然後我們用這個語言寫出一個增加一點功能的 C1 語言，並且用 Compiler 編譯，然後以此類推，最後就一定能做出個完整的 C compiler
+
+---
+
+<Card
+  as='a'
+  href='/notes/compiler'
+  heading='Back to the content'
+  subheading='NTU Compiler Design'
+  date='2026 Fall'
+>
+  ← Back to the content
+</Card>
+
+---
