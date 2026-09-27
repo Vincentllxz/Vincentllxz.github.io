@@ -13,6 +13,7 @@ comment: true
 ---
 import { Aside, Card } from 'astro-pure/user'
 import Fig from '@/components/Fig.astro'
+import ImageGrid from '@/components/ImageGrid.astro'
 
 # Introduction
 
@@ -48,9 +49,13 @@ $$
 Compiler 會把 program compile 成一個 executable file，而 Interpreter 則是把自己當成 executable file，用 simulate 的方式執行，效能較差
 
 
-<Fig src="/images/compiler/ch01-intro/compiler-and-interpreter-1.webp" caption="Compiler and Interpreter 1" width={50} />
-
-<Fig src="/images/compiler/ch01-intro/compiler-and-interpreter-2.webp" caption="Compiler and Interpreter 2" width={50} />
+<ImageGrid
+  cols={2}
+  images={[
+    { src: '/images/compiler/ch01-intro/compiler-and-interpreter-1.webp', caption: 'Compiler and Interpreter 1' },
+    { src: '/images/compiler/ch01-intro/compiler-and-interpreter-2.webp', caption: 'Compiler and Interpreter 2' }
+  ]}
+/>
 
 ### Hybrid Translator
 
@@ -136,10 +141,13 @@ Pay := Base + Rat^^E * 160
 
 我們首先會把東西變成一個 parse tree，然後把它變成精簡版的 **AST (Abstract Syntax Tree)**
 
-<Fig src="/images/compiler/ch01-intro/parse-tree-and-syntax-tree-1.webp" caption="Parse tree and Syntax tree 1" width={80} />
-
-
-<Fig src="/images/compiler/ch01-intro/parse-tree-and-syntax-tree-2.webp" caption="Parse tree and Syntax tree 2" width={80} />
+<ImageGrid
+  cols={2}
+  images={[
+    { src: '/images/compiler/ch01-intro/parse-tree-and-syntax-tree-1.webp', caption: 'Parse tree and Syntax tree 1' },
+    { src: '/images/compiler/ch01-intro/parse-tree-and-syntax-tree-2.webp', caption: 'Parse tree and Syntax tree 2' }
+  ]}
+/>
 
 我們可以在 AST 裡面找到一些 Semantic 上的 error，例如這裡我們可以看到 float, int 相乘，要把數字轉型成 float
 
