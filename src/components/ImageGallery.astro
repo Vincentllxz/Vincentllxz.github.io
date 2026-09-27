@@ -1,0 +1,71 @@
+---
+interface GalleryImage {
+  src: string
+  alt?: string
+  caption?: string
+}
+
+interface Props {
+  images: GalleryImage[]
+  /** Shared image height; widths follow each image's aspect ratio. */
+  height?: string
+  caption?: string
+  label?: string
+}
+
+const { images, height = '18rem', caption, label = '圖片集' } = Astro.props
+---
+
+<figure class='image-gallery not-prose my-7' style={`--gallery-height: ${height}`}>
+  <div class='gallery-track' role='region' aria-label={label} tabindex='0'>
+    {
+      images.map((img) => (
+        <figure class='gallery-item'>
+          <img
+            src={img.src}
+            alt={img.alt ?? img.caption ?? ''}
+            loading='lazy'
+            decoding='async'
+            class='rounded-xl'
+          />
+          {img.caption && (
+            <figcaption class='text-center text-sm text-muted-foreground'>{img.caption}</figcaption>
+          )}
+        </figure>
+      ))
+    }
+  </div>
+  {caption && <figcaption class='mt-2 text-center text-sm text-muted-foreground'>{caption}</figcaption>}
+</figure>
+
+<style>
+  .image-gallery {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .gallery-track {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+  }
+  .gallery-track:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 4px;
+  }
+  .gallery-item {
+    flex: 0 0 auto;
+    width: min-content;
+    margin: 0;
+  }
+  .gallery-item img {
+    display: block;
+    width: auto;
+    max-width: none;
+    height: var(--gallery-height);
+    margin: 0;
+  }
+  .gallery-item figcaption {
+    margin-top: 0.5rem;
+  }
+</style>

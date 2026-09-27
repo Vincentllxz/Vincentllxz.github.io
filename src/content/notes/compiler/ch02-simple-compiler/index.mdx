@@ -1,0 +1,562 @@
+---
+title: "NTU-Compiler 編譯程式設計 Ch2 Design a Simple Compiler"
+description: "NTU Compiler Design 編譯程式設計:Ch2 Design a Simple Compiler"
+publishDate: "2026-09-27 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "Compiler"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import { Aside, Card } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
+
+# Design a Simple Compiler
+
+這個章節我們會先嘗試把一個語言（AC）翻譯成另一個語言（DC）
+
+## AC Language
+
+### Informal definition
+
+AC (Adding Calculator) language 就是一種簡單的語言，只支援
+- Type: 
+    - Integer: 只能十進制
+    - Float: 只能寫 5 位
+- Keywords
+    - Reserved `f (float)`, `i (int)`, `p (print)`
+- Variables
+    - 23 variable name
+
+
+<Aside type="note" title="Keywords v.s. Reserved">
+- Keyword 就是 `if`, `while` 等一系列會用到的關鍵語法字
+- Reserved 則是不能被拿來命名變數的字
+</Aside>
+
+<Aside type="tip">
+如果我們宣告 `unsigned ux;`，那 `(ux > -1)` `TRUE` or `FALSE`?
+答案是永遠都錯因為 -1 是 `1111111111111...`
+</Aside>
+
+有一個程式語言的性質叫做 type conversion，分成兩種
+- **Implicit** type conversion 就是 compiler 會自動做轉型，也稱作 **type coercion**
+- **Explicit** type conversion 是 **type casting**
+
+AC language 是一種 one direction 的 coercion，只會做 int to float
+
+<Fig src="/images/compiler/ch02-simple-compiler/ac-dc-compiler.webp" caption="AC-DC compiler" width={90} />
+
+### Formal Definition
+
+一個語言的 formal definition 一定要有 token, syntax, and semantics
+- Regular Expression (RE) 定義 token
+- Context Free Grammar 定義 syntax
+
+## Scanner
+
+以下是 AC-DC compiler 的 Scanner 定義的 token，用 RE 定義的
+
+
+<Fig src="/images/compiler/ch02-simple-compiler/regular-expression-on-ac-scanner.webp" caption="Regular Expression on AC Scanner" width={70} />
+
+
+會有這些 token 加上 `EOF`
+
+> 空白常常會被 compiler 跳過，有時候不需要被 parse 到
+
+## Parser
+
+CFG 是一種 rewriting rules 也稱作 Backus-Naur Form (BNF) grammar
+
+$$
+\texttt{<program>} \to \texttt{begin <stmt\_list> end}
+$$
+
+意思是這個語言一定是 begin 開始 end 結尾
+- 可被替換的，也就是有被 `<>` 括號起來的就是 **nonterminals** 也就是還可以繼續被替換
+- 而其他的則是 **terminals** 無法繼續被替換
+
+CFG 一定要包含
+- A set of tokens
+- A set of non-terminals
+- A set of productions
+- A start symbol (one of the non-terminals)
+
+如果一個 program 可以從起始點根據 CFG rules 被替換成 program 本人，那他就是 syntax 正確的 program
+
+<Aside type="tip" title="Example">
+$$
+\begin{align}
+&\texttt{<stmt\_list>} \to \texttt{<stmt> <stmt\_tail>} \\
+&\texttt{<stmt\_tail>} \to \texttt{<stmt> <stmt\_tail>} \\
+&\texttt{<block>}	\to \texttt{{… <block> …}}
+\end{align}
+$$
+這樣的 recursive 架構就可以讓一個 program 無限擴充，而
+$$
+\lambda,\ \varepsilon
+$$
+常常用來表示空字串，可以拿來終止 recursion
+</Aside>
+
+<Aside type="note" title="Context-Sensitive Grammar">
+context-free grammar 左邊一定要是一個變數，但 Context-Sensitive Grammar 可以做更多限制，例如
+$$
+xAy \to x\alpha y
+$$
+</Aside>
+
+假設我們有一段 code 
+```c
+f b i a a = 5 b = a + 3.2 p b 
+```
+還有以下這些 CFG
+```txt
+Prog  → Dcls Stmts $
+Dcls  → Dcl Dcls
+      | λ
+Dcl   → floatdcl id
+      | intdcl id
+Stmts → Stmt Stmts
+      | λ
+Stmt  → id assign Val Expr
+      | print id
+Expr  → plus Val Expr
+      | minus Val Expr
+      | λ
+Val   → id
+      | inum
+      | fnum
+```
+
+最後可以通過這段流程來解析我們的 code
+
+```txt
+<Prog>
+<Dcls> Stmts $
+<Dcl> Dcls Stmts $
+floatdcl id <Dcls> Stmts $
+floatdcl id <Dcl> Dcls Stmts $
+floatdcl id intdcl id <Dcls> Stmts $
+floatdcl id intdcl id <Stmts> $
+floatdcl id intdcl id <Stmt> Stmts $
+floatdcl id intdcl id id assign <Val> Expr Stmts $
+floatdcl id intdcl id id assign inum <Expr> Stmts $
+floatdcl id intdcl id id assign inum <Stmts> $
+floatdcl id intdcl id id assign inum <Stmt> Stmts $
+floatdcl id intdcl id id assign inum id assign <Val> Expr Stmts $
+floatdcl id intdcl id id assign inum id assign id <Expr> Stmts $
+floatdcl id intdcl id id assign inum id assign id plus <Val> Expr Stmts $
+floatdcl id intdcl id id assign inum id assign id plus fnum <Expr> Stmts $
+floatdcl id intdcl id id assign inum id assign id plus fnum <Stmts> $
+floatdcl id intdcl id id assign inum id assign id plus fnum <Stmt> Stmts $
+floatdcl id intdcl id id assign inum id assign id plus fnum print id <Stmts> $
+floatdcl id intdcl id id assign inum id assign id plus fnum print id $
+f        b  i      a  a  =      5    b  =      a  +    3.2  p     b
+```
+
+如果我們可以用這些 CFG 從起始狀態推出這段 code，那這段 code 就通過了 Syntax check
+
+### Parse tree
+
+建構 Parse tree 的方法如下
+<Fig src="/images/compiler/ch02-simple-compiler/a-parse-tree-construction-example.webp" caption="A parse tree construction example" width={70} />
+
+
+<Aside type="tip" title="Example">
+一個 C language 的例子
+```c
+<function_decl> → <type> id ( <expr_list> ) { <block> }
+<block> → <decl_list> <statement_list> | λ
+```
+一段 function 宣告
+```c
+int func() {}
+```
+就可以被畫成
+<Fig src="/images/compiler/ch02-simple-compiler/a-parse-tree-construction-example-on-c.webp" caption="A parse tree construction example on C" width={80} />
+</Aside>
+
+如果同一段在某個語言中的 code 可以被畫成很多種 parse tree 的話，我們就稱這門語言有 **ambiguous**
+    
+<Aside type="tip" title="Example">
+以下是一種語言的 CFG
+```c
+String → String + String
+String → String – String
+String → digit
+```
+用種 CFG parse `9 - 2 + 4` 可以拿到兩種可能，但我們知道按照左結合律，我們應該先算左邊的算式
+<Fig src="/images/compiler/ch02-simple-compiler/ambiguous.webp" caption="Ambiguous" width={80} />
+</Aside>
+    
+### Association and Precedence
+
+原則都是：希望先做的放在 tree 的下面，後做的往上面放
+
+#### Association
+
+我們可以把 Association (結合律) 分成兩種
+- **Left associative operators**: `+`, `-`, `*`, `\` 這些 operator 
+- **Right associative operators**: `<assign>`, `exp`
+
+Left association 會讓左邊的 operator 先做，而 right 則相反
+
+假設我們有幾個 operator，我們可以定義出
+```c
+<expr> → <primary> { <add_op> <primary>}
+<expr> → {<primary> <assign_op> } <primary>
+```
+這樣就可以標記出他是左結合律還是右結合律
+
+但現代 compiler 做這件事的方法其實是用一種 recursion 的方法
+```c
+<expr> → <expr> OP <primary> 
+<expr> → <primary> OP <expr>
+```
+第一行會變成 left associative, 第二行則是 right associative
+
+#### Precedence
+
+也就是優先權的概念，先加減後乘除，或是從左做到右還是從右做到左
+
+<Fig src="/images/compiler/ch02-simple-compiler/table-of-precedence.webp" caption="Table of Precedence" width={80} />
+
+
+### Parsing
+
+分為兩種方法
+1. **Top-down Parsing**：從 start symbol 開始，根據 grammar rules 不斷展開 non-terminal，嘗試產生出輸入的 token sequence
+    - Parsing tree 是從 root 往 leaves 建立
+    - e.g. Recursive Descent Parsing、LL Parsing
+2. **Bottom-up Parsing**：從輸入的 token sequence 開始，從左到右，找出符合 grammar rule RHS 的部分並進行 reduction，逐步將它們合併成 non-terminal，最後得到原始的 start symbol
+    - Parsing tree 是從 leaves 往 root 建立
+    - e.g. Shift-Reduce Parsing、LR Parsing
+
+<Fig src="/images/compiler/ch02-simple-compiler/top-down-and-bottom-up-parsing.webp" caption="Top-down and Bottom-up Parsing" width={80} />
+
+
+假設我們有一個 string `abcxy`，並且有 rule
+```c
+S → AB
+A → abc | w
+B → de | xy
+```
+假設我們執行 top-down parsing，我們會先把整段 code 塞進去一個 register 裡面，然後我們執行以下步驟
+1. 把 `S` 替換成 `AB`
+2. `A` 有兩種可替換，parser 去偷看我們的 code 最左邊的開頭是 `a`，替換為 `abc`，buffer 剩下 `xy`
+3. `B` 有兩種可替換，parser 去偷看我們的 code 最左邊的開頭是 `x`，替換為 `xy`
+
+真實情況會有 stack 進行操作
+<Fig src="/images/compiler/ch02-simple-compiler/top-down-parsing-with-stack.webp" caption="Top-down parsing with stack" width={90} />
+
+而 bottom-up 則是
+1. `abcxy` 開頭為 `a`，有一條 rule 把 `A → abc` 會拿到相似的東西，推回去 `abc`，buffer 剩下 `xy`
+2. `xy` 開頭為 `x`，有一條 rule 把 `B → xy` 推回去
+3. `AB → S` 結束
+
+> Bottom-up parsing 對 grammar 的限制比較少，可以處理比一般 top-down parsing 更大的 grammar class，因此通常比較不需要為了 parser 而修改 production rules
+
+最終我們會把 Parse tree 變成 Syntax tree（刪除中間產物的版本），Parse tree 的 internal node 都會是 **non-terminal**，而 Syntax tree 則會是 **operators**
+
+#### Recursive Descent Parsing
+
+是一種 implement top-down parsing 的方法，每個 non-terminal 都有他的 **parsing procedure**
+
+假設我們有一個 rule
+```
+<system_goal> → <program> SCANEOF
+```
+他的 procedure 是
+```c
+void system_goal (void)  {
+    program();
+    match (SCANEOF);
+}
+```
+遇到 terminal 去 `match()`，遇到 non-terminal 則繼續 call procedure
+
+而當遇到多種可能的時候
+```
+Stmt → ID = Val Expr
+     | Print ID
+```
+我們的 procedure 會是
+```c
+Stmt() {
+	token t = next_token();
+	if (t == ID) {
+        match(ID); 
+        match(ASSIGN); 
+        Val();
+        Expr();
+    } else if (t == Print) {
+        match(Print);
+        match(ID);
+    }
+}
+```
+會進行一個 look ahead 的動作
+
+> Ch.4 會再詳細介紹更精確的 abstract definition
+
+假設我們有一個 rule 長這樣
+```
+A → BcD
+  | EF
+```
+那我們的 procedure 可以設計成
+```text
+function A {
+    if (lookahead == First(BcD)) {
+        call B; match(c); call D;
+    } else if (lookahead == First(EF)) {
+        call E; call F;
+    }
+}
+```
+`First()` 就是去維護一個 set of starting terminal token，所有可能由此產生的 starting terminal，為什麼需要 `First(BcD)` 而不是 `First(B)` 是因為 `B → λ` 空字串
+
+#### Predictive Parsing
+
+Top-down parsing 又稱為 predictive parsing，因為我們會需要預測他後面會出現什麼（lookahead），如果我們只需要透過 lookahead one token 就可以得出要走哪條路那我們就稱這個 CFG 為 $LL(1)$，以此類推要先偷看 $n$ 個才能走出分岔就是 $LL(n)$
+
+#### Left Recursion Removal
+
+當這樣的形式出現時
+$$
+\texttt{<expr>} → \texttt{<expr>} + \texttt{<term>}
+$$
+假是我們有一個 rule 長這樣
+```
+A → Aα | β
+```
+那 function A 就會無限 call 自己永遠不會停，因為永遠也跑不到 match 這個部分，所以我們可以改寫成
+```
+A → bR
+R → αR | λ
+```
+
+> Top-down parser 通常會利用 lookahead tokens 決定要選擇哪一條 production，因此 grammar 必須讓 parser 能夠根據有限的 lookahead 做出決定。除此之外，left recursion 會讓 top-down parser 在沒有 consume input 的情況下無限遞迴，因此通常必須先消除 left recursion，而對 bottom-up 來說，left recursion 是一個自然的語法
+
+### Building AST
+
+以下兩個是基礎規則
+
+<Fig src="/images/compiler/ch02-simple-compiler/ast-building-rule.webp" caption="AST building rule" width={90} />
+
+AC CFG 為了減少 left recursion，會讓 AST tree 的 construction 變得跟原本的不太一樣，比如說原本的 CFG 是
+```txt
+<expr> → <expr> + <term>
+```
+這樣的 construction 應該是
+```c
+makeTree("+", expr(), term());
+```
+但做了 left removal 就變成
+```txt
+<stmt> → id assign <val> <expr'>
+<expr'> → + <val> <expr'>
+        | - <val> <expr'>
+        | λ
+```
+此時 grammar 本身變成 right-recursive，因此如果直接照 parse tree 建 AST，會得到錯誤的 associativity，所以在 parsing `<expr'>` 時，需要保存前面已經建立好的 subtree：
+```c
+previous-subtree = makeTree(op, previous-subtree, val());
+```
+
+## Semantic Analysis
+
+在 Semantic Analysis 我們主要是要做兩個工作
+- **Symbol table**
+- **Type Checking**
+
+### Symbol table
+
+簡單來說 symbol table 是 compiler 在記錄所有 identifier 的一張表
+
+主要有幾個功能
+1. 記錄所有 identifier 的詳細資訊：type, name, scope, offset
+2. 可以檢查有沒有任何 duplicate 
+3. 當要使用變數的時候可以從 symbol table 裡面抽出來檢查，檢查 scope 等
+
+以下是 AC 裡面的 symbol table construction 最需要的幾個功能，`ENTERSYMBOL()`, `LOOKUPSYMBOL()`
+
+```c
+/* Visitor methods */
+procedure VISIT(SymDeclaring n)
+    if n.GETTYPE() = floatdcl
+    then call ENTERSYMBOL(n.GETID(), float)
+    else call ENTERSYMBOL(n.GETID(), integer)
+end
+
+/* Symbol table management */
+procedure ENTERSYMBOL(name, type)
+    if SymbolTable[name] = null
+    then SymbolTable[name] ← type
+    else call ERROR("duplicate declaration")
+end
+
+function LOOKUPSYMBOL(name) returns type
+    return (SymbolTable[name])
+end
+```
+
+AC symbol table 內部紀錄大概會這以下這樣
+
+```txt
+Symbol  Type      Symbol  Type      Symbol  Type
+a       integer   k       null      t       null
+b       float     l       null      u       null
+c       null      m       null      v       null
+d       null      n       null      w       null
+e       null      o       null      x       null
+g       null      q       null      y       null
+h       null      r       null      z       null
+j       null      s       null
+```
+
+### Type checking
+
+有了 Symbol table 後我們就可以對 AST 進行 type checking，type checking 主要有幾個目的
+1. **決定每個 AST node 的 type**
+2. 檢查運算元的 type 是否 compatible
+3. 檢查 assignment 是否允許
+4. 如果可以進行 implicit conversion，就在 AST 中插入 conversion node
+
+AC 目前主要只有兩種 type `int` `float`，並且只允許 widening conversion，也就是 int to float 這一個方向
+
+以下是 type checking 的 code
+
+```c
+/* Visitor methods */
+procedure VISIT(Computing n)
+    n.type ← CONSISTENT(n.child1, n.child2)
+end
+
+procedure VISIT(Assigning n)
+    n.type ← CONVERT(n.child2, n.child1.type)
+end
+
+procedure VISIT(SymReferencing n)
+    n.type ← LOOKUPSYMBOL(n.id)
+end
+
+procedure VISIT(IntConsting n)
+    n.type ← integer
+end
+
+procedure VISIT(FloatConsting n)
+    n.type ← float
+end
+
+
+/* Type-checking utilities */
+function CONSISTENT(c1, c2) returns type
+    m ← GENERALIZE(c1.type, c2.type)
+    call CONVERT(c1, m)
+    call CONVERT(c2, m)
+    return (m)
+end
+
+function GENERALIZE(t1, t2) returns type
+    if t1 = float or t2 = float
+    then ans ← float
+    else ans ← integer
+    return (ans)
+end
+
+procedure CONVERT(n, t)
+    if n.type = float and t = integer
+    then call ERROR("Illegal type conversion")
+    else
+        if n.type = integer and t = float
+        then
+            /* replace node n by convert-to-float of node n */
+        else
+            /* nothing needed */
+end
+```
+
+以剛剛的例子來說
+
+```
+f b i a a = 5 b = a + 3.2 p b 
+```
+
+會先被 parse 成下面這個 AST
+
+<Fig src="/images/compiler/ch02-simple-compiler/ast-after-parsing.webp" caption="AST after parsing" width={80} />
+
+而做完 type checking 則會變成
+
+<Fig src="/images/compiler/ch02-simple-compiler/ast-after-type-checking.webp" caption="AST after type checking" width={80} />
+
+經過這個過程我們就做完 semantic analysis，可以進行 code generation 了
+
+## Code Generation
+
+Code Generation 的工作是把前面處理好的 AST 轉換成 target code，在真正的 compiler 中，這個階段通常還需要考慮：
+
+- instruction selection
+- register allocation
+- intermediate value allocation
+- memory access
+
+但 AC compiler 的 target 是 DC，一個 stack-based language，因此**可以直接利用 stack 儲存 expression 的中間結果**，不需要處理真正 CPU 的 register allocation
+
+可以利用下面這段 code 進行 code generation
+
+```c
+procedure VISIT(Assigning n)
+    call CODEGEN(n.child2)
+    call EMIT("s")
+    call EMIT(n.child1.id)
+    call EMIT("0 k")
+end
+
+procedure VISIT(Computing n)
+    call CODEGEN(n.child1)
+    call CODEGEN(n.child2)
+    call EMIT(n.operation)
+end
+
+procedure VISIT(SymReferencing n)
+    call EMIT("l")
+    call EMIT(n.id)
+end
+
+procedure VISIT(Printing n)
+    call EMIT("l")
+    call EMIT(n.id)
+    call EMIT("p")
+    call EMIT("si")
+end
+
+procedure VISIT(Converting n)
+    call CODEGEN(n.child)
+    call EMIT("5 k")
+end
+
+procedure VISIT(Consting n)
+    call EMIT(n.val)
+end
+```
+
+---
+
+<Card
+  as='a'
+  href='/notes/compiler'
+  heading='Back to the content'
+  subheading='NTU Compiler Design'
+  date='2026 Fall'
+>
+  ← Back to the content
+</Card>
+
+---
