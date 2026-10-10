@@ -1,0 +1,36 @@
+---
+title: "NTU-CA 計算機結構"
+description: "NTU Computer Architecture 計算機結構 課程筆記"
+publishDate: "2026-10-10 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CA"
+  - "note"
+language: "zh-TW"
+comment: true
+---
+import ChapterList from '../../../components/ChapterList.astro'
+import CourseIntro from '../../../components/CourseIntro.astro'
+
+# Computer Architecture 計算機結構
+
+<CourseIntro
+  course="Computer Architecture"
+  courseZh="計算機結構"
+  abbr="CA"
+  semester="2026 Fall"
+  teacher="楊佳玲、洪士灝"
+  textbook="Computer Organization and Design RISC-V Edition (Patterson & Hennessy)"
+/>
+
+
+## Content
+
+<ChapterList
+  chapters={[
+    { n: 2, title: 'Performance, Power and Cost', href: '/notes/ca/ch02-performance' },
+    { n: 3, title: 'Instruction Set Architecture: RISC-V', href: '/notes/ca/ch03-isa' },
+    { n: 4, title: 'Linker and Loader', href: '/notes/ca/ch04-linker-loader' }
+  ]}
+/>

@@ -1,0 +1,1152 @@
+---
+title: "NTU-CA 計算機結構 Ch3 Instruction Set Architecture"
+description: "NTU Computer Architecture 計算機結構:Ch3 Instruction Set Architecture"
+publishDate: "2026-10-10 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CA"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
+
+# Instruction Set Architecture: RISC-V
+
+**ISA (Instruction Set Architecture)** 是一種硬體軟體之間的 interface，要可以連接軟硬體
+
+<Fig src="/images/ca/ch03-isa/instruction-set-architecture.webp" caption="Instruction Set Architecture" width={80} />
+
+整個電腦的執行會先用 high level language 寫成，然後經過 Compiler 轉成 assembly language，最後透過 Assembler 轉換成 Machine Code，最後真正在 hardware 裡面的 data path 執行的就會是 Machine code
+
+<Fig src="/images/ca/ch03-isa/leveled-representation.webp" caption="Leveled Representation" width={80} />
+
+## ISA design
+
+ISA 的設計要求就是我們希望要讓 underlying 的 **architecture implement 起來要是簡單的**，hardware 簡單就可以達到速度增快並且 Power 消耗減低
+
+設計一個 interface 有幾個重點
+- **Portability**/**Compatibility**：底下的 implementation 方法不應該要影響到 user 體驗
+- **Generality**：要多種用途，不可以太單一
+- **Convenient**：對於使用者而言方便 call
+- **Efficient**：Implementation 要快速
+
+<Fig src="/images/ca/ch03-isa/interface-design.webp" caption="Interface Design" width={80} />
+
+而對於 ISA 的上層，就是 Compiler，下層則是 data path，這通常是一個 trade-off 需要進行取捨
+
+## ISA flow
+
+以下是 ISA 的執行流程
+1. 把 Instruction fetch 到 register 裡面（本來在 memory）
+2. 把 Instruction 做 Decoding
+3. 把 Operand fetch 出來（不同的 machine 會存在不同地方）
+4. Execution
+5. 把結果 store 到正確的位置
+6. Fetch 下一個 Instruction
+
+<Fig src="/images/ca/ch03-isa/flow-of-isa-execution.webp" caption="Flow of ISA execution" width={80} />
+
+透過剛剛的流程我們知道我們設計一個 ISA 需要以下的東西
+- Instruction Format (Encode/Decode)
+- Location of Operands and Result
+    - Size and Type
+- Operations to support
+- Successor instruction
+    - jumps, conditions, branch
+
+## General Purpose Register ISA
+
+General Purpose Register ISA 是一個 design 的大類別（其他可能像 java 用的是 stack 不是 register），這種方法有兩種設計
+- **Register-memory** instruction 也就是其中個 operand 來自 memory 另一個來自 register
+```riscv
+add R1, A             # R1 = R1 + mem[A]
+add R2, R1, A         # R2 = R1 + mem[A]
+```
+- **Register-register** instruction 是其中兩個 operand 來自都在 register，會多了 `load`, `store`
+```riscv
+add R2, R1, R3        # R2 = R1 + R3
+load R3, A            # R3 = mem[A]
+store R3, A           # mem[A] = R3
+```
+
+> 這就是為什麼我們不能用 MPIS 來 evaluate 兩個 machine，因為每個 ISA 完成同一個操作的 Instruction 數量不同
+
+### RISC v.s. CISC
+
+以前分成了兩個陣營
+- **RISC** (Reduced Instruction Set Architecture)：儘量讓所有 Instruction 越簡單越好，雖然同個操作的 instruction 數量比較高，但 **Clock Rate 會提高**，e.g. ARM, RISC-V, MIPS
+- **CISC** (Complex Instruction Set Architecture)：這個派別追求越少 Instruction 越好，執行一個操作只需要極少的操作，也就是說 Compiler 會獲得 high-level language 的一對一對應，很好做，但 **Clock rate 無法提高**（因為 Underlying 的 implementation 比較複雜），e.g. Intel x86
+
+<Aside type="tip" title="Example.">
+假設我們要表達 $A \times B$，並且我們的 Memory 是二維的，我們希望可ㄧ把兩個東西相乘
+- RISC
+    ```riscv
+    load A, 2:3
+    load B, 5:2
+    multi A, B
+    store 2:3 A
+    ```
+- CISC
+    ```riscv
+    multi 2:3 5:2
+    ```
+</Aside>
+
+#### RISC-V
+
+是一個 standard **open source** 的 ISA，其他的 ISA 的 license fee 都很高（MIPS, ARM）
+- 軟體有 Linux 所以當初也想要仿照做 RISC-V，也就是一個開源的 ISA 架構
+- 也有像 SiFive 這樣提供 RISC-V 一系列 tool chain 的公司
+- 中國會使用這樣的 open source 的 ISA
+
+> 到後期，Intel 也轉往 RISC 發展
+
+## Operation on RISC-V
+
+### Arithmetic Operations and Register file
+
+arithmetic operation 包含 `+`, `-` `*`, `/`，要求必須有**三個 operand**，三個都是 **register**
+```riscv
+add a, b, c;
+```
+第一個是 destination，其他兩個是 source，從這個操作就可以知道 RISC-V 的一項設計原則 **Simplicity favors regularity**
+- **Regularity**：所有 operation 都需要 take 3 個 operands（固定數量），並且只允許在 register 之間操作（固定位置），這樣就可以得到 **Simplicity of Hardware design**
+
+假設我們有一個 c statement
+```c
+f = (g + h) - (i + j)
+```
+翻譯後會變成
+```riscv
+add t0, g, h;
+add t1, l, j;
+sub f, t0, t1;
+```
+
+但這些變數我們該存在哪，我們應該要把這個結果存在 register 裡面，RISC-V 的 register file 一共有
+$$ 32 \times 64\text{-bit} $$
+
+這個數量，在這裡我們稱每個 Register 為一個 file
+- 64-bits data 叫 "double word"
+- 32-bits data 叫 "word"
+
+這裡看引出第二個設計原則 **Smaller is faster**
+- Register file 需要在 capacity 跟 efficient 之間做取捨，而 RISC-V 選擇了 efficient
+
+以下是 RISC-V register 對應 function 存儲的內容，之後會細講
+```
+x0              the constant value 0
+x1              return address
+x2              stack pointer
+x3              global pointer
+x4              thread pointer
+x5-x7, x28-x31  temporaries
+x8              frame pointer
+x9, x18-x27     saved registers
+x10-x11         function arguments/results
+x12-x17         function arguments
+```
+
+我們知道這些 register 的功能後，我們就可以重新把 assembly 寫成 RISC-V
+```riscv
+add x5, x20, x21
+add x6, x22, x23
+sub x19, x5, x6
+```
+
+### Memory Operation
+
+有兩種 Data transfer instructions `lw`, `sw`, `ld`, `sd`
+```riscv
+lw x9, 8 (x22); # x9 = mem[8 + reg[22]]
+sw x9, 8 (x22); # mem[8 + reg[22]] = x9
+```
+也就是 **load** 跟 **store**，後面的字母代表 word, byte，但我們需要理解他的 address 是怎麼 binding 的，基本上我們會把寫在這 register 叫做 **base register**，後面加上一個 offset，我們就知道要把誰 load 或是 store 進來
+
+
+假設我們有一段 C code
+```c
+A[12] = h + A[8]
+```
+假設 `h` 在 `x1`，我們的 base register `A` 是 `x22`，那我們的 assembly 應該要翻譯成
+```riscv
+ld x9, offset1(x22);
+add x9, x21, x9;
+sd x9, offset2(x22);
+```
+但這裡的 offset 應該要怎麼算的，首先我們知道**每個 element 是 8 bytes**，用 index 來看，`A[8]` 對 `x22` 的 offset 應該是 `8`，但是 RISC-V 是一個 **byte addressing**，所以
+$$\text{offset} = \text{index-offset} \times 8$$
+<Fig src="/images/ca/ch03-isa/byte-addressing.webp" caption="Byte Addressing" width={80} />
+
+所以正確的翻譯方法應該是
+```riscv
+ld x9, 64(x22);
+add x9, x21, x9;
+sd x9, 96(x22);
+```
+
+#### Endian
+
+假設我們有一個 16 進位的數字要存進去一個 8 bytes 的 register，每個 address（一個 byte）可以存兩個 16 進位的數字，一個 hex digit 的大小是 4-bit 兩個就是 1 byte，當我們有一個數字 `0x12345678` 想存到 register 裡面的時候，我們可以選擇兩種方法
+<Fig src="/images/ca/ch03-isa/big-endian-v-s-little-endian.webp" caption="Big Endian v.s. Little Endian" width={80} />
+
+- Big Endian 是先把高位數字存到 address 小的 register
+- Little Endian 是先把低位數字存到 address 小的 register
+
+> RISC-V 是一種 Little Endian
+
+#### Alignment
+
+每次 register 都是讀一個或兩個 **word** 也就是 4 bytes，**Alignment**，這件事就代表我們必須讓所有 data 都對齊 4 bytes 這個大小，也就是我們可以做一些空位子，來保證一個 openrand 儘量在同一個 word 裡面，這樣可以大大增加 ISA 的 memory operation efficiency
+
+> RISC-V 並沒有要求做這件事
+
+<Fig src="/images/ca/ch03-isa/alignment.webp" caption="Alignment" width={50} />
+
+ISA 設計有一個宗旨，**Load/Store** 的次數要越少越好，通常這是 compiler optimization 的工作，但是 register size 的大小會大大影響到我們的做 compiler optimization 的難度
+
+另外，因為 Compiler 應該要用 Register 作為儲存 variable 的空間，但 register 用完的時候我們肯定得把某些不常用的 variable 存回去 memory 裡面，這個動作叫做 **memory spill**，減少 memory spill 也是 compiler optimization 重要的 issue
+
+### Intermediate Operation
+
+在 high-level language 裡面我們常常會用到 constant arithmetic，比如說
+```c
+x = x + 10
+```
+那我們可以用 `load`, `store` 做到這件事
+```riscv
+ld x21, AddrConst10(x22)
+add x22, x22, x21
+```
+就可以做到，但這樣的操作很頻繁出現我們需要加快這一部分，因此 RISC-V 設計出了
+```riscv
+addi x22, x22, 4
+```
+這樣就引出了 RISC-V 的第三個設計原則 **Make the common case fast**，不會太增加 implementation 的複雜度，但是會卻可以減少 compiler 的 optimization 難度
+
+## Representing Instruction
+
+畢竟 machine 真正在執行的時候都是用 binary code，所以我們需要 define 出一種 format 來表示我們的 machine code
+
+### Stored-Program Concept
+
+先介紹一個非常重要的觀念，我們該如何儲存一個 program，分成兩個 key point
+1. Instruction represented as a number
+2. 整個 program 要可以存在一個 memory 裡面，並且可以像數字一樣讀寫
+
+在 RISC-V 實踐的 machine 中都是用 Hexadecimal 來表示 instruction，因為這樣做 binary code 轉換非常方便
+
+### RISC-V R-format
+
+<Fig src="/images/ca/ch03-isa/r-format-of-risc-v.webp" caption="R-format of RISC-V" width={80} />
+
+**R-format** 有以下的內容
+- `opcode`：operation code
+- `rd`：destination register number
+- `funct3`：3-bit function code (additional opcode)
+- `rs1`：the first source register number
+- `rs2`：the second source register number
+- `funct7`：7-bit function code (additional opcode)
+
+<Fig src="/images/ca/ch03-isa/r-format-of-risc-v-instruction.webp" caption="R-format of RISC-V instruction" width={80} />
+
+假設我們有一個指令是
+```riscv
+add x9, x20, x21;
+```
+
+<Fig src="/images/ca/ch03-isa/r-format-of-risc-v-instruction-example.webp" caption="R-format of RISC-V instruction example" width={80} />
+
+### RISC-V I-format
+
+我們現在來考慮一下 `load` operation，在 R-format 之下，我們有 `rs1`, `rs2`, `rd` 三種可用的 field，我們會有三個 5-bits 的 field 可以用，但其中有一個位置應該要填 `offset` 這個資訊，但 5-bit 最多只能表示到 32 格 offset，所以我們應該要開發另外一種 format 來表示這樣的操作
+
+<Fig src="/images/ca/ch03-isa/i-format-of-risc-v-instruction.webp" caption="I-format of RISC-V instruction" width={80} />
+
+- `immediate`：register number
+- `rs1`：the first source register number
+- `funct3`：3-bit function code (additional opcode)
+- `rd`：destination register number
+- `opcode`：operation code
+
+<Fig src="/images/ca/ch03-isa/i-format-of-risc-v-instruction-example.webp" caption="I-format of RISC-V instruction example" width={80} />
+
+由此我們就可以引出第四個設計原則：**Good Design demands Good compromise**，雖然我們前面有說設計必須要符合 Regularity 但為了 regularity 會犧牲掉太多 efficiency 這樣反而得不償失，所以有時候我們還是得做出一些 compromise
+
+> 這個 `immediate` 也可以是負數，只需要我們使用 **2's complement**
+
+### RISC-V S-format
+
+<Fig src="/images/ca/ch03-isa/s-format-of-risc-v-instruction.webp" caption="S-format of RISC-V instruction" width={80} />
+
+這是一種為了 `store` operation 而特化的 format，因為他沒有 destination register，但有兩個 source register，**為了 decode pipeline, datapath 的設計**，我們不希望同樣 representation 的 field 在不同 format 裡面被放在不同地方，所以我們可以看到 immediate 被分成了兩個部分，並且用 little endian 去做 encode
+
+<Fig src="/images/ca/ch03-isa/s-format-of-risc-v-instruction-example.webp" caption="S-format of RISC-V instruction example" width={80} />
+
+如果我們把三種 format 放在一起來看，可以明顯地看到他是完全基本上同樣的功能都是對齊的
+
+<Fig src="/images/ca/ch03-isa/s-format-of-risc-v-instruction-example.webp" caption="Compared with three different format" width={80} />
+
+### Logic Operation
+
+| Operation        | C   | RISC-V       |
+| ---------------- | --- | ------------ |
+| Shift left       | `<<` | `slli`       |
+| Shift right      | `>>` | `srli`       |
+| Bit-by-bit AND   | `&`  | `and`, `andi` |
+| Bit-by-bit OR    | `\|`  | `or`, `ori`   |
+| Bit-by-bit XOR   | `^`  | `xor`, `xori` |
+| Bit-by-bit NOT   | `~`  | `not`         |
+
+#### Shift Operation
+
+<Fig src="/images/ca/ch03-isa/format-for-shift-operation.webp" caption="format for Shift Operation" width={80} />
+
+因為 Shift Operation 最多只需要 6-bits 作為 shift constant，所以我們可以把 I-format 前面 6-bits 改回 其他 function code 輔助 `opcode`，specify 是哪種 operation
+
+如果有些 multiply 或是 division 的步驟是要做 $2^n$ 的話，就可以直接用這個 instruction，速度比較快
+
+<Fig src="/images/ca/ch03-isa/shift-operation.webp" caption="Shift Operation" width={80} />
+
+使用方法本質上就是 **I-format** 加上固定的 `imm[5:11]`（作為 `funct6`）而已
+
+#### AND, OR, XOR operation
+
+這三個 operation 本質上用法都一樣
+
+```riscv
+and x9, x10, x11;
+or x9, x10, x11;
+xor x9, x10, x11;
+```
+
+<Fig src="/images/ca/ch03-isa/and-operation.webp" caption="AND Operation" width={80} />
+<Fig src="/images/ca/ch03-isa/or-operation.webp" caption="OR Operation" width={80} />
+<Fig src="/images/ca/ch03-isa/xor-operation.webp" caption="XOR Operation" width={80} />
+
+
+## Instruction for Decision Making
+
+一個 program 真的在執行的時候，我們必須要知道現在到底要執行哪行指令，所以我們需要一個類似 pointer 的東西來指向我們目前執行到哪裡，這個東西叫做 **Program Counter (PC)**，也就是現在要執行的，因此當我們要做 **branch operation**，也就是任何 **改變 Control flow 的 Operation，都是用操作 PC 的方式**
+
+執行的指令可以用這個簡化版 instruction 表示
+```c
+mem[PC]
+```
+如果在沒有 decision 的 control flow 下，下一個是做
+```c
+mem[PC + sizeof(instruction)]
+```
+
+<Fig src="/images/ca/ch03-isa/execution-flow-of-a-program.webp" caption="Execution flow of a Program" width={80} />
+
+### Conditional Operation
+
+分成兩種分別是等於以及不等於後該做什麼操作
+
+1. **Equal Branch**
+    ```riscv
+    beq rs1, rs2, L1
+    ```
+    轉換成 high-level language 就是
+    ```c
+    if (rs1 == rs2) {
+        branch to instruction labeled L1
+    }
+    ```
+
+2. **Unequal Branch**
+    ```riscv
+    bne rs1, rs2, L1
+    ```
+    則是
+    ```c
+    if (rs1 != rs2) {
+        branch to instruction labeled L1
+    }
+    ```
+
+### if-else statement
+
+這裡有個例子，如果想要完成
+```c
+if (i == j) {
+    f = g + h
+} else {
+    f = g - h
+}
+```
+我們把它 Compile 成 RISC-V language，我們給出一些假設
+- `f`, `g`, `h` store 在 `x19`, `x20`, `x21`
+- `i`, `j` store 在 `x22`, `x23`
+
+```riscv
+  bne x23, x24, Else;
+  add x19, x20, x21;
+  beq x0, x0, Exit;
+Else:
+  sub x19, x20, x21;
+Exit:
+  ...
+```
+
+執行流程大約像這樣
+
+<Fig src="/images/ca/ch03-isa/execution-flow-of-a-conditional-branch.webp" caption="Execution flow of a Conditional Branch" width={50} />
+
+我們可以看到，我們是用 label 作為 branch 的起始點，asssembler 的其中一個工作，就是把那個 label 替換成實際的 address
+
+### while statement
+
+```c
+while (state[i] == k) {
+    i += 1;
+}
+```
+
+假設
+- `i` store 在 `x22`
+- `k` store 在 `x24`
+- `save` sotre 在 `x25`
+- 每個 element 都是 8-bytes
+
+```riscv
+Loop:
+  slli x10, x22, 3;
+  add  x10, x10, x25;
+  ld   x9, 0(x10);
+  bne  x9, x24, Exit;
+  addi x22, x22, 1;
+  bne  x0, x0, Loop;
+Exit:
+  ...
+```
+
+前三行的 code，我們先把 `x22` 也就是 `i` 乘以 8(bytes) 存在某個 register 裡面，然後把 save 裡面的那個 element 跟 `k` 也就是 `x24` 做比較，最後跳回 `Loop` label 上
+
+#### Basic Block
+
+在 assembly 中，一個 basic block 的需要符合兩個條件
+- Block 裡面沒有 **embedding branch**（不會跳出去）
+- Block 裡面沒有 **branch target**（不會從中間開始執行）
+
+也就是說這一段 code 的執行一定是一起的，我們需要知道這件事是因為我們需要做 compiler optimization，如果一段 program 會怎麼被執行要跑了才知道，但是如果我們有了 basic block 的概念，我們就可以把這個 block 裡面的 code 做 reordering 而不會影響其他 code
+
+<Fig src="/images/ca/ch03-isa/basic-block.webp" caption="Basic Block" width={50} />
+
+#### More Conditional Operation
+
+RISC-V 還支援了
+```riscv
+blt rs1, rs2, L1;
+bge rs1, rs2, L2;
+```
+分別代表的是
+```c
+if (rs1 < rs2) {
+    branch to L1
+}
+```
+
+```c
+if (rs1 >= rs2) {
+    branch to L1
+}
+```
+
+還有 
+```riscv
+slt reg1, reg2, reg3;
+```
+是 set less than 的縮寫，意思是
+```c
+if (reg2 < reg3) reg1 = 1;
+else reg1 = 0;
+```
+
+#### Signed and Unsigned
+
+一個數字是 signed 還是 unsigned 會大大影響到這個指令 conditional operation 怎麼執行
+
+```riscv
+x22 = 1111 1111 1111 1111 1111 1111 1111 1111
+x23 = 0000 0000 0000 0000 0000 0000 0000 0001
+```
+這兩個數字如果要比較的話（signed number 會用 2's complement 做負數轉換）
+- **Signed**: -1 < +1
+- **Unsigned**: 429496295 > 1
+
+### switch statement
+
+```c
+switch (k) {
+    case 0: f = i + j; break;
+    case 1: f = g + h; break;
+    case 2: f = g - h; break;
+    case 3: f = i - j; break;
+}
+```
+
+假設
+- `k` store 在 `x18`
+- `f` store 在 `x19`
+- `g` store 在 `x20`
+- `h` store 在 `x21`
+- `i` store 在 `x22`
+- `j` store 在 `x23`
+- `x5`, `x6`, `x7` 是 temporary register
+- `x28` 用來存 `JumpTable` 的起始 address
+
+```riscv
+.data
+JumpTable: .word L0, L1, L2, L3
+
+.text
+    slt  x5, x18, x0        # Test if k < 0
+    bne  x5, x0, Exit       # if k < 0, go to Exit
+
+    slti x5, x18, 4         # Test if k < 4
+    beq  x5, x0, Exit       # if k >= 4, go to Exit
+
+    la   x28, JumpTable     # x28 = address of JumpTable[0]
+    slli x5, x18, 2         # x5 = k * 4
+    add  x6, x5, x28        # x6 = address of JumpTable[k]
+    lw   x7, 0(x6)          # x7 = JumpTable[k]
+    jr   x7                 # jump to the address stored in x7
+
+L0:
+    add x19, x22, x23
+    j Exit
+
+L1:
+    add x19, x20, x21
+    j Exit
+
+L2:
+    sub x19, x20, x21
+    j Exit
+
+L3:
+    sub x19, x22, x23
+
+Exit:
+    ...
+```
+
+前四行的 code 先檢查 `k` 是否在合法範圍 `0 <= k < 4`。如果 `k < 0` 或 `k >= 4`，就直接跳到 `Exit`。
+
+接下來先用 `la` 把 **Jump Table 的起始 address** 存進 `x28`。因為 Jump Table 中每個 entry 是一個 `.word`，也就是 **4 bytes**，所以用
+ 
+```riscv
+slli x5, x18, 2
+```
+
+把 `k` 左移 2 bits，也就是算出 `k * 4`。接著把這個 offset 加到 `JumpTable` 的起始 address
+
+<Fig src="/images/ca/ch03-isa/jumptable-illustration.webp" caption="Jumptable Illustration" width={50} />
+
+再用 `lw` 把 `JumpTable[k]` 裡面存的 **label address** 讀到 `x7`，最後：
+
+```riscv
+jr x7
+```
+
+直接跳到對應的 `L0`、`L1`、`L2` 或 `L3`，而每個 case 後面的 `j Exit` 就是在實作 C 裡面的 `break`。
+
+> `.text` 是放執行 code 的部分，`.data` 是放任何 data structure 宣告的 section
+
+
+#### Pseudo Instruction
+
+我們可以看到
+```riscv
+la  x28, JumpTable
+```
+這行指令，這並不是原始 RISC-V 就有定義的 Instruction，而且組合了好多個 Instruction 為了方便 Programmer 寫 assembly 才弄出來的東西，Assembler 會先把他們轉換成真正有 define 的 RISC-V Instruction
+
+```riscv
+jr x7
+```
+
+也是一個 pseudo instruction，就是 Jump 到 register `x7` 的位置就對了
+
+## Procedure Call Instruction
+
+Procedure Call 在 high-level language 裡面很簡單，像是以下這個例子，我們用混合型的 code 寫一下
+- `f1()` 是被 `f2()` 呼叫的所以叫 **callee**
+- `f2()` 是呼叫 `f1()` 的所以叫 **caller**
+ 
+```c
+int f1 (int i, int j, int k, int g) {
+    // ...
+    add x9, x7, x8;
+    return 1;
+}
+
+int f2 (int s1, int s2) {
+    // ...
+    add x9, x10, x11;
+    i = f1(3, 4, 5, 6);
+    add x7, x8, x9; // <- PC
+    // ...
+}
+```
+
+一個 procedure call 大致可以分成以下幾個步驟：
+
+1. 把 parameters 放進 register，前 8 個 parameter 會放在 `x10` ~ `x17`
+    - 有一種約定俗成的 **calling convention**，也就是 parameter 應該存在哪
+3. 把 control transfer 到 procedure 裡面
+4. 替 procedure 分配需要的 storage
+   - 如果 procedure 需要額外空間，就從 stack 上 allocate
+5. 執行 procedure 裡面的 operations
+6. 把 return value 放進 register
+   - `ret` 放在 `x10` / `x11`，讓 caller 可以取得結果
+7. Return 到原本呼叫的位置
+   - **return address 會存在 `x1`**，procedure 執行完後，根據 `x1` 跳回 caller 繼續執行
+
+Procedure call 要特別注意 register 的 **save** and **restore**，以上面這個例子來說 `x9` 有被 callee 用到，但我們後面 expect 他不應該是被操作過的，所以要有 restore 的動作
+
+### Procedure Call Operation
+
+在 **Procedure Call** 的時候，會需要 **jump**, **link**
+
+```riscv
+jal x1, ProcedureLabel;
+```
+這個操作會做兩件事
+- 把 `PC` set 到 `ProcedureLabel` 上（**jump**）
+- 把**現在 instruction 的 address** 紀錄到 `x1` 上（**link**）
+
+
+而 **Procedure Return**，則會需要 **jump to link register**
+
+```riscv
+jalr x0, 0(x1);
+```
+意思就是跳到 `x0 + x1` 這個 address，也就是把 `PC` 設定回 `x1`，這個 `x0` 因為永遠都是 0，我們為了符合一樣的 instruction format 才這樣設計
+
+### Stack
+
+剛剛講到了 allocation of memory 這件事，我們會用 stack 這個 section 來做 procedure call 的 memory 分配
+
+<Fig src="/images/ca/ch03-isa/stack-in-the-memory.webp" caption="Stack in the memory" width={80} />
+
+我們會像上面那張圖一樣配置 memory，其中我們會有一個特別的 register，就是 `$sp` 也就是 **stack pointer register**，要用來記錄 **top of the procedure frame**，整個電腦就共用一個 stack pointer register，所以會進行像下面這種 procedure calling 時的轉換
+
+<Fig src="/images/ca/ch03-isa/sp-in-stack-memory.webp" caption="$sp in Stack memory" width={80} />
+
+### Leaf Procedure
+
+**Leaf Procedure** 的意思就是沒有再繼續 call 別的 procedure 的 procedure
+
+```c
+#define long long int LL
+
+LL leaf_example(LL g, LL h, LL i, LL j) {
+    LL f;
+    f = (g + h) - (i + j);
+    return f;
+}
+```
+
+假設這個 procedure 會用到：
+- arguments `g`, ..., `j` store 在 `x10` ~ `x13`
+- `f` store 在 `x20`
+- temporary registers 會使用 `x5`, `x6`
+
+因為 procedure 執行過程中會修改 `x5`, `x6`, `x20`，所以需要先把它們原本的值 save 到 stack 裡面，等 procedure 結束前再 restore 回去
+
+<Fig src="/images/ca/ch03-isa/storing-and-restore.webp" caption="Storing and Restore" width={80} />
+
+因此我們的 assembly 會長這樣
+```riscv
+leaf_example:
+    addi sp, sp, -24    # set sp
+    sd   x5, 16(sp)     # store
+    sd   x6, 8(sp)
+    sd   x20, 0(sp)
+    add  x5, x10, x11   # operation
+    add  x6, x12, x13
+    sub  x20, x5, x6
+    addi x10, x20, 0    # set return value
+    ld   x20, 0(sp)     # restore
+    ld   x6, 8(sp)
+    ld   x5, 16(sp)
+    addi sp, sp, 24
+    jalr x0, 0(x1)      # return
+```
+
+如果全部 register 都做 save and restore 的話，這樣 implement 的成本會太大，為了不要讓這件事發生，我們規定了一些 **Register convention**，也就是 callee 某些 register 會進行保護但某些不會
+- `x5` ~ `x7`, `x28` ~ `x31` 會被用作 temporary register，也就是 callee 不會做 preserved 的
+- `x8` ~ `x9`, `x18` ~ `x27` 會被用作 saved register，callee 會保護
+
+> 當然整個 code 都是他寫的就不用管，自己知道就好，但畢竟有時候是在寫一個 library 還是要管一下別人
+
+從剛剛的 convention 裡面，我們可以簡化掉 `x5`, `x6` 的 save
+
+```riscv
+leaf_example:
+    addi sp, sp, -24    # set sp
+    sd   x20, 0(sp)
+    add  x5, x10, x11   # operation
+    add  x6, x12, x13
+    sub  x20, x5, x6
+    addi x10, x20, 0    # set return value
+    ld   x20, 0(sp)     # restore
+    addi sp, sp, 24
+    jalr x0, 0(x1)      # return
+```
+
+### Non-Leaf Procedure
+
+也就是有 call 別的 procedure 的 procedure，像是 recursive call
+
+```c
+long long int fact (long long int n) {
+    if (n < 1) return 1;
+    else return n * fact(n - 1);
+}
+```
+
+假設：
+- `n` store 在 `x10`
+- return value 也放在 `x10`
+- `x1` store return address
+- `sp` 是 stack pointer
+- `x5`, `x6` 是 temporary register
+
+```riscv
+fact:
+    addi sp, sp, -16
+    sd   x1, 8(sp)
+    sd   x10, 0(sp)
+
+    addi x5, x10, -1
+    bge  x5, x0, L1
+
+    addi x10, x0, 1
+    addi sp, sp, 16
+    jalr x0, 0(x1)
+
+L1:
+    addi x10, x10, -1
+    jal  x1, fact
+
+    addi x6, x10, 0
+
+    ld   x10, 0(sp)
+    ld   x1, 8(sp)
+    addi sp, sp, 16
+
+    mul  x10, x10, x6
+    jalr x0, 0(x1)
+```
+
+一開始先在 stack 上開 **16 bytes** 的空間：
+
+```riscv
+addi sp, sp, -16
+sd   x1, 8(sp)
+sd   x10, 0(sp)
+```
+
+把目前的 **return address `x1`** 跟 argument **`n = x10`** save 到 stack。這是因為等等 recursive call `fact(n - 1)` 會修改 `x1` 和 `x10`，所以原本的值必須先留下來。
+
+接下來判斷是不是 base case：
+
+```riscv
+addi x5, x10, -1
+bge  x5, x0, L1
+```
+
+先算
+
+```text
+x5 = n - 1
+```
+
+如果 `x5 >= 0`，也就是 `n >= 1`，就跳到 `L1` 做 recursive call。
+
+如果沒有跳，代表 `n < 1`，直接：
+
+```riscv
+addi x10, x0, 1
+```
+
+把 return value 設成 `1`，接著把 stack pop 回去並 return：
+
+```riscv
+addi sp, sp, 16
+jalr x0, 0(x1)
+```
+
+
+如果 `n >= 1`，就進入 `L1`：
+
+```riscv
+L1:
+    addi x10, x10, -1
+    jal  x1, fact
+```
+
+先把 argument 改成 `n - 1`，然後呼叫：
+
+```c
+fact(n - 1)
+```
+
+`fact(n - 1)` 回傳之後，結果會放在 `x10`，所以先把它存到 `x6`：
+
+```riscv
+addi x6, x10, 0
+```
+
+也就是：
+
+```text
+x6 = fact(n - 1)
+```
+
+接著從 stack 把原本 caller 的 `n` 和 return address restore 回來：
+
+```riscv
+ld   x10, 0(sp)
+ld   x1, 8(sp)
+addi sp, sp, 16
+```
+
+最後
+
+```riscv
+mul x10, x10, x6
+```
+
+得到
+
+```text
+x10 = n * fact(n - 1)
+```
+
+最後用：
+
+```riscv
+jalr x0, 0(x1)
+```
+
+跳回 caller，也就是完成：
+
+```c
+return n * fact(n - 1);
+```
+
+### Memory Layout
+
+在 OS 裡面我們就學過，我們可以幫 Memory 做 section 的區分
+- **Text**：program code
+- **Static data**：global variables
+    - ex. static variables in C
+    - x3（global pointer）initializes to address allowing 
+    offsets into this segment
+- **Dynamic data**：**heap**
+    - ex. `malloc` in c, `new` in Java
+- **Stack**：automatic storage
+
+
+<Fig src="/images/ca/ch03-isa/memory-layout.webp" caption="Memory Layout" width={70} />
+
+有一個 register 叫做 **frame pointer**，stack pointer 是指導 top of the stack，那 frame pointer 就是指到 **stack bottom** of a procedure
+
+<Fig src="/images/ca/ch03-isa/frame-pointer-and-stack-pointer.webp" caption="Frame Pointer and Stack Pointer" width={70} />
+
+看完這些後我們再看一下 register convention 就可以比較輕鬆理解了
+
+```
+x0              the constant value 0
+x1              return address
+x2              stack pointer
+x3              global pointer
+x4              thread pointer
+x5-x7, x28-x31  temporaries
+x8              frame pointer
+x9, x18-x27     saved registers
+x10-x11         function arguments/results
+x12-x17         function arguments
+```
+
+## Character Data
+
+Character data 有兩種 encode 方法
+1. **Byte-encoded** character sets 也就是一個 byte 一個 char
+    - ASCII：128 chatacters（95 graphic、33 control）
+    - Latin-1：256 characters（ASCII、+96 more graphic characters）
+2. **Unicode**：32-bit character set
+    - used in Java, C++ wide character
+    - most of the world's alphabets, plus symbols
+    - UTF-8, UTF-16：variable-length encodings
+
+### Byte/Halfword/Word Operation
+
+我們做 load, store instruction 我們都需要特別著要他到底需要操作多大的 register
+
+- load byte(1) / halfword(2) / word(4)：sign extend to 64 bits in rd（sign extended：最高位是 1 就把前面沒滿的補 1、是 0 就補 0）
+    - `lb rd, offset(rs1)`
+    - `lh rd, offset(rs1)`
+    - `lw rd, offset(rs1)`
+- load byte / halfword / word unsigned：zero extend to 64 bits in rd（全補 0）
+    - `lbu rd, offset(rs1)`
+    - `lhu rd, offset(rs1)`
+    - `lwu rd, offset(rs1)`
+- store byte / halfword / word：store rightmost 8 / 16 / 32 bits
+    - `sb rs2, offset(rs1)`
+    - `sh rs2, offset(rs1)`
+    - `sw rs2, offset(rs1)`
+
+#### String Copy
+
+我們現在想做 string copy 的操作
+
+```c
+void strcpy (char x[], char y[]) {
+    size_t i; i = 0;
+    while ((x[i] = y[i]) != '\0') i++
+}
+```
+
+假設 argument `y` 在 `x10`, `x` 在 `x11`
+
+```riscv
+strcpy:
+    addi sp, sp, -8        // adjust stack for 1 doubleword
+    sd   x19, 0(sp)        // push x19
+    add  x19, x0, x0       // i = 0
+
+L1:
+    add  x5, x19, x11     // x5 = addr of y[i]
+    lbu  x6, 0(x5)        // x6 = y[i]
+    add  x7, x19, x10     // x7 = addr of x[i]
+    sb   x6, 0(x7)        // x[i] = y[i]
+    beq  x6, x0, L2       // if y[i] == 0 then exit
+    addi x19, x19, 1      // i = i + 1
+    jal  x0, L1           // unconditional jump, next iteration of loop
+
+L2:
+    ld   x19, 0(sp)       // restore saved x19
+    addi sp, sp, 8        // pop 1 doubleword from stack
+    jalr x0, 0(x1)        // return
+```
+
+### 32-bit Constant
+
+即便是有 `immediate` 的 I-format 都只有 12-bit 的儲存空間，如何把一個 32-bit 的 constant load 出來
+
+<Fig src="/images/ca/ch03-isa/i-format-of-risc-v-instruction.webp" caption="I-format of RISC-V instruction" width={80} />
+
+RISC-V 開發了一種新的 instruction
+
+```riscv
+lui rd, constant;
+```
+
+我們想把一個 32-bit 的 constant load 到某個 register 的時候我們就可以
+1. 把一個 20-bit constant copy 到 `[31:12]` 這個區間 (`lui`)
+2. 用 `addi` 把剩下的 bit 塞到最後面
+
+<Fig src="/images/ca/ch03-isa/example-of-lui.webp" caption="Example of lui" width={80} />
+
+為此 RISC-V 又開發了 **U-type instruction**
+
+<Fig src="/images/ca/ch03-isa/u-type-instruction.webp" caption="U-type instruction" width={80} />
+
+## Encoding for Control flow instruction
+
+### SB-format
+
+如果是 branches 操作 `bne`, `beq`，我們會用 **SB-format**
+
+<Fig src="/images/ca/ch03-isa/sb-type-instruction.webp" caption="SB-type instruction" width={80} />
+
+這樣的 `imm` 排法是為了 datapath 的方便，比如說我想跳去 2000 這個位置，我就需要跳到 `0 0111 1101 0000` 那放的方法就是
+
+<Fig src="/images/ca/ch03-isa/sb-type-instruction-example.webp" caption="SB-type instruction example" width={80} />
+
+這樣的 addressing 方式叫做 **PC-relative** 的 addressing，計算方法是
+$$
+\text{Target Address} = \text{PC} + \text{immediate[]} \times 2
+$$
+
+branch target 至少 2-byte aligned，所以 RISC-V B-type branch 不存 `imm[0]`，因為 `imm[0]` 永遠是 `0`
+
+### UJ-format
+
+如果是 unconditional jump 操作 `jal`, `jalr`，我們會用 **UJ-format**
+
+<Fig src="/images/ca/ch03-isa/uj-type-instruction.webp" caption="UJ-type instruction" width={80} />
+
+也是用 PC-relative addressing，我們需要很多
+
+<Fig src="/images/ca/ch03-isa/uj-type-instruction-example.webp" caption="UJ-type instruction example" width={80} />
+
+### Branching Far Away
+
+SB-format 只能跳到 12-bit 以內，我們需要想辦法 branch 到 12-bit 之外，通常這時候我們會改寫 code
+
+相等的話我們就要跳到 `L1`
+```riscv
+beq x10, x0, L1
+```
+
+我們可以改寫成不相等的話就跳到 `L2`（繼續執行），相等的話就執行 `jal`，因為 `jal` 有 20-bits 比較多
+
+```riscv
+    bne x10, x0, L2
+    jal x0, L1
+L2: 
+```
+
+#### Long Jump
+
+另外一種方法叫做 **long jump**，我們知道他的 32-bits absolute address，我們剛剛介紹了 32-bits 的 constant loading method，所以我們可以
+
+```
+lui x8, address[31:12];
+jalr x0, address[11:0](x8);
+```
+
+我們先把前 20-bits 的 address 用 `lui` 塞進 `x8`，然後用 `jalr` 做後面的 addressing jump
+
+<Fig src="/images/ca/ch03-isa/addressing-in-risc-v.webp" caption="Addressing in RISC-V" width={80} />
+
+<Fig src="/images/ca/ch03-isa/format-in-risc-v.webp" caption="Format in RISC-V" width={80} />
+
+### Synchronization In RISC-V
+
+RISC-V 也可以做到 **Synchronization** 或是說 **Data Sharing**，之前 OS 說過需要有 lock 的概念
+```
+P(1)
+    Acquire Lock;
+    If Lock = 0
+        enter critical section;
+    Release Lock;
+```
+```
+P(2)
+    Acquire Lock;
+    If Lock = 0
+        enter critical section;
+    Release Lock;
+```
+
+那我們來看看有沒有辦法用現在學過的 Instruction 做到這件事，最簡單的 lock 改念就是把某個 register 的 val 跟 memory 裡面的 val 交換
+- `lock = 0`：沒有人拿
+- `lock = 1`：已經有人拿
+
+最直覺我們會把 code 寫成
+
+```riscv
+lockit:
+    lw    x2, 0(x1)      # read lock
+    sw    x4, 0(x1)      # lock = 1
+    bne  x2, lockit
+```
+
+但這樣**不安全**，因為 `lw` 和 `sw` 是兩個分開的 instruction，假設一開始：
+
+```text
+lock = 0
+```
+
+兩個 processor 可能同時：
+
+```text
+P1: lw → 讀到 0
+P2: lw → 也讀到 0
+P1: sw → 寫成 1
+P2: sw → 寫成 1
+```
+
+結果兩個人都以為自己拿到 lock，所以問題是 get lock 跟 check lock 應該要是一個 atomic operation
+
+#### Conditional Store/Load
+
+所以我們引入 conditional store and load
+
+```riscv
+lr.d x10, (x20);
+```
+
+做兩件事：
+
+- 把 `x20` 指向的 memory value load 到 `x10`
+- 對這個 `x20` memory address 做一個 **reservation**，也就是讓 CPU 知道我們想關注這個 register（就是把他當 lock 的意思）
+
+接著：
+
+```riscv
+sc.d x11, x12, (x20);
+```
+
+嘗試把 `x12` 寫進 memory：
+
+- 如果從 `lr.d` 到現在，`mem[x20]` **沒有被其他 processor 改過**，那 store 成功，想 store 的東西會到 `mem[20]`，`x11 = 0`
+- 如果被改過，就代表store 失敗，`x11 != 0`
+
+<Aside type="tip" title="Example Lock">
+用它來實作 lock，假設：
+
+- `x20`：lock 的 address
+
+```riscv
+addi x12, x0, 1
+
+again:
+    lr.d x10, (x20)          # read lock
+    bne  x10, x0, again      # lock != 0，繼續等
+
+    sc.d x11, x12, (x20)     # 嘗試 lock = 1
+    bne  x11, x0, again      # store 失敗就重新來
+```
+
+假設兩個 processor 都同時看到：
+
+```text
+lock = 0
+```
+
+兩個都可以成功做 `lr.d`，但是其中一個先 `sc.d`：
+
+```text
+P1: sc.d → success → lock = 1
+```
+
+這時 P2 的 reservation 就失效：
+
+```text
+P2: sc.d → fail
+```
+
+所以 **只有一個 processor 可以拿到 lock**。
+
+Unlock 就很簡單：
+
+```riscv
+sd x0, 0(x20)        # lock = 0
+```
+</Aside>
+
+<Aside type="tip" title="Example Atomic Swap">
+接下來我們可以試試看 atomic swap，我們目標是要交換 `x23` 跟 `lock` 的值，我們可以用
+```riscv
+again:
+    lr.d x10, (x20)
+    sc.d x11, (x20), x23     // X11 = status
+    bne  x11, x0, again       // branch if store failed
+    addi x23, x10, 0         // X23 = loaded value
+```
+</Aside>
+
+Ref: https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_GREEN_CARD.pdf

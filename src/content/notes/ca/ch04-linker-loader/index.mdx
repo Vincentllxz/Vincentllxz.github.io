@@ -1,0 +1,301 @@
+---
+title: "NTU-CA 計算機結構 Ch4 Linker and Loader"
+description: "NTU Computer Architecture 計算機結構:Ch4 Linker and Loader"
+publishDate: "2026-10-10 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CA"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
+
+# Linker and Loader
+
+## Execution of a Program
+
+我們要運行一個 C language 的時候需要經過以下的幾個地方
+1. **Compiler**，生成 assembly code 進行 optimization
+2. **Assembler**，把 assembly code 轉換成 machine code（**object file**）
+3. **Linker**，把不同的 procedure 會寫成不同的 object file，把它們合併
+4. **Loader**，把合併後的 code 塞進 memory 裡面
+
+<Fig src="/images/ca/ch04-linker-loader/execution-of-a-c-code.webp" caption="Execution of a C code" width={80} />
+
+### Assembler
+
+要維護一個 symbol table（compiler 課程會提到）
+
+下面是一個 object file 的 layout
+
+<Fig src="/images/ca/ch04-linker-loader/object-file.webp" caption="Object File" width={80} />
+
+我們可以看到有分成很多 section，有一些直得注意的地方
+1. 當我們有一個 label 出現的時候，我們就先在 symbol table 裡面留下一個 entry，留下 address 等到後面再填進去，在上面的 `B` 的位置先填 `0`
+2. `x3` 是 global variable register
+3. 我們會留下一個 **relocation information**，讓後面的流程可以更順利，我們會在裡面留下 dependency 來給 linker 做 check
+
+Assembler 還會把我們先前提到的 **pseudo instruction** 轉換成 RISC-V 真正支援的 instruction，這種東西出現的理由是因為 RISC 的設計宗旨是讓 implementation 變簡單，但這樣可能會讓 programmer 的工作變困難（一種 trade-off），所以我們才需要 pseudo instruction
+
+比如說
+```riscv
+li x9, 123
+```
+原生 RISC-V 不支援，因為他只支援 3 個 operand 的操作，但這個 pseudo instruction 會被轉換成
+```riscv
+addi x9, x0, 123
+```
+
+### Linker (Editor)
+
+因為 Linker 的工作是要讓 relocation information 補齊（做 edit），所以才叫做 editor，他的工作是**把 independently 的 assembly code link 在一起**，主要的工作有以下幾項
+1. 把 code 跟 data 的 symbol 都放進 memory
+2. 決定 **data** 和 instruction **label** 的 **address**
+3. 把 internal 跟 external 的 **reference** 都修正好
+
+最後生成出來的 file 我們稱它為 **executable image**
+
+<Fig src="/images/ca/ch04-linker-loader/two-files-to-link.webp" caption="Two Files to Link" width={80} />
+
+在這個例子裡面 A, B 是互相 call 的，當 linker 要把這兩個 object file link 成一個 executable file 的時候，我們會先把 procedure A, B 的 **text**, **data** segment 先合併，並且填寫**真實的 address (Virtual memory address)**，每個 instruction 都是 4 bytes，所以我們可以這樣填寫
+
+當我們知道了真實的 address 後我們就可以從 relocation information 裡面把資料填起來，也就是**根據 dependency 把 text segment 裡面有關 address 的 instruction 填好**
+
+在這個步驟我們還會額外紀錄 data, text segment 的 size
+
+### Loader
+
+當我們有一個 executable file 之後，我們就可以把它 load 進 memory 裡面，流程如下
+1. 讀取 header 來決定每個 segment 的 size
+2. 建立 virtual memory 的 address space
+3. 把 **text** 跟 **initialized data** 放進 memory
+    - 如果會有 page fault (太滿了) 的話，我們就要先把 **page table** set up
+4. 把 **argument** 放進 **stack**
+5. 把相對應的 register 設定好 `sp`, `fp`, `gp`
+6. Jump 到 **startup routine**，通常會長下面這樣
+```riscv
+_start_up:
+    lw x10, offset($sp);
+    jal x1, main;
+    exit;
+```
+
+## Dynamic Linking
+
+Dynamic 是一個很重要的概念 static 是預先準備好的意思，Dynamic 是一種因地制宜的意思，通常我們有些 code 其實不一定會 branch 到，而且 executable file 太大了，要整個 load 進 memory 就太大了，所以 **dynamic link** (**lazy procedure linkage**) 就被發明出來了
+
+
+<Fig src="/images/ca/ch04-linker-loader/dynamic-linking.webp" caption="Dynamic Linking" width={50} />
+
+第一次造去 call 某個 routine 的時候，我們需要呼叫 **dynamic loader** 把那個 code Link 進來，但當後面要執行之後我們就可以像 static link 一樣直接找到他的位置
+
+通常經過很多層 library call 才能找到真正的 Linking Library，但你載入後，就可以夠過 indirection table，遇到不存在會先在 runtime 呼叫 stub 然後請 Dynamic Linker 去做 Linking
+
+以下這個例子，我們原始的 `printf` function 裡面做的不是真正的 `printf`，而是去 load 一段 address，那段 address 是一個 linker，他的工作室把真正的 `printf` load 到 memory 裡面，並且把 `L1` 的 label 換成真正的 `printf` 也就是 `0x400000`
+
+<Fig src="/images/ca/ch04-linker-loader/example-of-dynamic-linking.webp" caption="Example of Dynamic Linking" width={80} />
+
+但畢竟還是要經過一個 Indirection table 會需要一點 overhead，比 static 多
+
+### Java Linking
+
+<Fig src="/images/ca/ch04-linker-loader/just-in-time-compilation.webp" caption="Just in time Compilation" width={80} />
+
+Java 採取的方法是先 compile 成 bytecode，然後再用 JVM 做即時的 interpretation，但這樣一定會產生 overhead，因為 JVM 即時翻譯無法優化，所以我們又產生 Just In Time Compiler，在不干擾 program 進行的情況下優化，如果一個 section 一直被執行，JIT 就會去優化，然後通知 JVM 使用這段 machine code
+
+
+### C example in Sorting
+
+假設我們有一個 sort function，我們會需要 call 一個 leaf procedure `swap()`
+
+
+```c
+void swap(long long int v[],
+          long long int k)
+{
+    long long int temp;
+    temp = v[k];
+    v[k] = v[k+1];
+    v[k+1] = temp;
+}
+```
+
+翻譯後長這樣
+
+```riscv
+swap:
+    slli x6,x11,3      // reg x6 = k * 8
+    add  x6,x10,x6     // reg x6 = v + (k * 8)
+    ld   x5,0(x6)      // reg x5 (temp) = v[k]
+    ld   x7,8(x6)      // reg x7 = v[k + 1]
+    sd   x7,0(x6)      // v[k] = reg x7
+    sd   x5,8(x6)      // v[k+1] = reg x5 (temp)
+    jalr x0,0(x1)      // return to calling routine
+```
+
+而這個 Sort 會使用這段 procedure
+
+```c
+void sort (long long int v[], size_t n) {
+    size_t i, j;
+    for (i = 0; i < n; i += 1) {
+        for (j = i - 1;
+             j >= 0 && v[j] > v[j + 1];
+             j -= 1) {
+            swap(v,j);
+        }
+    }
+}
+```
+
+(這裡可能有無窮迴圈 有一個小小的 bug 並且外圈會有 underflow，因為 `size_t` 是 unsigned)
+
+這段是 outer loop 的 body
+
+```riscv
+    li   x19,0          // i = 0
+for1tst:
+    bge  x19,x11,exit1  // go to exit1 if x19 ≥ x11 (i≥n)
+
+    (body of outer for-loop)
+
+    addi x19,x19,1      // i += 1
+    j    for1tst        // branch to test of outer loop
+exit1:
+```
+
+inner loop 的 code 長這樣
+
+```riscv
+    addi x20,x19,-1     // j = i -1
+for2tst:
+    blt  x20,x0,exit2   // go to exit2 if x20 < 0 (j < 0)
+    slli x5,x20,3       // reg x5 = j * 8
+    add  x5,x10,x5      // reg x5 = v + (j * 8)
+    ld   x6,0(x5)       // reg x6 = v[j]
+    ld   x7,8(x5)       // reg x7 = v[j + 1]
+    ble  x6,x7,exit2    // go to exit2 if x6 ≤ x7
+    mv   x21,x10        // copy parameter x10 into x21
+    mv   x22,x11        // copy parameter x11 into x22
+    mv   x10,x21        // first swap parameter is v
+    mv   x11,x20        // second swap parameter is j
+    jal  x1,swap        // call swap
+    addi x20,x20,-1     // j -= 1
+    j    for2tst        // branch to test of inner loop
+exit2:
+```
+
+我們在這裡看 code 都理所當然的會 work，但其實所有 I/O 的部分都可能會出問題（業界問題）
+
+前面講的的 convention 也要遵守
+
+**Preserve saved registers:**
+
+```riscv
+addi sp,sp,-40      // make room on stack for 5 regs
+sd   x1,32(sp)      // save x1 on stack
+sd   x22,24(sp)     // save x22 on stack
+sd   x21,16(sp)     // save x21 on stack
+sd   x20,8(sp)      // save x20 on stack
+sd   x19,0(sp)      // save x19 on stack
+```
+
+**Restore saved registers:**
+
+```riscv
+exit1:
+    sd   x19,0(sp)      // restore x19 from stack
+    sd   x20,8(sp)      // restore x20 from stack
+    sd   x21,16(sp)     // restore x21 from stack
+    sd   x22,24(sp)     // restore x22 from stack
+    sd   x1,32(sp)      // restore x1 from stack
+    addi sp,sp,40       // restore stack pointer
+    jalr x0,0(x1)
+```
+
+### Compiler
+
+<Fig src="/images/ca/ch04-linker-loader/sorting-performance-in-different-compilation-optimization.webp" caption="Sorting Performance in different compilation Optimization" width={70} />
+
+`-O3` 不一定是最優解，但時間一定是花最多的，要計算 Performance 我們就需要看其他的 metric，Instruction count, Clock Cycle, CPI 都會不一樣
+
+Compiler 分為前端跟後端
+- 前端就是各種 language 接成 Intermediate representation
+- 後端是要把各種 IR 轉換成 target machine language
+
+這些 Optimization 都是在 backend 做的
+
+`-O1`, `O2`, `O3` 都會減少 Instruction Count，但 `-O3` call 的 instruction 的 CPI 會比較低，所以效能好
+
+<Fig src="/images/ca/ch04-linker-loader/sorting-performance-in-different-language.webp" caption="Sorting Performance in different language" width={70} />
+
+這裡就能看出 Interpreter 跟 Compiler 的 Performance 區別，但因為 sorting problem 都有重複執行的 code，所以 JIT 會做優化
+
+Compiler 的優化真的很難預測到底誰好，因為 Compiler optimizations 對你的 program 裡面的 Algorithm 有非常大的關聯性
+
+JIT 對 Java 會有很大的優化，但一樣跟 Algorithm 很 sensitive
+
+### Array v.s. Pointer
+
+這是一個爭論很久的問題，一樣是有 Trade-off
+
+<Fig src="/images/ca/ch04-linker-loader/pointer-and-array.webp" caption="Pointer and Array" width={70} />
+
+這裡就有一個例子，我們可以看看在完全沒優化的情況下會發生這件事，pointer 裡面只需要 3 個 instruction，但 array 要 5 個
+
+> pointer 裡面的 +1 是 +一個 element 的大小
+
+在效能上就可以做分析，某些行為應該要很快，但沒成功，我們就可以看 Compiler 的 code
+
+### MIPS instruction
+
+也是 RISC 家族的一員，只有三種 format
+
+<Fig src="/images/ca/ch04-linker-loader/mips-and-risc-v.webp" caption="MIPS and RISC-V" width={100} />
+
+### x86 instruction
+
+是一種 CISC instruction set 所以會差很多，是一個比較古老的 ISA，Intel 的設計邏輯就是一直增加 ISA，一直做 evolution，增加各種 processor，這樣雖然功能多，可能以現代的觀點會很糟糕，但是改不太動，因為要繼承前面的功能
+
+AMD 也能做 Intel 處理器，因為有授權，在 x86 第一款 Pentium 的時候出了一個 bug，是 fp 的 error 最後 Intel 收回了
+
+現代的 architecture 可以轉換的很快是因為有 dynamic translation
+
+<Fig src="/images/ca/ch04-linker-loader/x86-instruction-format.webp" caption="x86 instruction format" width={60} />
+
+x86 的指令非常複雜，因為他希望一個指令可以直接做到一件事，所以他的規則非常複雜
+
+<Fig src="/images/ca/ch04-linker-loader/x86-instruction-example.webp" caption="x86 instruction example" width={60} />
+
+不僅計算方法不一樣，連長度都不一樣
+
+<Fig src="/images/ca/ch04-linker-loader/x86-instruction-format-length.webp" caption="x86 instruction format length" width={60} />
+
+我們在 CISC 跟 RISC 都一樣有 Microengine 但 CSIC 多了一個 overhead
+
+把 ISA instruction 拆成更底層 micro-operations（µops），然後用 microengine 去跑，所以其實 CISC, RISC 執行的方法都差不多，都會有很多小指令，但 CISC 還需要更複雜的 front end 來做 µops translation
+
+### Other RISC-V Instructions
+
+- **RV64I**：64-bit 的 Base Integer ISA
+  - `auipc`：`rd = pc + (imm << 12)`，常搭配 `jalr` 做 long jump
+  - `slt / sltu / slti / sltiu`：比較大小，成立設為 `1`
+  - `addw / subw / addiw`：32-bit add/sub
+  - `sllw / srlw / sraw ...`：32-bit shift
+- **RV32I**：register 與基本運算皆為 32-bit
+
+### Instruction Set Extensions
+
+- **M**：integer multiply / divide / remainder
+- **A**：atomic memory operations
+- **F**：single-precision floating point
+- **D**：double-precision floating point
+- **C**：compressed instructions
+  - 常用 instruction 用 **16-bit encoding**
+  - 目的主要是減少 code size
+
+例如：`RV64IMAFDC` = RV64I + M + A + F + D + C
