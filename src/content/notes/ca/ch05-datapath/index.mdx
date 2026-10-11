@@ -1,14 +1,14 @@
 ---
 title: "NTU-CA 計算機結構 Ch5 Datapath"
 description: "NTU Computer Architecture 計算機結構:Ch5 Datapath"
-publishDate: "2026-10-10 12:00:00"
+publishDate: "2026-10-11 12:00:00"
 tags:
   - "NTU"
   - "CSIE"
   - "CA"
   - "note"
 language: "zh-TW"
-draft: true
+draft: false
 comment: true
 ---
 import { Aside } from 'astro-pure/user'
@@ -85,6 +85,13 @@ $$
 
 我們可以把這些 hardware component 主要分成兩種
 - **Combinational Element**：Output 只跟當下的 input 有關，像是 ALU
+- **Storage Element**：又叫做 sequential element，output 跟時間有關，這種 component 至少會有兩個 input 一個 output
+    - input and **clock (clocking methodology)**
+    - 像是 register, memory, D flip-flop 都是這種 component
+
+### Combinational Logic Element
+
+以下是幾個最基礎的 combinational logic element
 
 <ImageGallery
   label="Combinational Logic Element"
@@ -96,6 +103,353 @@ $$
   ]}
 />
 
-- **Storage Element**：又叫做 sequential element，output 跟時間有關，這種 component 至少會有兩個 input 一個 output
-    - input and **clock (clocking methodology)**
-    - 像是 register, memory, D flip-flop 都是這種 component
+### Storage Element
+
+#### Register
+
+Register 是一種需要通電才能儲存資料的 element，速度快，但能記錄的東西少，裡面會儲存一個 `0` or `1`
+
+<Fig src="/images/ca/ch05-datapath/register.webp" caption="Register" width={50} />
+
+四個接腳，分別是
+1. **Data In (D)**
+2. **Data Out (Q)**
+3. **Clock (CLK)**
+4. **Write Enable**：打開的時候才能寫入資料
+
+Clock 存在的意義是為了分辨什麼時候可以改變裡面的資料，不然會出現邏輯紊亂，通常我們採用的是 **Edge-triggered**，也就是**只有在 `CLK` 從 0 變成 1 的時候我們才能對裡面的 value 進行 update**
+
+<Fig src="/images/ca/ch05-datapath/clocking-and-register-output.webp" caption="Clocking and Register Output" width={80} />
+
+我們只要把很多這種 register 接在一起，就可以變成一個完整的 RISC-V 裡面的 **register file** (32 * 64-bits)
+
+<Fig src="/images/ca/ch05-datapath/register-file-in-risc-v.webp" caption="Register File in RISC-V" width={50} />
+
+他的組成是兩個 input, 一個 output，都是 64-bits 的，利用以下幾個接腳控制
+- `CLK` clocking methodology
+- `RW` 在 `WE == 1` 的時候決定要 write 哪個 register
+- `RA` 決定要 read 哪個 register 到 `busA`
+- `RB` 決定要 read 哪個 register 到 `busB`
+- `WE` write enable
+
+以下是幾個注意小題小
+- `RW`, `RB`, `RA` 因為只有 32 個 register 可以選，所以都是 5-bits
+- `busA`, `busB` 裡面的 value 只有在 CLK 結束後，也就是 update 後才會讀到正確的東西
+
+#### Memory
+
+Memory 比 register 能記錄更多東西，但是他的速度就比較慢
+
+<Fig src="/images/ca/ch05-datapath/memory.webp" caption="Memory" width={50} />
+
+一樣有一個 data in 一個 data out，但 control signal 跟 register 不一樣
+- `WE`：write enable
+- `address` 直接指定要操作的 address
+- `CLK`
+
+### Clocking Methodology
+
+Clocking method 分成很多種，但總歸不變的是一定會有
+1. 容許 store component update state 的時間
+2. Combinational Logic component 運算的時間
+
+<Fig src="/images/ca/ch05-datapath/clocking-methodology.webp" caption="Clocking Methodology" width={100} />
+
+但我們可以根據 instruction 細分成很多種 method，比如說右邊那種 state update 只更新自己的，也就是他會更新自己的值，也有左邊那種會去更新其他 element 的 instruction
+
+## Assemble Datapath
+
+首先假設我們已經進行完所有 Instruction Set 的分析，接下來我們要把
+$$
+\boxed{\text{Register Transfer Requirement} \quad \to \quad \text{Datapath Assembly}}
+$$
+
+我們可以細分成以下這些操作
+1. **Instruction Fetch**
+2. **Read Operand, Execute Operation**
+3. **Memory R/W**
+4. **Register Update**
+
+<Fig src="/images/ca/ch05-datapath/datapath.webp" caption="Datapath" width={80} />
+
+最後組合出一個類似於這樣的 datapath
+
+### Instruction Fetch Unit
+
+做 instruction fetch 我們需要達到以下幾件事情
+1. **Fetch Instruction**：執行 `mem[PC]` 裡面的 instruction
+2. **Update Program Counter**：兩種轉換可能
+    - `PC += 4`：正常轉換
+    - `PC = Target Address`：branch 或 jump 等 control flow 操作
+
+為了達成這些功能我們需要這些 component
+1. **PC**：program counter
+2. **Memory**：紀錄 instruction
+3. Adder：進行 `PC += 4` 操作
+
+> Branch 合併到後面一起講
+
+<Fig src="/images/ca/ch05-datapath/instruction-fetch.webp" caption="Instruction Fetch" width={80} />
+
+### Add and Subtract Operation
+
+這類型 operation 的 RTL 不外乎都是
+
+$$
+\boxed{
+\texttt{R[rd]} \gets \texttt{R[rs1] <op> R[rs2]}
+}
+$$
+
+而寫成 assembly 會像是
+```riscv
+add rd, rs1, rs2;
+```
+
+藉由上面的資訊我們知道這類型的 datapath 需要
+1. `RW`：指定寫入的 register
+2. `RA`：指定 `rs1` 的 register
+3. `RB`：指定 `rs2` 的 register
+4. `RegWr`：Register 的 write enable
+5. `ALUctr`：指定 ALU operation 的 signal
+
+> 後面兩個我們在後面會再次提到 control signal decoding method
+
+組合後的 datapath 會長這樣
+
+<Fig src="/images/ca/ch05-datapath/datapath-of-add-subtract-operation.webp" caption="Datapath of Add/Subtract Operation" width={80} />
+
+### Load Operations
+
+$$
+\boxed{
+\texttt{R[rd]} \gets \texttt{Mem[rs1 + sign\_ext(imm12)]]}
+}
+$$
+
+而寫成 assembly 會像是
+```riscv
+ld rd, imm12(rs1);
+```
+
+這類型的 datapath 需要
+1. `RW`：指定寫入的 register
+2. `RA`：指定 `rs1` 的 register
+3. `RegWr`：Register 的 write enable
+4. `ALUctr`：指定 ALU operation 成 `add`
+5. `ALUsrc`：選擇 sign extension 的 `imm12` 作為 ALU 的 operand
+6. `MemtoReg`：選擇 memory 讀出的結果作為 `busW`
+
+先把 `rs1` 讀出來到 `busA` 然後把 `imm12` 用 sign extension 變成 64 bits，然後用 multiplexer 選 extension 後的 `imm12` 跟 `busA` 做計算丟到 Memory 的 `addr` 做讀取後，用 `MemtoReg` 選 memory 的 output 作為 `busW` 寫入 `R[rd]`
+
+<Fig src="/images/ca/ch05-datapath/datapath-of-load-operation.webp" caption="Datapath of Load Operation" width={80} />
+
+### Store Operations
+
+$$
+\boxed{
+\texttt{Mem[rs1 + sign\_ext(imm12)]]} \gets \texttt{R[rs2]}
+}
+$$
+
+而寫成 assembly 會像是
+```riscv
+sd rs2, imm12(rs1);
+```
+
+這類型的 datapath 需要
+1. `RA`：指定 `rs1` 的 register
+2. `RB`：指定 `rs2` 的 register
+3. `ALUctr`：指定 ALU operation 成 `add`
+4. `MemWr`：要開
+
+先把 `rs1` 讀出來到 `busA` 然後把 `imm12` 用 sign extension 變成 64 bits，然後用 multiplexer 選 extension 後的 `imm12` 跟 `busA` 做計算丟到 Memory 的 `addr`，用 `rs2` 讀出來的值當 `DataIn` 寫入 memory
+
+<Fig src="/images/ca/ch05-datapath/datapath-of-store-operation.webp" caption="Datapath of Store Operation" width={80} />
+
+### Branch Operation
+
+我們會寫成
+
+```txt
+if (rs1 == rs2) 
+    PC = PC + (sign_ext(imm12) * 2)
+else
+    PC = PC + 4
+```
+
+而寫成 assembly 會像是
+
+```riscv
+beq rs1, rs2, imm12;
+```
+
+我們首先取出 `R[rs1]`, `R[rs2]` 然後用 ALU 計算他們相減的值，ALU 可以在他們相減 `= 0` 的時候發出一個 `zero` signal，也就是告訴 PC 前面的 Multiplexer 現在應該要跳去 Sum 的結果了，最後就用 `imm12` extension 過後的結果左移一位後進行 jump 的操作
+
+<Fig src="/images/ca/ch05-datapath/datapath-of-branch-operation.webp" caption="Datapath of Branch Operation" width={80} />
+
+### Single Cycle Datapath
+
+我們用剛剛的原則設計出來的東西叫做 **Single Cycle Datapath** 也就是我們假設**每個 instruction 都是在一個 clock cycle 裡面完成的**
+
+<Fig src="/images/ca/ch05-datapath/single-clock-cycle.webp" caption="Single Clock Cycle" width={80} />
+
+這樣的設計有利有弊，我們會在後面解釋
+
+<Fig src="/images/ca/ch05-datapath/single-cycle-datapath.webp" caption="Single Cycle Datapath" width={80} />
+
+## Construction of the Control Signal
+
+從剛剛的 Datapath Construction 過程中，我們可以看到許多 Components，例如 Multiplexer、ALU、Memory 和 Register。這些 Components 都需要透過不同的 **Control Signals** 來決定其行為，而這些 Control Signals 可以根據 Instruction 推導出來
+
+這裡介紹所有我們需要的 control signal
+1. **`MemWr`**：Memory 的 write enable
+    - 開為 `1` 不開為 `0`
+2. **`MemRd`**：Memory 的 read enable
+    - 開為 `1` 不開為 `0`
+3. **`MemtoReg`**：決定是 ALU 的 computational result 還是 Memory 的 data 進入 register
+    - memory data 為 `1` computational result 為 `0`
+4. **`RegWr`**：Register 的 write enable
+    - 開為 `1` 不開為 `0`
+5. **`ALUsrc`**：決定是 `busB` 還是 `imm12` 要當作 ALU 的 operand
+    - `imm12` 為 `1`，`busB` 為 `0`
+6. **`ALUctr`**：ALU 的操作 operation code
+    - 有一套 decoding method 後面會提到
+7. **`PCSrc`**：決定是否要做 branch
+    - `1` 為 branch，`0` 為正常
+
+<Fig src="/images/ca/ch05-datapath/control-signal.webp" caption="Control Signal" width={70} />
+
+**Control Unit** 的基本運作模式就是
+1. 從 instruction 的 `opcode` parse 出除了 `PCSrc` 的所有 control signal
+2. **接收 ALU 回傳的 `zero` signal 決定下一輪的 `PCSrc` signal**
+
+<Aside type="note" title="PCSrc signal">
+`PCSrc` 是的兩個 signal 的 and operation 後的結果
+1. `zero`：ALU 會對 branch 操作進行判斷是否 `= 0`，達成後才可跳轉
+2. `branch_inst`：ALU 的 zero 不管何時都一定會有一個輸出，有時候可能只是剛好計算結果 `= 0`，但我們並沒有要進行 branch，所以我們需要一個機制來防止亂跳，也就是**這次是否在執行 branch**
+<Fig src="/images/ca/ch05-datapath/pcsrc-signal.webp" caption="PCSrc Signal" width={70} />
+</Aside>
+
+## Assemble the Control Unit
+
+如果我們看最終成型的 Datapath 我們會發現其實 Control Unit 不只有一個部分，還需要底下的 **ALU Control**，這是因為 RISC-V CPU 用了 **hierarchical** 的設計，讓 CPU **implementation 簡單**並且可以 **modularize**
+
+<Fig src="/images/ca/ch05-datapath/control-signal-2.webp" caption="Control Signal" width={70} />
+
+### Multi-level Decoding
+
+我們可以把 **Main Control** Component 的工作簡化成「決定哪個 component 要做事」，**ALU Control** 則是「ALU 要執行哪個運算」
+
+我們先把 `opcode` 塞給 main control，Main control 會根據 Opcode 先給出 2-bits 的 `ALUop`，接下來 ALU control 會根據 `funct3`, `funct7` 以及 `ALUop` 來輸出 `ALUctr`，這種方法叫做 **Multi-level Decoding**，這裡輸出的兩個信號做的事分別是
+- `ALUOp`：Main Control 告訴 ALU Control「現在大概需要哪種類型的運算」
+- `ALUctr`：ALU Control 告訴 ALU「你現在具體要執行哪個運算」
+
+<Fig src="/images/ca/ch05-datapath/alu-control-and-main-control.webp" caption="ALU Control and Main Control" width={70} />
+
+以下是 RISC-V 的 decoding method
+
+| Instruction | `opcode` | ALUOp | Operation | `funct7` | `funct3` | ALU Action | `ALUctr` |
+|---|---|---|---|---|---|---|---|
+| `ld` | `0000011` | `00` | Load doubleword | XXXXXXX | XXX | ADD | `0010` |
+| `sd` | `0100011` | `00` | Store doubleword | XXXXXXX | XXX | ADD | `0010` |
+| `beq` | `1100011` | `01` | Branch if equal | XXXXXXX | XXX | SUB | `0110` |
+| `add` | `0110011` | `10` | R-type ADD | `0000000` | `000` | ADD | `0010` |
+| `sub` | `0110011` | `10` | R-type SUB | `0100000` | `000` | SUB | `0110` |
+| `and` | `0110011` | `10` | R-type AND | `0000000` | `111` | AND | `0000` |
+| `or` | `0110011` | `10` | R-type OR | `0000000` | `110` | OR | `0001` |
+
+
+我們可以看到，因為不管事 `load` 還是 `store`，ALU 執行的都是 add operation，所以可以被歸類在一起，而 `beq` 執行的是 sub operation，所以被分類在另一邊，而剩下的 R-type 則需要藉由 `funct7`, `funct3` 進一步分類
+
+> 表格上的 `X` = **Don't Care** for ALU Control; 因為在數位邏輯設計裡面，如果一個格子是 Don't Care，那他在 truth table 的合併上就會變得簡單（DSDL 會教），只要我們發現我們不需要管他的話，我們就儘量把格子填 `X`
+
+最後藉由我們拿到的所有資訊，用 truth table 畫簡的方式設計 ALU Control Unit
+
+| `ALUOp[1]` | `ALUOp[0]` | I[31] | I[30] | I[29] | I[28] | I[27] | I[26] | I[25] | I[14] | I[13] | I[12] | Operation |
+|--------|--------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-------|-----------|
+| 0      | 0      | X     | X     | X     | X     | X     | X     | X     | X     | X     | X     | 0010      |
+| X      | 1      | X     | X     | X     | X     | X     | X     | X     | X     | X     | X     | 0110      |
+| 1      | X      | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 0010      |
+| 1      | X      | 0     | 1     | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 0110      |
+| 1      | X      | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 1     | 1     | 1     | 0000      |
+| 1      | X      | 0     | 0     | 0     | 0     | 0     | 0     | 0     | 1     | 1     | 0     | 0001      |
+
+Main Control Unit 也可以用同樣的方式設計出來
+
+| Instruction | ALUSrc | MemtoReg | RegWrite | MemRead | MemWrite | Branch | ALUOp1 | ALUOp0 |
+|---|---|---|---|---|---|---|---|---|
+| R-format | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 0 |
+| ld | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+| sd | 1 | X | 0 | 0 | 1 | 0 | 0 | 0 |
+| beq | 0 | X | 0 | 0 | 0 | 1 | 0 | 1 |
+
+| Input or Output | Signal Name | R-format | ld | sd | beq |
+|---|---|---|---|---|---|
+| Inputs | I[6] | 0 | 0 | 0 | 1 |
+| | I[5] | 1 | 0 | 1 | 1 |
+| | I[4] | 1 | 0 | 0 | 0 |
+| | I[3] | 0 | 0 | 0 | 0 |
+| | I[2] | 0 | 0 | 0 | 0 |
+| | I[1] | 1 | 1 | 1 | 1 |
+| | I[0] | 1 | 1 | 1 | 1 |
+| Outputs | ALUSrc | 0 | 1 | 1 | 0 |
+| | MemtoReg | 0 | 1 | X | X |
+| | RegWrite | 1 | 1 | 0 | 0 |
+| | MemRead | 0 | 1 | 0 | 0 |
+| | MemWrite | 0 | 0 | 1 | 0 |
+| | Branch | 0 | 0 | 0 | 1 |
+| | ALUOp1 | 1 | 0 | 0 | 0 |
+| | ALUOp0 | 0 | 0 | 0 | 1 |
+
+## Performance of Single Cycle Machine
+
+每個 Component 的運行時間其實都不盡相同，所以不同的 instruction 耗費的時間一定不一樣，更何況**每個 instruction 通常都是很多個步驟**，比如說 Memory operation 一定比 register operation 久
+
+<Fig src="/images/ca/ch05-datapath/component-using-by-each-instruction.webp" caption="Component Using By each Instruction" width={80} />
+
+假設
+- **Memory Unit**: 200 ps
+- **ALU and Adders**: 100 ps
+- **Register Files** (r/w): 50 ps
+
+假設我們的 instruction 的組成是
+$$
+25\%\ \text{loads} + 10\%\ \text{store} + 45\%\ \text{ALU instruction} + 15\%\ \text{branch} + 5\%\ \text{jumps}
+$$
+
+我們來分析一下效能，我們比較的對象是
+1. 每個 instruction 的 clock cycle 是一段**固定長度**
+2. 每個 instruction 的 clock cycle 可以彈性調整（現實上不可能，但是我們假設可以做到這件事）
+
+
+
+如果我們固定 instruction 的 clock cycle 那 performance 就是
+$$
+\text{CPU Ex. time} = \text{Instruction Count} \times \text{CPI} \times \text{Clock time}
+$$
+
+但在這個 single cycle 情境下 $\text{CPI} = 1$，因此
+$$
+\text{CPU Ex. time} = \text{Instruction Count} \times \text{Clock time}
+$$
+
+接著我們分析兩種情況
+1. 如果是固定 clock cycle time，那我們的 clock time 就會取決於最執行最久的 instruction，也就是 load，
+$$
+T = 200+50+100+200+50 = 600 \text{ps}
+$$
+2. 但如果 clock time 可以變動我們就可以
+$$
+\begin{align}
+T &= 600 \times 25\% + 550 \times 10\% + 400 \times 45\% + 350 \times 15\% + 200 \times 5\%\\ &=
+447.5 \text{ps}
+\end{align}
+$$
+
+
+分析 performance
+$$
+\frac{600}{477.5} = 1.34
+$$
+Variable clock implementation would be faster by 1.34，Single Cycle Datapath 會有這樣的限制

@@ -217,7 +217,9 @@ figcaption {
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid hsl(var(--border) / 0.7);
-  word-break: break-word;
+  /* One line per cell unless the author writes a `<br>`; a table wider than the
+     column scrolls sideways instead of wrapping (see the wrapper rule below). */
+  white-space: nowrap;
 }
 /* Header row: subtle brand tint + heavier divider. */
 .prose thead th {
@@ -257,6 +259,23 @@ figcaption {
   max-width: 100%;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* astro-pure's `rehype-table` wraps every table in
+   `<div class="overflow-x-auto w-full flex justify-center">`, so a table wider
+   than the column already scrolls there. But `justify-center` pushes the overflow
+   out both sides and the left part can't be scrolled to; start-align the wrapper
+   and let the table's own `margin: auto` (above) do the centring — auto margins
+   collapse to 0 once the table overflows. Inside it the table must also not
+   shrink: it's a flex item with `overflow: hidden` (for the rounded frame), which
+   drops its automatic min-width to 0, so it would get squeezed to the column and
+   clip its own cells instead of letting the wrapper scroll. */
+.prose .overflow-x-auto:has(> table) {
+  justify-content: flex-start;
+}
+.prose .overflow-x-auto > table:not(:where([class~='not-prose'] *)) {
+  flex-shrink: 0;
+  max-width: none;
 }
 
 /* Inline red emphasis: <span class="red">…</span> in notes — often wrapping
