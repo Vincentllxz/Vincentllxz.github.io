@@ -1,0 +1,101 @@
+---
+title: "NTU-CA 計算機結構 Ch5 Datapath"
+description: "NTU Computer Architecture 計算機結構:Ch5 Datapath"
+publishDate: "2026-10-10 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CA"
+  - "note"
+language: "zh-TW"
+draft: true
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
+import ImageGallery from '@/components/ImageGallery.astro'
+
+# Datapath
+
+打造一個 processor 有五個基本動作
+1. Analyze Instruction Set，分析一下 format 是什麼才能知道 datapath 的 **requirement**
+    - 每個 instruction 都是一種 register transfer
+    - datapath 要 support 要 support 所有 register transfer
+    - datapath 需要能夠儲存 ISA 的 element
+2. 要選擇所有 component 然後決定 clocking methodology
+3. 組合所有 component 來符合 requirement
+4. Analyze 所有 Instruction 的 implementation 來設定 **control points**
+5. 組合所有 control logic
+
+在這門課我們只支援以下的 format，也就是簡化版 RISC-V
+
+<Fig src="/images/ca/ch05-datapath/subset-of-instruction-in-risc-v.webp" caption="Subset of Instruction in RISC-V" width={80} />
+
+## Register Transfer Language (RTL)
+
+在繼續講 datapath 之前，我們首先得理解 Instruction 跟 Register 之間的關係，為了要讓每個 Instruction 都有他的意義，我們把 ISA 轉換成 **Register Transfer Language (RTL)**，每個步驟前我們都會先 **fetch Instruction**，以下是幾個 Instruction 跟 RTL 的對應關係
+
+- $\texttt{R[x]}$：Register `x` 的值。
+- $\texttt{MEM[addr]}$：Memory 位址 `addr` 的內容。
+- $\texttt{sign\_ext}(\cdot)$：Sign Extension。
+
+| Instruction | Register / Memory Transfer |
+|---|---|
+| `ADD` | $\texttt{R[rd]} \gets \texttt{R[rs1]}+\texttt{R[rs2]}$ |
+| `SUB` | $\texttt{R[rd]} \gets \texttt{R[rs1]}-\texttt{R[rs2]}$ |
+| `ORI` | $\texttt{R[rd]} \gets \texttt{R[rs1]}\mathbin{\vert}\texttt{sign\_ext}(\texttt{imm}_{12})$ |
+| `LOAD` | $\texttt{R[rd]} \gets \texttt{MEM[}\texttt{R[rs1]}+\texttt{sign\_ext}(\texttt{imm}_{12})\texttt{]}$ |
+| `STORE` | $\texttt{MEM[}\texttt{R[rs1]}+\texttt{sign\_ext}(\texttt{imm}_{12})\texttt{]} \gets \texttt{R[rs2]}$ |
+
+**PC Update**
+
+除 Branch / Jump 外，正常執行下一個 instruction：
+
+$$
+\texttt{PC} \gets \texttt{PC}+4
+$$
+
+而在 `BEQ` 的情況下，我們應該要
+
+```txt
+if R[rs1] == R[rs2]:
+    PC ← PC + offset
+else:
+    PC ← PC + 4
+```
+
+## Requirement of the Instruction Set
+
+首先第一步我們需要分析所有 Instruction 執行的 requirement（hardware component），包含
+- **Memory**：儲存 instruction 以及 data，可以 fetch, load, store
+- **Register** (32 * 64 bits)：讀寫 `rd`, `rs1`, `rs2`
+- **PC**：決定現在執行的 instruction 以及下一個要 fetch 的 instruction 位置
+- **Extender**：把 `immediate` 拉成正確長度
+- **ALU**：決定 ALU 要執行的 arithmetic operation，`add`, `sub` 之類的
+
+舉例來說，`ld` instruction 在 RTL 裡面是
+
+$$
+\texttt{R[rd]} \gets \texttt{MEM[}\texttt{R[rs1]}+\texttt{sign\_ext}(\texttt{imm}_{\texttt{12}})\texttt{]}
+$$
+
+我們會需要 `rd`, `rs1`, `imm` extension, memory, ALU add operation, `PC += 4` 這些操作
+
+## Component of the Datapath
+
+我們可以把這些 hardware component 主要分成兩種
+- **Combinational Element**：Output 只跟當下的 input 有關，像是 ALU
+
+<ImageGallery
+  label="Combinational Logic Element"
+  height="12rem"
+  images={[
+    { src: '/images/ca/ch05-datapath/combinational-logic-element-1-adder.webp', caption: 'Combinational Logic Element 1: Adder' },
+    { src: '/images/ca/ch05-datapath/combinational-logic-element-2-multiplexer.webp', caption: 'Combinational Logic Element 2: Multiplexer' },
+    { src: '/images/ca/ch05-datapath/combinational-logic-element-3-alu.webp', caption: 'Combinational Logic Element 3: ALU' }
+  ]}
+/>
+
+- **Storage Element**：又叫做 sequential element，output 跟時間有關，這種 component 至少會有兩個 input 一個 output
+    - input and **clock (clocking methodology)**
+    - 像是 register, memory, D flip-flop 都是這種 component

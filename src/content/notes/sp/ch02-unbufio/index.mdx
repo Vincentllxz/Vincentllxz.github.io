@@ -220,12 +220,12 @@ off_t lseek(int filedes, off_t offset, int whence)
 - 寫入時檔案中間有洞
 - `lseek()` 到 end 後了，所以有可能
 $$
-\texttt{Physical Size} > \texttt{Logical Size}
+\texttt{Physical Size} < \texttt{Logical Size}
 $$
 
 另一種情況是 Disk 的 page size 太大，如果一個 file 只需要 4 bytes 但一個 disk block 的大小是 512 bytes，但一個 file 必須起碼是一個 disk block，導致
 $$
-\texttt{Physical Size} < \texttt{Logical Size}
+\texttt{Physical Size} > \texttt{Logical Size}
 $$
 
 以下是一個製作 hole in file 的例子
