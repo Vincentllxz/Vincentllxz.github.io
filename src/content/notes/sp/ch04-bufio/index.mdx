@@ -233,7 +233,10 @@ int getchar(void);
 int fgetc(FILE *fp);
 ```
 
-這些都是一次接一個 character 的 I/O，`getc()` 會有可能是 macro，`getchar()` 一定是 function，所以 `getc()` 會比 `getchar()` 快一點，EOF 或是 error 都會回傳 `-1`
+`getc()`、`fgetc()` 和 `getchar()` 都是一次讀取一個 character 的 Buffered I/O。
+`getc()` 與 `fgetc()` 功能相同，但 `getc()` 可能透過 Macro 實作，在某些實作中可能減少 Function Call Overhead，不過不保證比較快
+- `getchar()` 等價於 `getc(stdin)`，也可能透過 Macro 實作
+- 三者皆回傳 int，成功時回傳讀取到的 character（轉換為 int），遇到 End-of-File 或 Error 時回傳 `EOF`（通常為 `-1`）。可以透過 `feof()` 和 `ferror()` 區分兩者。
 
 ```c title="getchar.c"
 int main() {
@@ -253,7 +256,9 @@ int putchar(int c);
 int fputc(int c, FILE *fp);
 ```
 
-這些都是一次輸出一個的 I/O，`putc()` 會有可能是 macro，`putchar()` 一定是 function
+這些都是一次輸出一個的 I/O，`putc()` 會有可能是 macro，`fputc()` 一定是 function
+
+### Line-at-a-time I/O
 
 #### `fgets()`
 ```c noLineNumbers
@@ -265,7 +270,7 @@ char *fgets(char *buf, int size, FILE *fp);
 ```c noLineNumbers
 char *gets(char *buf);
 ```
-一次讀一行，會把 `\n` 也讀進去，但沒有指定 buffer size，會 overflow. 
+一次讀一行，但不會把 `\n` 也讀進去，但沒有指定 buffer size，會 overflow. 
 
 #### `fputs()`, `puts()`
 
@@ -275,6 +280,8 @@ int puts(const char *s);
 ```
 
 `puts()` 會自動在字串後面加上 `\n`，並且是一直寫到 `stdout`，而 `fputs()` 不會，而這兩個 function 都不會有 overflow 的問題，因為只要輸出空間夠大就可以了
+
+### Direct I/O
 
 #### `fread()`, `fwrite()`
 
