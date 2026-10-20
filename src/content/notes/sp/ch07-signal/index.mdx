@@ -345,9 +345,9 @@ char *strtoupper(char *string) {
 - 需要有 permission (real/effective 其中一個對就好)
 - 送 特定 `signo` 給 pid 的 process
     - `pid > 0` : to the process
-    - `pid == 0` : to “all” processes with the same gid
+    - `pid == 0` : to "all" processes with the same gid
     of the sender (excluding proc 0, 1, 2)
-    - `pid < 0` : to “all” processes with gid == |pid|
+    - `pid < 0` : to "all" processes with gid == |pid|
     - `pid == -1` : broadcast signals under SVR4 and
     4.3+BSD
 - `signo == 0` 是要看他的 return 值，看他是死是活（但有缺陷，檢查了不能用）

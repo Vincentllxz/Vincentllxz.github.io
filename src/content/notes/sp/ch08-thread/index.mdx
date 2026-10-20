@@ -249,7 +249,7 @@ main(void)
 - Passing `string`
     - Pass
         ```c
-        char *str = ”NTU”;
+        char *str = "NTU";
         pthread_create(..., my_func, (void *)str);
         ```
     - Retrieving
@@ -275,7 +275,7 @@ main(void)
 ```c
 void *PrintNo(void *vptr)
 {
-    printf(”My number is %d\n", *((int *) vptr));
+    printf("My number is %d\n", *((int *) vptr));
     pthread_exit(NULL);
 }
            
@@ -295,7 +295,7 @@ int main(int argc, char *argv[]) {
 ```c
 void *PrintNo(void *vptr)
 {
-    printf(”My number is %d\n", (int) vptr));
+    printf("My number is %d\n", (int) vptr));
     pthread_exit(NULL);
 }
 int main() {
