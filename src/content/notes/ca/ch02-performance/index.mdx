@@ -67,8 +67,7 @@ Technology node 越小意思就是 semiconductor 越小，也就是可以塞進�
 
 兩者有相關，但他們並不完全相等，比如說
 - 更新 processor 成下一代，可以增加 throughput 也可以減少 response time
-- 增加 processor 的數量會增
-- 家 throughput 但並不會增加 response time
+- 增加 processor 的數量會增加 throughput 但並不會增加 response time
 
 ### Relative Performance
 
@@ -241,7 +240,7 @@ $$
 所以 **Computer A 比 Computer B 快 $1.2$ 倍**
 </Aside>
 
-不同的 **Instruction Set Architecture (ISA)** run 不同的 instruction 需要ㄉㄜ cycle 數量是不一樣的，所以我們需要更精確的 CPI 定義，因為我們需要把不同的 Instruction 分類成 $n$ 個 class
+不同的 **Instruction Set Architecture (ISA)** run 不同的 instruction 需要的 cycle 數量是不一樣的，所以我們需要更精確的 CPI 定義，因為我們需要把不同的 Instruction 分類成 $n$ 個 class
 $$
 \text{Clock Cycles} = \sum_{i=1}^{n} (\text{CPI}_i \times \text{Instruction Count}_i)
 $$
@@ -292,7 +291,10 @@ $$
 
 因此：
 
-$$\frac{P_{\text{new}}}{P_{\text{old}}}=\frac{C_{\text{old}}\times0.85\times(V_{\text{old}}\times0.85)^2\times F_{\text{old}}\times0.85}{C_{\text{old}}\times V_{\text{old}}^2\times F_{\text{old}}}=0.85^4=0.52$$
+$$
+\frac{P_{\text{new}}}{P_{\text{old}}}=\frac{C_{\text{old}}\times0.85\times(V_{\text{old}}\times0.85)^2\times F_{\text{old}}\times0.85}{C_{\text{old}}\times V_{\text{old}}^2\times F_{\text{old}}}=0.85^4=0.52
+$$
+
 </Aside>
 
 Single processor 的架構在後期無法用 pipeline 再提升他的性能，因為遇到了 power wall，為了要考慮到 overall 的 performance 以及 power 這個 factor 人類開始嘗試 many core 的架構
@@ -382,7 +384,7 @@ $$
 我們其實不會因為不一樣的 Reference machine 而有不同的 ratio 比例，所以其實沒有差，算出每個 Task 的 SPECRatio 後，用幾何平均做加權
 
 $$
-\text{Geometry Mean} = \left( \prod_{i=1}^{n} \text{SPECRatio}_i \right)
+\text{Geometry Mean} = \left( \prod_{i=1}^{n} \text{SPECRatio}_i \right)^{\frac{1}{n}}
 $$
 
 ### SPEC Power Benchmark
