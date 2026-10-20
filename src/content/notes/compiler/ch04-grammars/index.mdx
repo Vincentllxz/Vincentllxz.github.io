@@ -1,0 +1,376 @@
+---
+title: "NTU-Compiler 編譯程式設計 Ch4 Formal Grammars and Parsing"
+description: "NTU Compiler Design 編譯程式設計:Ch4 Formal Grammars and Parsing"
+publishDate: "2026-10-20 18:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "Compiler"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+
+# Formal Grammars and Parsing
+
+不管是 Top-down 還是 Bottom-up 的 parsing 我們都需要用到一些共同的理論，或是定義，這裡主要介紹分析文法用的理論、名詞
+
+## Context Free Grammar
+
+一個 CFG $G = (V_t, V_n, S, P)$
+- $V_t$：A set of finite **terminal** 
+- $V_n$：A finite set of **nonterminal**
+- $S$：start symbol, $S \in V_n$
+- $P$：A finite set of production 也就是 rules
+    - 形式會是 $A \to X_1 X_2 \ldots X_m$ for $A \in V_n$ and $X_i \in K$
+
+Derivation 的意思就是把 **production** 左邊的東西換成右邊的東西
+- $\Rightarrow^*$ 是 0 或更多步驟 derivation 可以推得
+- $\Rightarrow^+$ 是 1 或更多步驟 derivation 可以推得
+
+我們延伸定義兩個東西
+- **sentential form** 從 start symbol derive 出的可以包含 non-terminal 的 string，也就是
+$$
+\text{sentential form} = \{\beta \mid S \Rightarrow^* \beta \}
+$$
+- **sentence** 從 start symbol derive 出的全都是 terminal 的 string
+$$
+\text{sentence} = \{w \in V_t^* \mid S \Rightarrow^* w \}
+$$
+
+一個 Language 則是
+$$
+L(G) = \{ w \in V^*_t \mid S \Rightarrow^+ w \}
+$$
+這裡的 $w$ 就是一個 sentence，$L(G)$ 就是可以藉由 $G$ 推出來的所有 sentence 的集合
+
+### Left-most/Right-most Derivation
+
+Left-most 會從最左邊開始一個一個把 non-terminal 換掉，會用
+$$
+\Rightarrow_{\mathrm{lm}},\ \Rightarrow^*_{\mathrm{lm}},\ \Rightarrow^+_{\mathrm{lm}}
+$$
+是 **Top-down Parsing** 用的方法
+
+表示，而 right-most derivation 則是用
+$$
+\Rightarrow_{\mathrm{rm}},\ \Rightarrow^*_{\mathrm{rm}},\ \Rightarrow^+_{\mathrm{rm}}
+$$
+是 **Bottom-up Parsing** 用的方法的反過來（從尾到頭），也就是說我們先建立 rm 然後 bottom-up parsing 會從尾巴合成成 start symbol，用 stack 的方法一個一個塞進來，一個一個換，換到 stack 裡面剩下 start symbol
+
+一個 Parse tree 沒有替換順序的資訊，但是 derivation 有，接著我們有了這些東西可以繼續定義新名詞
+
+- **Phrase** 就是由一個 parse tree 上 non-terminal derive 出的 sequence，是 sentential form
+    - **simple phrase**, **prime form** 是沒有繼續包含更小的 phrase (也就是全部 symbol 都在 parse tree 上的同一層)
+- **Handle** 是一個 left-most 的 **simple phrase**
+
+### Reduce of CFG
+
+有些時候我們會在 rule 裡面發現一些可以消掉的
+- **Unreachable**: 沒有 symbol 可以被任何其他 rule 從 start symbol parse 出來
+- **Derive no terminal string**: 無法得到一個全是 terminal 的 string
+
+
+### Ambiguous
+
+前面章節提到的 ambiguous 通常會導致我們 operator 的 precedence 出現問題，但他其實還分成很多種
+
+#### Dangling Else
+
+```c
+if ((k >= 0) && (k < table_size))
+    if (table[k] >= 0)
+        printf("Entry %d is %d\n", k, table[k]);
+else printf("Error: index %d out of range \n", k);
+```
+
+在 C language 裡，這樣的話我們的 `else` 應該要跟著裡面那個 `if`，如果想改跟著外面那個，會需要
+
+```c
+if ((k >= 0) && (k < table_size)) {
+    if (table[k] >= 0)
+        printf("Entry %d is %d\n", k, table[k]);
+} else printf("Error: index %d out of range \n", k);
+```
+
+但即便他有這種規則，在 parsing 的階段還是會有 ambiguous，我們還是需要設計一個消除方法，最常會出現的三種情況就是
+- **Operator Associativity**
+- **Operator Precedence**
+- **Dangling Else**
+
+邏輯上我們只需要保證**最早要做的要出現在最左邊**，最常見的解決方法就是 **Left Factoring**
+
+
+但是這種方法只能解決不知道要選哪條 rule 的問題，但無法真正解決 Ambiguity
+
+## Parser and Recognizer
+
+- **Recognizer** 只需要看看這個 program 對不對
+- **Parser** 除了做到這件事，還得建立起一個 Parse tree
+
+### Parsing Technique Naming
+
+有三個欄位
+
+```
+{L/R} {L/R} {(number)}
+```
+
+1. 最左邊這個是我們從左 parse 到右，還是右 parse 到左
+2. 中間這個是說 left-most derivation 還是 right-most derivation
+3. 這個數字是說要 look ahead 幾個 token 的
+
+e.g. $LL(1)$ 代表一個 top-down approach 要偷看一個 token
+
+
+## Grammar Analysis Algorithms
+
+在進行 parsing 之前，我們會先對 Grammar 做一些分析，這邊主要會計算三個東西：
+
+- **Nullable**：哪些 non-terminal 可以 derive $\lambda$
+- **FIRST**：一個 sentential form 最前面可能出現哪些 terminal
+- **FOLLOW**：一個 non-terminal 後面可能出現哪些 terminal
+
+### Nullable Symbols
+
+如果一個 non-terminal $A$ 可以經過若干次 derivation 變成 empty string：
+
+$$
+A \Rightarrow^* \lambda
+$$
+
+那我們稱 $A$ 是 **nullable symbol**，也可以把所有 nullable symbols 定義成：
+
+$$
+\mathrm{Nullable}=\{A\in V_n\mid A\Rightarrow^*\lambda\}
+$$
+
+
+#### Computing Nullable Symbols
+
+我們可以用一個 **iterative marking algorithm** 找出所有 nullable non-terminal。
+
+對每一條 production 維護一個 `count`：
+
+> `count` 代表 RHS 還有多少個 symbol 尚未被確認為 nullable。
+
+比如說
+
+$$
+A\to BCD
+$$
+
+一開始 `count=3`，如果後來知道 $B,D$ 都 nullable，那就只剩下 $C$ `count=1`，如果最後 $C$ 也是 nullable 那 `count=0`，代表 RHS 所有 symbols 都可以消失，因此 $A$ 也是 nullable
+
+假設：
+
+$$
+\begin{align}
+&A\to BCD,\quad B\to BX,\quad B\to\lambda \\
+&C\to EFG,\quad C\to BDD,\quad D\to E \\
+&D\to\lambda
+\end{align}
+$$
+
+一開始直接看到
+
+$$
+B\to\lambda,\qquad D\to\lambda
+$$
+
+所以：
+
+```txt
+Worklist = [B, D]
+```
+
+接著更新包含 $B,D$ 的 production：
+
+- $A\to BCD$：`count` 從 $3$ 變成 $1$
+- $C\to BDD$：`count` 從 $3$ 變成 $0$
+
+所以 $C$ 也是 nullable：
+
+```txt
+Worklist = [C]
+```
+
+再處理 $C$：
+
+- $A\to BCD$：`count` 從 $1$ 變成 $0$
+
+所以 $A$ 也是 nullable，最後得到
+
+$$
+\mathrm{Nullable}=\{A,B,C,D\}
+$$
+
+
+### FIRST set
+
+$\mathrm{FIRST}(\alpha)$ 的正式定義是：
+
+$$
+\mathrm{FIRST}(\alpha)=\{a\in V_t\mid\alpha\Rightarrow^*a\beta\}\cup\begin{cases}\{\lambda\},&\alpha\Rightarrow^*\lambda\\\emptyset,&\text{otherwise}\end{cases}
+$$
+
+也就是：從 $\alpha$ 可以 derive 出來的 sentential form 中，**第一個可能出現的 terminal** 的集合；如果 $\alpha$ 本身可以 derive $\lambda$，那 $\lambda$ 也會放進 FIRST。
+
+例如
+
+$$
+A\to aB\mid bC
+$$
+
+則
+
+$$
+\mathrm{FIRST}(A)=\{a,b\}
+$$
+
+#### Computing FIRST
+
+如果 $Z$ 是一個 terminal：
+
+$$
+\mathrm{FIRST}(Z)=\{Z\}
+$$
+
+如果有 production
+
+$$
+Z\to Y_1Y_2\cdots Y_k
+$$
+
+就從左往右檢查：
+
+1. 把 $\mathrm{FIRST}(Y_1)-\{\lambda\}$ 加入 $\mathrm{FIRST}(Z)$
+2. 如果 $\lambda\in\mathrm{FIRST}(Y_1)$，繼續看 $Y_2$
+3. 如果 $Y_1,Y_2$ 都 nullable，繼續看 $Y_3$
+4. 一直做到第一個不能 derive $\lambda$ 的 symbol
+5. 如果全部 $Y_1,\ldots,Y_k$ 都 nullable，則把 $\lambda$ 加入 $\mathrm{FIRST}(Z)$
+
+比如說
+
+$$
+A\to BC
+$$
+
+而
+
+$$
+\mathrm{FIRST}(B)=\{a,\lambda\},\qquad\mathrm{FIRST}(C)=\{b\}
+$$
+
+因為 $B$ 可以消失，所以第一個 terminal 除了可能是 $a$，也可能直接來自 $C$：
+
+$$
+\mathrm{FIRST}(A)=\{a,b\}
+$$
+
+簡單來講就是：**從左往右找第一個可能出現的 terminal；前面的 symbol 如果可以消失，就繼續往右看。**
+
+
+### FOLLOW set
+
+$\mathrm{FOLLOW}(A)$ 的正式定義是：
+
+$$
+\mathrm{FOLLOW}(A)=\{a\in V_t\mid S\Rightarrow^*\cdots Aa\cdots\}
+$$
+
+在某個由 start symbol derive 出來的 sentential form 中，**可能直接出現在 $A$ 後面的 terminal** 的集合。
+
+例如：
+
+$$
+S\to A+b
+$$
+
+則
+
+$$
++\in\mathrm{FOLLOW}(A)
+$$
+
+FOLLOW 的其中一個用途是幫助 parser 判斷 **什麼時候應該 reduce**。
+
+例如：
+
+$$
+A\to b,\qquad B\to b
+$$
+
+parser 只看到 `b` 的時候，不知道應該 reduce 成 $A$ 還是 $B$。
+
+如果下一個 lookahead 是 `a`，而
+
+$$
+a\in\mathrm{FOLLOW}(A),\qquad a\notin\mathrm{FOLLOW}(B)
+$$
+
+就可以知道這個 `b` 應該 reduce 成 $A$。
+
+#### Computing FOLLOW
+
+有三個主要規則。
+
+1. 如果 $S$ 是 start symbol：
+
+$$
+\$\in\mathrm{FOLLOW}(S)
+$$
+
+其中 `$` 表示 input 結束。
+
+2. 如果有 production
+
+$$
+B\to\alpha A\beta
+$$
+
+則
+
+$$
+\mathrm{FIRST}(\beta)-\{\lambda\}\subseteq\mathrm{FOLLOW}(A)
+$$
+
+因為 $A$ 後面就是 $\beta$，所以 $\beta$ 最前面可能出現的 terminal，也可能直接出現在 $A$ 後面。
+
+3. 如果有
+
+$$
+B\to\alpha A
+$$
+
+或
+
+$$
+B\to\alpha A\beta
+$$
+
+而且
+
+$$
+\lambda\in\mathrm{FIRST}(\beta)
+$$
+
+則
+
+$$
+\mathrm{FOLLOW}(B)\subseteq\mathrm{FOLLOW}(A)
+$$
+
+因為 $A$ 已經在最後，或是 $A$ 後面的 $\beta$ 可以全部消失，所以原本可能接在 $B$ 後面的 terminal，也可能直接接在 $A$ 後面。
+
+
+<Aside type="note">
+三個東西可以簡單記成：
+- **Nullable**：這個東西能不能消失
+- **FIRST**：這個東西**開始**時可能看到什麼
+- **FOLLOW**：這個東西**結束之後**可能看到什麼
+</Aside>
+
+計算 FIRST 時需要知道前面的 symbol 能不能消失，而計算 FOLLOW 時又會使用 FIRST，所以我們會有個計算順序，有了這幾個東西我們就能做 Parsing 了
