@@ -24,7 +24,7 @@ import { Aside } from 'astro-pure/user'
 - $V_n$：A finite set of **nonterminal**
 - $S$：start symbol, $S \in V_n$
 - $P$：A finite set of production 也就是 rules
-    - 形式會是 $A \to X_1 X_2 \ldots X_m$ for $A \in V_n$ and $X_i \in K$
+    - 形式會是 $A \to X_1 X_2 \ldots X_m$ for $A \in V_n$ and $X_i \in (V_n \cup V_t)$
 
 Derivation 的意思就是把 **production** 左邊的東西換成右邊的東西
 - $\Rightarrow^*$ 是 0 或更多步驟 derivation 可以推得
@@ -52,9 +52,7 @@ Left-most 會從最左邊開始一個一個把 non-terminal 換掉，會用
 $$
 \Rightarrow_{\mathrm{lm}},\ \Rightarrow^*_{\mathrm{lm}},\ \Rightarrow^+_{\mathrm{lm}}
 $$
-是 **Top-down Parsing** 用的方法
-
-表示，而 right-most derivation 則是用
+是 **Top-down Parsing** 用的方法，而 right-most derivation 則是用
 $$
 \Rightarrow_{\mathrm{rm}},\ \Rightarrow^*_{\mathrm{rm}},\ \Rightarrow^+_{\mathrm{rm}}
 $$
