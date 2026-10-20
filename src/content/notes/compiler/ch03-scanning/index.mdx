@@ -38,7 +38,7 @@ import Fig from '@/components/Fig.astro'
 我們希望 scanner 要 portable, simple, efficient，不希望太常改動
 
 <Aside type="note">
-Scanner 其實不只出現在 compiler 裡面，在 network packet, text search, display of web page，裡面都有這個改念
+Scanner 其實不只出現在 compiler 裡面，在 network packet, text search, display of web page，裡面都有這個概念
 </Aside>
 
 <Aside type="note" title="Typical Tokens in common Programming Language">
@@ -87,7 +87,7 @@ digits = {digit}{digit}*
 表示前面的 expression 可以出現 **零次或一次**，比如說 `a?` 可以匹配 `""` 或 `a`，也可以寫成 `(a|λ)`。
 
 $$
-\texttt{a?} \equiv \texttt{(a|λ)}
+\texttt{a?} \equiv \texttt{(a|}\lambda\texttt{)}
 $$
 
 #### `+` One or More
@@ -254,13 +254,13 @@ end
 
 <Fig src="/images/compiler/ch03-scanning/alternation-to-nfa.webp" caption="Alternation to NFA" width={80} />
 
-2. `AB` concatanation
+2. `AB` concatenation
 
-<Fig src="/images/compiler/ch03-scanning/concatenation-to-nfa.webp" caption="Concatanation to NFA" width={80} />
+<Fig src="/images/compiler/ch03-scanning/concatenation-to-nfa.webp" caption="Concatenation to NFA" width={80} />
 
-3. `A*` klnee star
+3. `A*` kleene star
 
-<Fig src="/images/compiler/ch03-scanning/kleene-star-to-nfa.webp" caption="Klnee star to NFA" width={80} />
+<Fig src="/images/compiler/ch03-scanning/kleene-star-to-nfa.webp" caption="Kleene star to NFA" width={80} />
 
 #### Optimizing Finite Automata
 
@@ -311,7 +311,7 @@ DFA 的 **Transition Table** 通常會用 **2D Array** 儲存，雖然 access �
 ```pl
 (IF) THEN (THEN) THEN = ELSE (ELSE) ELSE = THEN;
 ```
-哪個是變數那個是 keyword，只有被括號起來這些是 keyword
+哪個是變數哪個是 keyword，只有被括號起來這些是 keyword
 
 在 c language 裡面我們可以
 ```c
@@ -331,7 +331,7 @@ begin
 end
 ```
 
-這亦根本猜不出誰是保留字誰是變數，所以現代程式語言會把 keyword, reserve word 禁止命名成變數
+這樣根本猜不出誰是保留字誰是變數，所以現代程式語言會把 keyword, reserve word 禁止命名成變數
 
 ### Compiler Directives
 
