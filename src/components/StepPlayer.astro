@@ -1,0 +1,289 @@
+---
+// 一連串同尺寸的圖（例如 parsing 每一步的狀態），疊在同一格裡逐張切換。
+// 每張圖必須裁成一樣大小、一樣的框，切換時沒變的部分才會停在原位，
+// 讀者看得出這一步到底改了什麼——淡入淡出就是為了這個，不是裝飾。
+//
+// 可以按鈕 / 方向鍵逐步看，也可以按播放自動跑完；不會自己開始播。
+interface Step {
+  /** `/images/...` 底下的路徑。 */
+  src: string
+  /** 這一步做了什麼，顯示在圖下方。 */
+  caption?: string
+}
+
+interface Props {
+  steps: Step[]
+  /** 整組圖的圖說，同時當作 aria-label。 */
+  caption?: string
+  /** 圖片寬度，同 `Fig`：數字當百分比，字串原樣輸出。 */
+  width?: number | string
+  /** 自動播放時每一步停留的毫秒數。 */
+  interval?: number
+}
+
+const { steps, caption, width, interval = 1600 } = Astro.props
+const playerWidth = typeof width === 'number' ? `${width}%` : width
+const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
+---
+
+<figure
+  class='step-player not-prose'
+  style={playerWidth && `--player-width: ${playerWidth}`}
+  data-interval={interval}
+>
+  <div
+    class='sp-body'
+    role='group'
+    aria-label={caption}
+    aria-roledescription='slideshow'
+    tabindex='0'
+  >
+    <div class='sp-stage'>
+      {
+        steps.map((step, i) => (
+          <img
+            src={step.src}
+            alt={step.caption ?? `Step ${i + 1}`}
+            class:list={['sp-frame', { 'is-active': i === 0 }]}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding='async'
+            aria-hidden={i === 0 ? undefined : 'true'}
+          />
+        ))
+      }
+    </div>
+
+    <div class='sp-controls'>
+      <button type='button' class='sp-btn' data-action='prev' aria-label='上一步' disabled>‹</button
+      >
+      <button type='button' class='sp-btn sp-play' data-action='play' aria-label='播放'>
+        <span class='sp-icon-play'>▶</span><span class='sp-icon-pause'>❚❚</span>
+      </button>
+      <button type='button' class='sp-btn' data-action='next' aria-label='下一步'>›</button>
+
+      <div class='sp-track'>
+        {
+          steps.map((_, i) => (
+            <button
+              type='button'
+              class:list={['sp-tick', { 'is-done': i === 0 }]}
+              data-step={i}
+              aria-label={`第 ${i + 1} 步`}
+            />
+          ))
+        }
+      </div>
+
+      <span class='sp-count'><span class='sp-current'>{pad(1)}</span> / {pad(steps.length)}</span>
+    </div>
+
+    <p class='sp-caption' aria-live='polite'>{steps[0]?.caption}</p>
+  </div>
+
+  {caption && <figcaption>{caption}</figcaption>}
+
+  <template class='sp-captions'>{JSON.stringify(steps.map((s) => s.caption ?? ''))}</template>
+</figure>
+
+<script>
+  function setup(root: HTMLElement) {
+    const frames = [...root.querySelectorAll<HTMLImageElement>('.sp-frame')]
+    const ticks = [...root.querySelectorAll<HTMLButtonElement>('.sp-tick')]
+    const prev = root.querySelector<HTMLButtonElement>('[data-action="prev"]')!
+    const next = root.querySelector<HTMLButtonElement>('[data-action="next"]')!
+    const play = root.querySelector<HTMLButtonElement>('[data-action="play"]')!
+    const current = root.querySelector<HTMLElement>('.sp-current')!
+    const captionEl = root.querySelector<HTMLElement>('.sp-caption')!
+    const body = root.querySelector<HTMLElement>('.sp-body')!
+    const captions: string[] = JSON.parse(
+      root.querySelector<HTMLTemplateElement>('.sp-captions')!.content.textContent || '[]'
+    )
+    const interval = Number(root.dataset.interval) || 1600
+    const width = String(frames.length).length
+    let index = 0
+    let timer: number | undefined
+
+    const go = (i: number) => {
+      index = Math.max(0, Math.min(frames.length - 1, i))
+      frames.forEach((f, j) => {
+        f.classList.toggle('is-active', j === index)
+        if (j === index) f.removeAttribute('aria-hidden')
+        else f.setAttribute('aria-hidden', 'true')
+      })
+      ticks.forEach((t, j) => t.classList.toggle('is-done', j <= index))
+      current.textContent = String(index + 1).padStart(width, '0')
+      captionEl.textContent = captions[index] ?? ''
+      prev.disabled = index === 0
+      next.disabled = index === frames.length - 1
+    }
+
+    const stop = () => {
+      window.clearInterval(timer)
+      timer = undefined
+      root.classList.remove('is-playing')
+      play.setAttribute('aria-label', '播放')
+    }
+
+    const start = () => {
+      // 播完再按一次就從頭來。
+      if (index === frames.length - 1) go(0)
+      root.classList.add('is-playing')
+      play.setAttribute('aria-label', '暫停')
+      timer = window.setInterval(() => {
+        go(index + 1)
+        if (index === frames.length - 1) stop()
+      }, interval)
+    }
+
+    // 手動操作一律先停掉自動播放。
+    const jump = (i: number) => {
+      stop()
+      go(i)
+    }
+    const toggle = () => (timer ? stop() : start())
+
+    prev.addEventListener('click', () => jump(index - 1))
+    next.addEventListener('click', () => jump(index + 1))
+    play.addEventListener('click', toggle)
+    ticks.forEach((t, i) => t.addEventListener('click', () => jump(i)))
+    body.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') jump(index - 1)
+      else if (e.key === 'ArrowRight') jump(index + 1)
+      else if (e.key === ' ' && e.target === body) {
+        e.preventDefault()
+        toggle()
+      }
+    })
+  }
+
+  document.querySelectorAll<HTMLElement>('.step-player').forEach(setup)
+</script>
+
+<style>
+  .step-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2em auto;
+  }
+  .sp-body {
+    width: var(--player-width, 100%);
+    max-width: 100%;
+    outline: none;
+  }
+  .sp-body:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 6px;
+    border-radius: 10px;
+  }
+
+  /* 所有圖疊在同一格，格子高度由圖本身撐開。 */
+  .sp-stage {
+    display: grid;
+  }
+  .sp-frame {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    opacity: 0;
+    transition: opacity 180ms ease;
+  }
+  .sp-frame.is-active {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sp-frame {
+      transition: none;
+    }
+  }
+
+  .sp-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+  }
+  .sp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 6px;
+    color: hsl(var(--foreground));
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+  .sp-btn:hover:not(:disabled),
+  .sp-btn:focus-visible {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .sp-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .sp-play {
+    font-size: 0.7rem;
+    letter-spacing: -0.1em;
+  }
+  .sp-icon-pause,
+  .is-playing .sp-icon-play {
+    display: none;
+  }
+  .is-playing .sp-icon-pause {
+    display: inline;
+  }
+
+  .sp-track {
+    flex: 1;
+    display: flex;
+    gap: 3px;
+    margin: 0 0.5rem;
+  }
+  /* 點擊範圍比看到的線粗，線本身用 ::before 畫。 */
+  .sp-tick {
+    flex: 1;
+    height: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  .sp-tick::before {
+    content: '';
+    width: 100%;
+    height: 3px;
+    border-radius: 2px;
+    background: hsl(var(--border));
+    transition: background 180ms ease;
+  }
+  .sp-tick.is-done::before {
+    background: hsl(var(--primary));
+  }
+  .sp-tick:hover::before {
+    background: hsl(var(--primary) / 0.6);
+  }
+
+  .sp-count {
+    font-variant-numeric: tabular-nums;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+  }
+
+  .sp-caption {
+    min-height: 1.6em;
+    margin: 0.5rem 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  figcaption {
+    margin-top: 0.4em;
+    text-align: center;
+    font-size: 0.875em;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+</style>
