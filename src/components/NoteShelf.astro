@@ -1,0 +1,285 @@
+---
+// `/notes` 的書櫃。一個學期一格，照傳進來的順序（新到舊）由左到右排，一排放不下
+// 就換排。每門課是一根書背：英文課名照西文書背的習慣轉 90° 由上往下讀，中文課名
+// 直排小字跟在旁邊。站內筆記跟 PDF 長同一個樣子，差別只有書背頂端的箭頭
+// （`›` 留在站內、`↗` 開新分頁）。
+//
+// 書背寬度固定，課再多也不會被壓細；一學期的課多到超過一整排，那一格自己換行。
+// 學期寫在板子下方，滑過書背時同一個位置換成老師。顏色全站統一用 `--primary`。
+interface Item {
+  /** 主標。通常是英文課名；沒有英文名的（東坡詞）就直接放中文。 */
+  title: string
+  /** 中文課名。跟 `title` 同字的就不要給。 */
+  titleZh?: string
+  teacher?: string
+  href: string
+  /** 修課學期，例如 `2025 Fall`。同學期的要排在一起。 */
+  term: string
+  /** `note` 連到站內筆記頁；其他開新分頁。 */
+  type?: 'pdf' | 'note'
+}
+
+interface Props {
+  items: Item[]
+}
+
+const { items } = Astro.props
+
+const groups = items.reduce<{ term: string; items: Item[] }[]>((acc, it) => {
+  const last = acc.at(-1)
+  if (last && last.term === it.term) last.items.push(it)
+  else acc.push({ term: it.term, items: [it] })
+  return acc
+}, [])
+
+// 固定的錯落比例，不用亂數，每次 build 都一樣。寬度單位是 rem。
+const heights = [100, 93, 97, 90, 96, 100, 98, 95, 89, 92]
+const widths = [5.8, 5.4, 5.6, 5, 5.8, 5.4, 6.4, 6.2, 5.2, 4.8]
+let n = 0
+---
+
+<div class='cases'>
+  {
+    groups.map((g) => (
+      <section class='case' aria-label={g.term}>
+        <div class='shelf'>
+          {g.items.map((it) => {
+            const i = n++
+            const pdf = it.type !== 'note'
+            return (
+              <div class='slot' style={`--w: ${widths[i % widths.length]}`}>
+                <a
+                  class='spine'
+                  href={it.href}
+                  target={pdf ? '_blank' : undefined}
+                  rel={pdf ? 'noreferrer' : undefined}
+                  data-astro-prefetch={pdf ? undefined : true}
+                  style={`--h: ${heights[i % heights.length]}%`}
+                  data-teacher={it.teacher}
+                >
+                  <span class='sp-mark' aria-hidden='true'>
+                    {pdf ? '↗' : '›'}
+                  </span>
+                  <span class='sp-band' aria-hidden='true' />
+                  <span class='sp-name'>
+                    <span class='sp-en'>{it.title}</span>
+                    {it.titleZh && <span class='sp-zh'>{it.titleZh}</span>}
+                  </span>
+                  <span class='sp-band' aria-hidden='true' />
+                </a>
+              </div>
+            )
+          })}
+        </div>
+        <div class='case-foot'>
+          <span class='case-term'>{g.term}</span>
+          <span class='case-info' aria-hidden='true' />
+        </div>
+      </section>
+    ))
+  }
+</div>
+
+<script>
+  // 滑過書背時，那一格板子下方的學期換成這本的老師。
+  document.querySelectorAll<HTMLElement>('.spine').forEach((el) => {
+    const foot = el.closest('.case')?.querySelector('.case-foot')
+    const info = foot?.querySelector('.case-info')
+    if (!foot || !info) return
+    const show = () => {
+      info.textContent = el.dataset.teacher ?? ''
+      foot.classList.add('is-info')
+    }
+    const hide = () => foot.classList.remove('is-info')
+    el.addEventListener('pointerenter', show)
+    el.addEventListener('focus', show)
+    el.addEventListener('pointerleave', hide)
+    el.addEventListener('blur', hide)
+  })
+</script>
+
+<style>
+  .cases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3rem 2.5rem;
+  }
+  .case {
+    --row: 21rem;
+    --board-h: 0.7rem;
+    --gap: 1.75rem;
+    --board: color-mix(in srgb, hsl(var(--foreground)) 14%, hsl(var(--background)));
+    flex: 0 1 auto;
+    min-width: 9rem;
+    max-width: 100%;
+  }
+  /* 每一排書底下都有一塊板子：用重複的背景畫，所以沒放滿的那排板子一樣是整條。 */
+  .shelf {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--gap);
+    background: linear-gradient(
+        to bottom,
+        transparent calc(var(--row) - var(--board-h)),
+        var(--board) calc(var(--row) - var(--board-h)),
+        var(--board) var(--row),
+        hsl(0 0% 0% / 0.28) var(--row),
+        transparent calc(var(--row) + 0.6rem)
+      )
+      0 0 / 100% calc(var(--row) + var(--gap));
+  }
+  /* 每格固定高度，所以換行後每一排的高度都一樣，跟背景畫的板子對得上。
+     上面留的 padding 是書背滑過時抽出來的空間。 */
+  .slot {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    width: calc(var(--w) * 1rem);
+    height: calc(var(--row) - var(--board-h));
+    margin-bottom: var(--board-h);
+    padding: 1.5rem 2px 0;
+  }
+  .spine {
+    --ink: hsl(var(--foreground));
+    --sub: hsl(var(--muted-foreground));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: var(--h);
+    padding: 0.7rem 0 0.6rem;
+    border: 1px solid hsl(var(--border));
+    border-bottom: 0;
+    border-radius: 3px 3px 0 0;
+    /* 左亮右暗，做出書背圓弧的立體感。 */
+    background:
+      linear-gradient(
+        90deg,
+        hsl(var(--foreground) / 0.07),
+        transparent 22%,
+        transparent 72%,
+        hsl(0 0% 0% / 0.18)
+      ),
+      hsl(var(--card));
+    color: var(--ink);
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  /* 滑過就抽出來、反白成主色。`--primary` 是文字用的亮度，整根填滿太亮，
+     往黑色壓一階；深色主題壓得更多，字色改用一般前景色。 */
+  .spine:hover,
+  .spine:focus-visible {
+    --fill: color-mix(in srgb, hsl(var(--primary)), black 12%);
+    --ink: hsl(var(--primary-foreground));
+    --sub: hsl(var(--primary-foreground) / 0.78);
+    transform: translateY(-1rem);
+    background-color: var(--fill);
+    border-color: var(--fill);
+    color: var(--ink);
+  }
+  :global(html.dark) .spine:is(:hover, :focus-visible) {
+    --fill: color-mix(in srgb, hsl(var(--primary)), black 55%);
+    --ink: hsl(var(--foreground));
+    --sub: hsl(var(--foreground) / 0.75);
+  }
+  .sp-mark {
+    font-size: 0.72rem;
+    line-height: 1;
+    color: var(--sub);
+  }
+  /* 燙線飾帶：兩條細線夾一道窄縫。 */
+  .sp-band {
+    flex-shrink: 0;
+    width: 100%;
+    height: 5px;
+    margin: 0.6rem 0;
+    border-block: 1px solid color-mix(in srgb, var(--sub) 55%, transparent);
+  }
+  /* 直書容器：英文自動轉 90°、由上往下讀；中文維持正立，接在左邊一欄。 */
+  .sp-name {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0;
+    overflow: hidden;
+  }
+  .sp-en,
+  .sp-zh {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  .sp-en {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  .sp-zh {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: var(--sub);
+  }
+
+  /* 板子下方：平常是學期，滑過書背時同一個位置淡入成老師。 */
+  .case-foot {
+    display: grid;
+    margin-top: 0.85rem;
+  }
+  .case-term,
+  .case-info {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+  }
+  .case-term {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .case-info {
+    font-size: 0.8rem;
+    line-height: 1.1;
+    color: hsl(var(--foreground));
+    opacity: 0;
+  }
+  .case-foot.is-info .case-term {
+    opacity: 0;
+  }
+  .case-foot.is-info .case-info {
+    opacity: 1;
+  }
+
+  @media (max-width: 640px) {
+    .cases {
+      gap: 2.25rem 1.5rem;
+    }
+    .case {
+      --row: 18rem;
+      --gap: 1.25rem;
+    }
+    .slot {
+      width: calc(var(--w) * 0.72rem);
+    }
+    .sp-en {
+      font-size: 0.92rem;
+    }
+    .sp-zh {
+      font-size: 0.66rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spine,
+    .case-term,
+    .case-info {
+      transition: none;
+    }
+  }
+</style>

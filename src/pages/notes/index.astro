@@ -1,7 +1,7 @@
 ---
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import NoteCard from '@/components/NoteCard.astro'
+import NoteShelf from '@/components/NoteShelf.astro'
 
 export const prerender = true
 
@@ -13,7 +13,7 @@ const meta = {
 // 學期是自己修課的那一學期（來源是各學期的修課心得）。注意 OS 的
 // `notes/os/index.mdx` 裡寫的 `2021 Spring` 是忠緯錄影的年份，不是修課學期。
 //
-// 這一頁不帶顏色 —— 卡片的 hover 統一用站上的 `--primary`，不一課一色。
+// 這一頁不帶顏色 —— 書背的 hover 統一用站上的 `--primary`，不一課一色。
 const series = [
   {
     title: 'Compiler Design',
@@ -95,8 +95,8 @@ const handouts = [
   }
 ]
 
-// 站內逐章的跟 PDF 的都是同一批筆記，所以同一個網格，不分區、不分先後 ——
-// 只按學期新到舊排。`Spring` 屬於該學年的下學期，所以 2026 Spring 比 2025 Fall 新。
+// 站內逐章的跟 PDF 的都是同一批筆記，所以放在同一座書櫃，不分區、不分先後 ——
+// 只按學期新到舊排，同學期的排在一起，書櫃一學期一格。`Spring` 屬於該學年的下學期，所以 2026 Spring 比 2025 Fall 新。
 // 同一學期維持陣列原本的順序（sort 是穩定的）。
 const termRank = (term: string) => {
   const [year, season] = term.split(' ')
@@ -105,8 +105,10 @@ const termRank = (term: string) => {
 const items = [...series, ...handouts].sort((a, b) => termRank(b.term) - termRank(a.term))
 ---
 
-{/* 版面跟 /blog 同一套：BaseLayout + 頁內 h1 + 一行 text-sm 說明，h1 才不會被
-    CommonPage 的 header slot 推遠。 */}
+{
+  /* 版面跟 /blog 同一套：BaseLayout + 頁內 h1 + 一行 text-sm 說明，h1 才不會被
+    CommonPage 的 header slot 推遠。 */
+}
 <PageLayout {meta}>
   <Button title='Back' href='/' variant='back' />
   <main class='mt-6 lg:mt-10'>
@@ -115,13 +117,9 @@ const items = [...series, ...handouts].sort((a, b) => termRank(b.term) - termRan
     </div>
 
     <section id='content' class='animate' aria-label='Notes list'>
-      <div class='mb-3 text-sm text-muted-foreground sm:mb-5'>
-        Lecture notes from the course in NTU
-      </div>
+      <div class='mb-10 text-sm text-muted-foreground'>Lecture notes from the course in NTU</div>
 
-      <div class='grid grid-cols-1 gap-4 sm:grid-cols-2' data-reveal>
-        {items.map((item) => <NoteCard {...item} />)}
-      </div>
+      <NoteShelf {items} />
     </section>
   </main>
 </PageLayout>
