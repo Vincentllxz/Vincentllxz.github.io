@@ -1,0 +1,483 @@
+---
+title: "NTU-Compiler 編譯程式設計 Ch6 LR Parsing Techniques"
+description: "NTU Compiler Design 編譯程式設計:Ch6 LR Parsing Techniques"
+publishDate: "2026-10-23 18:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "Compiler"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import { Aside } from 'astro-pure/user'
+import Fig from '@/components/Fig.astro'
+import StepPlayer from '@/components/StepPlayer.astro'
+
+# LR Parsing Techniques
+
+## LR Parsing
+
+我們需要 identify 所有 **handle**，在 stack 裡面如果有看到某個 handle 出現了，要把箭頭右邊轉換成箭頭左邊
+
+$LR(k)$ 的意思
+- $L$: left-to-right
+- $R$: Rightmost derivation
+- $k$: 還是需要 look-ahead 來獲取更多資訊
+
+<Aside type="note">
+**LR parsing 是主流上的所有 programming language 會用的 compile technique**，因為 LL parsing 不支援 left recursion，而且 common prefix 處理起來很麻煩，但 LR parsing 不會有這個問題，而且 LR parser 特別會查 syntax error
+</Aside>
+
+<Fig src="/images/compiler/ch06-lr-parsing/lr-parser-structure.webp" caption="LR parser structure" width={70} />
+
+一樣有 state machine，所以表裡面一樣有 **state**，根據 **action**，決定最後的 **goto** 要走到哪
+- **States** 
+- **GoTo Table**
+- **Action Table**：`Shift`, `Reduce`, `Error`, `Accept`
+
+<Fig src="/images/compiler/ch06-lr-parsing/lr0-parsing-table.webp" caption="LR(0) parsing table" width={90} />
+
+
+## LR(0) parsing
+
+### LR(0) item
+
+
+對於一個 Production $A\to X_1X_2\cdots X_n$，在右側任意位置插入一個 Dot ($\bullet$)，即可形成一個 **Item**：
+
+$$
+A\to X_1\cdots X_i\bullet X_{i+1}\cdots X_n,\quad 0\le i\le n
+$$
+
+其中 Dot 表示目前 Parser 已經辨識到的位置。
+
+$LR(0)$ 還是需要 look-ahead 一個 token，0 的意思是版本，這裡引入一個 **$LR(0)$ item** 的概念，我們會放一個 **dot** 在一串 production 裡面，意思是我們需要多少個 char 已經 match 了，假設我們有一個 rule $A \to XYZ$ 的話，那我們會有四種 items
+- $A \to \boldsymbol{\cdot}\ XYZ$ 這種情況稱為 **fresh**，因為啥都還沒 match
+- $A \to X\boldsymbol{\cdot}YZ$
+- $A \to XY\boldsymbol{\cdot}Z$
+- $A \to XYZ\ \boldsymbol{\cdot}$ 這種情況稱為 **reducible**
+
+這種 item 可以用一個 NFA 表示
+
+<Fig src="/images/compiler/ch06-lr-parsing/lr0-item-nfa.webp" caption="NFA of LR(0) item" width={90} />
+
+### Configuration Set
+
+假設我們讀到這三個 rule
+
+```
+stmt → • id := expr;
+stmt → • id : stmt;
+stmt → • id;
+```
+
+我們現在啥都沒讀到，那這三條 rule 都在我們的 **Configuration Set** 裡面，Configuration Set 描述的是目前 Parser 可能處於哪些解析狀態，所以如果我們讀到 `id`
+
+```
+stmt → id • := expr;
+stmt → id • : stmt;
+stmt → id • ;
+```
+
+我們可以知道 Configuration Set 裡面
+- 第一條：如果接下來是 `:=`，可能是 Assignment
+- 第二條：如果接下來是 `:`，可能是 Labeled Statement
+- 第三條：還需要讀取 `;`，所以也還沒完成
+
+接下來有兩個名詞 **Predict** 與 **Recognize**
+- **Predict**: Dot 在最左邊，表示還沒有辨識這條 Production 的任何 Symbol
+- **Recognize**: Dot 在最右邊，表示整條 Production 都已經辨識完成。
+
+
+### Closure
+
+Closure of $I$，$I$ 是 **a set of items**
+1. $I$ 裡面的所有 item 都在 $\text{Closure}(I)$ 裡面
+2. 若 $A\to\alpha\bullet B\beta$ 在 $\text{Closure}(I)$ 中，則對每個 Production $B\to\gamma$，加入 $B\to\bullet\ \gamma$。重複此過程，直到沒有新的 Item 可以加入為止（替換到 Dot 後面的那個 token 不是 non terminal 為止）
+
+
+假設有以下 Grammar：
+
+$$
+\begin{aligned}
+S &\to AB\\
+A &\to aA\mid b\\
+B &\to c
+\end{aligned}
+$$
+
+一開始只有一個 Item：
+
+$$
+I=\{S\to\bullet AB\}
+$$
+
+**Step 1：** 因為 Dot 後面是 Nonterminal $A$，所以將所有 $A$ 的 Productions 加入，並把 Dot 放在最左邊。
+
+$$
+\begin{aligned}
+S &\to\bullet AB\\
+A &\to\bullet aA\\
+A &\to\bullet b
+\end{aligned}
+$$
+
+**Step 2：** 檢查新加入的 Items，因為 Dot 後面都是 Terminal（$a$、$b$），不需要再展開。
+
+因此：
+
+$$
+\boxed{
+\operatorname{Closure}(I)=
+\left\{
+\begin{aligned}
+&S\to\bullet AB,\\
+&A\to\bullet aA,\\
+&A\to\bullet b
+\end{aligned}
+\right\}
+}
+$$
+
+
+### Goto function
+
+也就是我們的 state machine 的 transition function，我們定義
+
+給定 Item Set $I$ 與 Grammar Symbol $X$：
+
+$$
+\boxed{
+\operatorname{Goto}(I,X)=\operatorname{Closure}(\{A\to\alpha X\bullet\beta\mid A\to\alpha\bullet X\beta\in I\})
+}
+$$
+
+將 $I$ 中所有 Dot 後面是 $X$ 的 Items，將 Dot 向右移過 $X$，再對結果取 Closure，得到下一個 State
+
+
+### Sets-of-Item Construction
+
+透過 **Closure** 與 **Goto** 建立 LR Parser 的所有 States（Item Sets），**每個 Item Set 對應 DFA 的一個 State**，假設我們有
+
+- $I$：一個 item Set，代表一個 state
+- $C$：所有已找到的 item sets
+- $X$：任意 symbol
+
+**Step 1：建立 Initial State**
+
+$$
+C=\{\operatorname{Closure}(\{S'\to\bullet S\})\}
+$$
+
+其中 $S'\to S$ 是 Augmented Grammar 額外加入的 Production，用來判斷 Parsing 是否完成。
+
+**Step 2：尋找新的 States**
+
+對每個 $I\in C$ 與 Grammar Symbol $X$，計算：
+
+$$
+I_{\text{new}}=\operatorname{Goto}(I,X)
+$$
+
+若 $I_{\text{new}}\neq\varnothing$，且 $I_{\text{new}}\notin C$，則將其加入 $C$。
+
+**Step 3：重複直到沒有新 State**
+
+持續對所有 Item Sets 執行 Step 2，直到沒有新的 Item Set 可以加入 $C$。
+
+透過這個流程就可以找出所有 DFA 裡面的 State，很像 **subset construction**，建立出的 DFA 將用於後續的 LR Parsing Table Construction
+
+### Action Table
+
+這樣建立起來的 DFA 叫做 **characteristic finite-state machine (CFSM)**，我們可以幫每個 state 命名
+- **`S` (Shift)**：讀入下一個 token，並移動到指定 state
+- **`R` (Reduce)**：根據指定 production，將已辨識的 symbols 歸約成 nonterminal，接下來就透過 stack 重新找 goto
+- **`A` (Accept)**：parsing 成功，輸入符合 grammar
+
+這樣我們就能建立出完整的 Parse table
+
+<StepPlayer
+  caption="Sets-of-item construction of S → aABe, A → Abc | b, B → d"
+  steps={[
+    { src: '/images/compiler/ch06-lr-parsing/lr0-construction-01.webp', label: 'init', caption: "C = {Closure({S' → •S})}" },
+    { src: '/images/compiler/ch06-lr-parsing/lr0-construction-02.webp', label: 'GoTo', caption: 'GoTo(I0, S)、GoTo(I0, a)' },
+    { src: '/images/compiler/ch06-lr-parsing/lr0-construction-03.webp', label: 'repeat', caption: 'Repeat until no new item set' },
+    { src: '/images/compiler/ch06-lr-parsing/lr0-construction-04.webp', label: 'number', caption: 'Number the states' },
+    { src: '/images/compiler/ch06-lr-parsing/lr0-construction-05.webp', label: 'R / A', caption: 'Mark reduce (R) and accept (A) states' }
+  ]}
+/>
+
+### Problem of LR(0)
+
+有時候我們會遇到 **Shift-Reduce Conflict**，假設
+
+$$
+I=\left\{
+\begin{aligned}
+&A\to a\bullet\\
+&B\to a\bullet b
+\end{aligned}
+\right\}
+$$
+
+這個情況可以 reduce 也可以 shift，所以我們需要做一些 **lookahead**，來看下一步應該做啥，還有一種 **Reduce-Reduce Conflict** 也是一樣的問題，我們統稱 **inadequate state**
+
+lookahead 也不一定可以解決所有問題，要用更強大的 parsing technique，比如說
+$$
+A + B \bullet + C
+$$
+我們做 shift 的話會變 right associative，而 reduce 會變 left associative，我們需要做更多判斷，而且**有 $\lambda$-production 的話就一定會有 conflict**
+
+現代的 programming language 通常會有 $\lambda$-production 也會有 **Operator precedence**
+
+## SLR(1)
+
+$LR(0)$ 只要看到 Dot 在最右邊，就準備 reduce，$SLR(1)$ 則會額外檢查下一個 token 是否屬於 FOLLOW Set，才決定能不能 reduce，假設
+
+$$
+I=\left\{
+\begin{aligned}
+&E\to T\bullet\\
+&T\to T\bullet *id
+\end{aligned}
+\right\}
+$$
+
+
+我們加入這個條件
+$$
+\boxed{\text{Reduce }A\to\alpha\quad\text{only if }a\in FOLLOW(A)}
+$$
+$a$ 是 lookahead 的 symbol
+
+不過 $SLR(1)$ 能解決部分 Reduce-Reduce Conflict，只是 FOLLOW Set 不夠精確，可能還是有 conflict
+
+$$
+\begin{aligned}
+\texttt{stmt} &\to \texttt{id}\mid \texttt{var}\ \texttt{:=}\ \texttt{expr}\\
+\texttt{var} &\to \texttt{id}\\
+\texttt{expr} &\to \texttt{var}
+\end{aligned}
+$$
+
+假設 $\texttt{stmt}$ 後面接 $\texttt{;}$，讀入 $\texttt{id}$ 後得到：
+
+$$
+I=\left\{
+\begin{aligned}
+&\texttt{stmt}\to\texttt{id}\bullet\\
+&\texttt{var}\to\texttt{id}\bullet
+\end{aligned}
+\right\}
+$$
+
+$$
+FOLLOW(\texttt{stmt})=\{\texttt{;}\},\quad
+FOLLOW(\texttt{var})=\{\texttt{:=},\texttt{;}\}
+$$
+
+當 Lookahead 為 $\texttt{;}$ 時，兩條 Production 都可以 Reduce，造成 **Reduce-Reduce Conflict**，但實際上，這個 State 中的 $\texttt{var}\to\texttt{id}\bullet$ 來自 $\texttt{stmt}\to\bullet\texttt{var}\ \texttt{:=}\ \texttt{expr}$，因此後面只可能接 $\texttt{:=}$，不可能接 $\texttt{;}$
+
+問題在於 **FOLLOW Set 考慮的是整個 Grammar，而不是目前 State 的 Context**，因此 LR(1) 會為每個 Item 記錄更精確的 Lookahead，避免這種不必要的 Conflict
+
+## LR(1) Parser
+
+相較於 $SLR(1)$ 使用整個 Grammar 的 FOLLOW Set，**$LR(1)$ 為每個 Item 記錄自己的 Lookahead**，因此可以更精確地決定何時 Reduce。
+
+### LR(1) Item
+
+$LR(1)$ Item 比 $LR(0)$ Item 多了一個 Lookahead，定義如下：
+
+$$
+I = [A\to\alpha\bullet\beta,\ \{a\}]
+$$
+
+其中 $a$ 是 Lookahead，表示當這條 Production 完成時，預期後面可以接的 Terminal，它**只影響 Reduce，不影響 Shift**。
+
+如果多個 Item 只有 Lookahead 不同，可以合併表示：
+
+$$
+[A\to\alpha\bullet,\ \{a_1,a_2,\ldots,a_n\}]
+$$
+
+### Closure and GoTo
+
+若 Item 的 Dot 後面是 Non-terminal $B$：
+
+$$
+[A\to\alpha\bullet B\beta,\ \{a\}]
+$$
+
+對每個 Production $B\to\gamma$，在 $\text{Closure}(I)$ 裡面加入：
+
+$$
+\boxed{
+[B\to\bullet\gamma,\ \{b\}],
+\quad b\in FIRST(\beta a)
+}
+$$
+
+重複直到沒有新的 Item 可以加入。
+
+**GoTo**：與 $LR(0)$ 相同，將 Dot 移過指定 Symbol $X$，再做 Closure：
+
+$$
+\boxed{GoTo(I,X)=\text{Closure}(\{[A\to\alpha X\bullet\beta,\{a\}]\mid[A\to\alpha\bullet X\beta,\{a\}]\in I\})}
+$$
+
+### LR(1) Parsing Table
+
+1. 先利用 Closure 和 GoTo 建立所有 LR(1) States
+2. 根據每個 State 的 Items 填入 ACTION / GOTO Table
+    - **Shift**：若 $[A\to\alpha\bullet a\beta,\{b\}]\in I_i$，且 $a$ 是 Terminal，$GoTo(I_i,a)=I_j$，則 $ACTION[i,a]=s_j$
+    - **Reduce**：若 $[A\to\alpha\bullet,\{a\}]\in I_i$，則 $ACTION[i,a]=r_{A\to\alpha}$
+    - **Accept**：若 $[S'\to S\bullet,\{\text{\textdollar}\}]\in I_i$，則 $ACTION[i,\text{\textdollar}]=accept$
+3. **GOTO**：若 $GoTo(I_i,A)=I_j$，且 $A$ 是 Non-terminal，則 $GOTO[i,A]=j$
+
+
+沿用前面的 Grammar，假設 $\texttt{stmt}$ 後面接 $\texttt{;}$，初始 State 包含：
+
+$$
+I_0=\left\{
+\begin{aligned}
+&[\texttt{stmt}\to\bullet\texttt{id}, &\{\texttt{;}\}]\\
+&[\texttt{stmt}\to\bullet\texttt{var}\ \texttt{:=}\ \texttt{expr}, &\{\texttt{;}\}]\\
+&[\texttt{var}\to\bullet\texttt{id}, &\{\texttt{:=}\}]
+\end{aligned}
+\right\}
+$$
+
+第三個 Item 由 Closure 產生，其 Lookahead 來自：
+
+$$
+FIRST(\texttt{:=}\ \texttt{expr}\ \texttt{;})=\{\texttt{:=}\}
+$$
+
+經過 $GoTo(I_0,\texttt{id})$，得到：
+
+$$
+I_1=\left\{
+\begin{aligned}
+&[\texttt{stmt}\to\texttt{id}\bullet,\ \{\texttt{;}\}]\\
+&[\texttt{var}\to\texttt{id}\bullet,\ \{\texttt{:=}\}]
+\end{aligned}
+\right\}
+$$
+
+因此只有看到 $\texttt{;}$ 才 Reduce $\texttt{stmt}\to\texttt{id}$，看到 $\texttt{:=}$ 則 Reduce $\texttt{var}\to\texttt{id}$
+
+## LALR(1)
+
+$LALR(1)$ 是去優化 $LR(1)$ 的 state machine，也就是去壓縮 $LR(1)$ construct 出的 DFA
+
+State 1：
+
+$$
+\boxed{\begin{aligned}
+P &\to (E\bullet),\ \{+,*\}\\
+E &\to E\bullet+T,\ \{),+\}
+\end{aligned}} \quad 
+\xrightarrow{)}\quad \boxed{P\to(E)\bullet,\ \{+,*\}}
+$$
+
+State 2：
+
+$$
+\boxed{\begin{aligned}
+P &\to (E\bullet),\ \{),+,*\}\\
+E &\to E\bullet+T,\ \{),+\}
+\end{aligned}}\quad 
+\xrightarrow{)}\quad \boxed{P\to(E)\bullet,\ \{),+,*\}}
+$$
+
+
+**After Merging**
+
+$$
+\boxed{\begin{aligned}
+P &\to (E\bullet),\ \{),+,*\}\\
+E &\to E\bullet+T,\ \{),+\}
+\end{aligned}} \quad 
+\xrightarrow{)}\quad \boxed{P\to(E)\bullet,\ \{),+,*\}}
+$$
+
+### Disadvantage
+
+但其實 LALR 不一定會優化到我們的 parsing 過程，假設我們有這個情境
+
+$$
+\begin{aligned}
+S &\to \texttt{a}A\texttt{d}\mid\texttt{b}A\texttt{e}\mid\texttt{a}B\texttt{e}\mid\texttt{b}B\texttt{d}\\
+A &\to \texttt{c}\\
+B &\to \texttt{c}
+\end{aligned}
+$$
+
+在 LR(1) 中，讀取 $\texttt{ac}$ 與 $\texttt{bc}$ 後，分別會得到：
+
+**State 1**：
+
+$$
+I_1=\left\{
+\begin{aligned}
+&A\to\texttt{c}\bullet,\ \{\texttt{d}\}\\
+&B\to\texttt{c}\bullet,\ \{\texttt{e}\}
+\end{aligned}
+\right\}
+$$
+
+**State 2**：
+
+$$
+I_2=\left\{
+\begin{aligned}
+&A\to\texttt{c}\bullet,\ \{\texttt{e}\}\\
+&B\to\texttt{c}\bullet,\ \{\texttt{d}\}
+\end{aligned}
+\right\}
+$$
+
+兩個 State 都沒有 Conflict，因為不同 Production 的 Lookahead 不重疊，但由於它們有相同的 LR(0) Core，LALR(1) 會將它們合併：
+
+**After Merging**
+
+$$
+I=\left\{
+\begin{aligned}
+&A\to\texttt{c}\bullet,\ \{\texttt{d},\texttt{e}\}\\
+&B\to\texttt{c}\bullet,\ \{\texttt{d},\texttt{e}\}
+\end{aligned}
+\right\}
+$$
+
+此時無論下一個 Token 是 $\texttt{d}$ 還是 $\texttt{e}$，兩條 Production 都可以 Reduce，重新產生 **Reduce-Reduce Conflict**。
+
+## Summary of Parsing Method
+
+$LR(1)$ 需要記錄的東西最多，所以他需要 memory size 也最大
+
+<Fig src="/images/compiler/ch06-lr-parsing/power-and-size.webp" caption="Power and Size" width={70} />
+
+$LL(1)$ Parsing 設計有很大的彈性，設計的好，可以跟 $LR(1)$ 一樣 powerful，但糟的時候可以糟到跟 $LR(0)$ 一樣
+
+<Fig src="/images/compiler/ch06-lr-parsing/parsing-method-hierarchy.webp" caption="Different Parsing Method" width={80} />
+
+
+### Error Recovery in LR Parsing
+
+LR Parser 透過 ACTION Table 偵測 Syntax Error，當 $ACTION[i,a]$ 沒有定義時，就代表發生錯誤
+
+- **LR(1)**：Lookahead 足夠精確，因此遇到不合法的 Token 時，可以立即偵測錯誤，不會在報錯前對該 Token 額外執行 Reduce
+- **SLR(1) / LALR(1)**：可能因為 Lookahead 不夠精確，先執行數次 Reduce 才發現錯誤，但不會 Shift 造成錯誤的 Token
+
+#### Panic Mode Recovery
+
+當 Parser 發現 Syntax Error 時，可以透過以下步驟恢復 Parsing：
+
+1. **Pop Stack**：從 Stack 往下尋找某個 State $s$，使得 $GOTO[s,A]$ 有定義，其中 $A$ 是 Non-terminal
+2. **Discard Tokens**：丟棄輸入直到遇到可以接在 $A$ 後面的 **Synchronization Token (Sync Token)**，例如 $\texttt{;}$、$\texttt{)}$，通常可以從 $FOLLOW(A)$ 中選擇
+3. **Resume Parsing**：將 $A$ 視為已辨識，Push $GOTO[s,A]$ 對應的 State，繼續 Parsing
+
+Panic Mode 的目的不是修正原本的錯誤，而是跳過錯誤區域，讓 Parser 能繼續分析後面的程式

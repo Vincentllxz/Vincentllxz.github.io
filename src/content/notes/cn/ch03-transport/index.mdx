@@ -254,17 +254,17 @@ Receiver 會 individually `ACK`
 **Sender**
 - 只要 `pkt seq #` 在 window 裡面就直接 send
 - `timeout(n)`：`pkt seq n` 的 timeout 就把它重新發送
-- $ACK(n) \in [\text{send_base}, \text{send_base} + N]$：
+- $ACK(n) \in [\text{send\_base}, \text{send\_base} + N]$：
     - 標記 `n` 個為 receive
     - 把 `send_base` 挪到最小的 `unACK pkt`
 
 **Receiver**
-- `pkt` $\in [\text{recv_base},\ \text{recv_base} + N -1]$：
+- `pkt` $\in [\text{recv\_base},\ \text{recv\_base} + N -1]$：
     - send `ACK(n)`
     - out-of-order：要 buffer 起來
     - in-order：deliver 給上層
     - 把 `recv_base` 挪到
-- `pkt n` $\in [\text{recv_base} - N,\ \text{recv_base} - 1]$
+- `pkt n` $\in [\text{recv\_base} - N,\ \text{recv\_base} - 1]$
     - send `ACK(n)`
 - otherwise：ignore
 

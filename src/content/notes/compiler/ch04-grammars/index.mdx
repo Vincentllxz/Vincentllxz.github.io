@@ -62,7 +62,7 @@ $$
 
 - **Phrase** 就是由一個 parse tree 上 non-terminal derive 出的 sequence，是 sentential form
     - **simple phrase**, **prime form** 是沒有繼續包含更小的 phrase (也就是全部 symbol 都在 parse tree 上的同一層)
-- **Handle** 是一個 left-most 的 **simple phrase**
+- **Handle** 是一個 left-most 的 **simple phrase**，也就是下一步要被 reduce 的那個 phrase，這個是 bottom-up parsing 會用到的概念
 
 ### Reduce of CFG
 

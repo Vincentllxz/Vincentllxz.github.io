@@ -1,19 +1,22 @@
 ---
-// 一連串同尺寸的圖（例如 parsing 每一步的狀態），疊在同一格裡逐張切換。
+// 一連串同尺寸的圖（例如 parsing 每一步的狀態），疊在同一格裡，用下方的時間軸切換。
 // 每張圖必須裁成一樣大小、一樣的框，切換時沒變的部分才會停在原位，
-// 讀者看得出這一步到底改了什麼——淡入淡出就是為了這個，不是裝飾。
+// 讀者看得出這一步到底改了什麼。
 //
-// 可以按鈕 / 方向鍵逐步看，也可以按播放自動跑完；不會自己開始播。
+// 時間軸可以點、可以拖（拖的時候圖跟著換），聚焦後方向鍵 / Home / End 也能走；
+// 左邊的播放鍵會自動走完一次。不會自己開始播。
 interface Step {
   /** `/images/...` 底下的路徑。 */
   src: string
-  /** 這一步做了什麼，顯示在圖下方。 */
+  /** 時間軸刻度下的短標籤，例如套用的 production 編號或 match 掉的 token。 */
+  label?: string
+  /** 這一步做了什麼，顯示在時間軸下方。 */
   caption?: string
 }
 
 interface Props {
   steps: Step[]
-  /** 整組圖的圖說，同時當作 aria-label。 */
+  /** 整組圖在說什麼，給螢幕閱讀器用。 */
   caption?: string
   /** 圖片寬度，同 `Fig`：數字當百分比，字串原樣輸出。 */
   width?: number | string
@@ -21,23 +24,19 @@ interface Props {
   interval?: number
 }
 
-const { steps, caption, width, interval = 1600 } = Astro.props
+const { steps, caption, width, interval = 1400 } = Astro.props
 const playerWidth = typeof width === 'number' ? `${width}%` : width
-const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
+const last = Math.max(steps.length - 1, 1)
+const at = (i: number) => `${(i / last) * 100}%`
 ---
 
 <figure
   class='step-player not-prose'
   style={playerWidth && `--player-width: ${playerWidth}`}
   data-interval={interval}
+  aria-label={caption}
 >
-  <div
-    class='sp-body'
-    role='group'
-    aria-label={caption}
-    aria-roledescription='slideshow'
-    tabindex='0'
-  >
+  <div class='sp-inner'>
     <div class='sp-stage'>
       {
         steps.map((step, i) => (
@@ -47,40 +46,57 @@ const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
             class:list={['sp-frame', { 'is-active': i === 0 }]}
             loading={i === 0 ? 'eager' : 'lazy'}
             decoding='async'
-            aria-hidden={i === 0 ? undefined : 'true'}
+            draggable='false'
           />
         ))
       }
     </div>
 
-    <div class='sp-controls'>
-      <button type='button' class='sp-btn' data-action='prev' aria-label='上一步' disabled>‹</button
-      >
-      <button type='button' class='sp-btn sp-play' data-action='play' aria-label='播放'>
-        <span class='sp-icon-play'>▶</span><span class='sp-icon-pause'>❚❚</span>
+    <div class='sp-bar'>
+      <button type='button' class='sp-play' aria-label='播放'>
+        <svg class='sp-icon-play' viewBox='0 0 16 16' aria-hidden='true'>
+          <path d='M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8.3-5.2a.6.6 0 0 0 0-1L5.4 2.3a.6.6 0 0 0-.9.5Z'
+          ></path>
+        </svg>
+        <svg class='sp-icon-pause' viewBox='0 0 16 16' aria-hidden='true'>
+          <rect x='3.5' y='2.5' width='3' height='11' rx='1'></rect>
+          <rect x='9.5' y='2.5' width='3' height='11' rx='1'></rect>
+        </svg>
       </button>
-      <button type='button' class='sp-btn' data-action='next' aria-label='下一步'>›</button>
 
-      <div class='sp-track'>
-        {
-          steps.map((_, i) => (
-            <button
-              type='button'
-              class:list={['sp-tick', { 'is-done': i === 0 }]}
-              data-step={i}
-              aria-label={`第 ${i + 1} 步`}
-            />
-          ))
-        }
+      <div
+        class='sp-track'
+        role='slider'
+        tabindex='0'
+        aria-label='步驟'
+        aria-valuemin='1'
+        aria-valuemax={steps.length}
+        aria-valuenow='1'
+        aria-valuetext={steps[0]?.caption}
+      >
+        <div class='sp-rail'>
+          <div class='sp-fill'></div>
+          {
+            steps.map((_, i) => (
+              <span class:list={['sp-dot', { 'is-done': i === 0 }]} style={`left: ${at(i)}`} />
+            ))
+          }
+          <span class='sp-thumb' style='left: 0%'></span>
+        </div>
+        <div class='sp-labels' aria-hidden='true'>
+          {
+            steps.map((step, i) => (
+              <span class:list={['sp-label', { 'is-active': i === 0 }]} style={`left: ${at(i)}`}>
+                {step.label}
+              </span>
+            ))
+          }
+        </div>
       </div>
-
-      <span class='sp-count'><span class='sp-current'>{pad(1)}</span> / {pad(steps.length)}</span>
     </div>
 
-    <p class='sp-caption' aria-live='polite'>{steps[0]?.caption}</p>
+    <p class='sp-caption' aria-hidden='true'>{steps[0]?.caption}</p>
   </div>
-
-  {caption && <figcaption>{caption}</figcaption>}
 
   <template class='sp-captions'>{JSON.stringify(steps.map((s) => s.caption ?? ''))}</template>
 </figure>
@@ -88,33 +104,47 @@ const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
 <script>
   function setup(root: HTMLElement) {
     const frames = [...root.querySelectorAll<HTMLImageElement>('.sp-frame')]
-    const ticks = [...root.querySelectorAll<HTMLButtonElement>('.sp-tick')]
-    const prev = root.querySelector<HTMLButtonElement>('[data-action="prev"]')!
-    const next = root.querySelector<HTMLButtonElement>('[data-action="next"]')!
-    const play = root.querySelector<HTMLButtonElement>('[data-action="play"]')!
-    const current = root.querySelector<HTMLElement>('.sp-current')!
+    const dots = [...root.querySelectorAll<HTMLElement>('.sp-dot')]
+    const labels = [...root.querySelectorAll<HTMLElement>('.sp-label')]
+    const track = root.querySelector<HTMLElement>('.sp-track')!
+    const rail = root.querySelector<HTMLElement>('.sp-rail')!
+    const fill = root.querySelector<HTMLElement>('.sp-fill')!
+    const thumb = root.querySelector<HTMLElement>('.sp-thumb')!
+    const play = root.querySelector<HTMLButtonElement>('.sp-play')!
     const captionEl = root.querySelector<HTMLElement>('.sp-caption')!
-    const body = root.querySelector<HTMLElement>('.sp-body')!
     const captions: string[] = JSON.parse(
       root.querySelector<HTMLTemplateElement>('.sp-captions')!.content.textContent || '[]'
     )
-    const interval = Number(root.dataset.interval) || 1600
-    const width = String(frames.length).length
+    const interval = Number(root.dataset.interval) || 1400
+    const last = Math.max(frames.length - 1, 1)
     let index = 0
     let timer: number | undefined
 
+    // 時間軸位置（0–1）。拖曳時跟著游標連續移動，放開後才吸到最近的刻度。
+    const place = (ratio: number) => {
+      thumb.style.left = `${ratio * 100}%`
+      fill.style.transform = `scaleX(${ratio})`
+    }
+
     const go = (i: number) => {
-      index = Math.max(0, Math.min(frames.length - 1, i))
-      frames.forEach((f, j) => {
-        f.classList.toggle('is-active', j === index)
-        if (j === index) f.removeAttribute('aria-hidden')
-        else f.setAttribute('aria-hidden', 'true')
-      })
-      ticks.forEach((t, j) => t.classList.toggle('is-done', j <= index))
-      current.textContent = String(index + 1).padStart(width, '0')
+      i = Math.max(0, Math.min(frames.length - 1, i))
+      if (i === index) return
+      // 新圖疊在舊圖上淡入，舊圖保持不透明墊在下面，切換時不會整張變淡。
+      frames.forEach((f) => f.classList.remove('is-prev'))
+      frames[index].classList.add('is-prev')
+      frames[index].classList.remove('is-active')
+      frames[i].classList.add('is-active')
+      index = i
+      dots.forEach((d, j) => d.classList.toggle('is-done', j <= index))
+      labels.forEach((l, j) => l.classList.toggle('is-active', j === index))
       captionEl.textContent = captions[index] ?? ''
-      prev.disabled = index === 0
-      next.disabled = index === frames.length - 1
+      track.setAttribute('aria-valuenow', String(index + 1))
+      track.setAttribute('aria-valuetext', captions[index] ?? '')
+    }
+
+    const snap = (i: number) => {
+      go(i)
+      place(index / last)
     }
 
     const stop = () => {
@@ -126,33 +156,56 @@ const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
 
     const start = () => {
       // 播完再按一次就從頭來。
-      if (index === frames.length - 1) go(0)
+      if (index === frames.length - 1) snap(0)
       root.classList.add('is-playing')
       play.setAttribute('aria-label', '暫停')
       timer = window.setInterval(() => {
-        go(index + 1)
+        snap(index + 1)
         if (index === frames.length - 1) stop()
       }, interval)
     }
 
-    // 手動操作一律先停掉自動播放。
-    const jump = (i: number) => {
-      stop()
-      go(i)
-    }
-    const toggle = () => (timer ? stop() : start())
+    play.addEventListener('click', () => (timer ? stop() : start()))
 
-    prev.addEventListener('click', () => jump(index - 1))
-    next.addEventListener('click', () => jump(index + 1))
-    play.addEventListener('click', toggle)
-    ticks.forEach((t, i) => t.addEventListener('click', () => jump(i)))
-    body.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') jump(index - 1)
-      else if (e.key === 'ArrowRight') jump(index + 1)
-      else if (e.key === ' ' && e.target === body) {
-        e.preventDefault()
-        toggle()
-      }
+    const ratioAt = (x: number) => {
+      const r = rail.getBoundingClientRect()
+      return Math.max(0, Math.min(1, (x - r.left) / r.width))
+    }
+    const drag = (e: PointerEvent) => {
+      const ratio = ratioAt(e.clientX)
+      place(ratio)
+      go(Math.round(ratio * last))
+    }
+    track.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return
+      stop()
+      track.setPointerCapture(e.pointerId)
+      root.classList.add('is-dragging')
+      drag(e)
+    })
+    track.addEventListener('pointermove', (e) => {
+      if (track.hasPointerCapture(e.pointerId)) drag(e)
+    })
+    const release = () => {
+      root.classList.remove('is-dragging')
+      place(index / last)
+    }
+    track.addEventListener('pointerup', release)
+    track.addEventListener('pointercancel', release)
+
+    track.addEventListener('keydown', (e) => {
+      const target = {
+        ArrowLeft: index - 1,
+        ArrowDown: index - 1,
+        ArrowRight: index + 1,
+        ArrowUp: index + 1,
+        Home: 0,
+        End: last
+      }[e.key]
+      if (target === undefined) return
+      e.preventDefault()
+      stop()
+      snap(target)
     })
   }
 
@@ -162,19 +215,12 @@ const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
 <style>
   .step-player {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
     margin: 2em auto;
   }
-  .sp-body {
+  .sp-inner {
     width: var(--player-width, 100%);
     max-width: 100%;
-    outline: none;
-  }
-  .sp-body:focus-visible {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 6px;
-    border-radius: 10px;
   }
 
   /* 所有圖疊在同一格，格子高度由圖本身撐開。 */
@@ -187,103 +233,182 @@ const pad = (n: number) => String(n).padStart(String(steps.length).length, '0')
     height: auto;
     border-radius: 10px;
     opacity: 0;
-    transition: opacity 180ms ease;
+    user-select: none;
   }
-  .sp-frame.is-active {
+  .sp-frame.is-prev {
     opacity: 1;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .sp-frame {
-      transition: none;
-    }
+  .sp-frame.is-active {
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 220ms ease-out;
+  }
+  /* 拖曳時跟手，不等淡入。 */
+  .is-dragging .sp-frame.is-active {
+    transition-duration: 90ms;
   }
 
-  .sp-controls {
+  .sp-bar {
     display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.75rem;
-    font-size: 0.875rem;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin-top: 1.1rem;
   }
-  .sp-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 6px;
-    color: hsl(var(--foreground));
-    font-size: 1.125rem;
-    line-height: 1;
-  }
-  .sp-btn:hover:not(:disabled),
-  .sp-btn:focus-visible {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-  }
-  .sp-btn:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
+
   .sp-play {
-    font-size: 0.7rem;
-    letter-spacing: -0.1em;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: -0.5rem;
+    border-radius: 999px;
+    color: hsl(var(--muted-foreground));
+    transition:
+      color 150ms,
+      background 150ms;
+  }
+  .sp-play svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    fill: currentColor;
+  }
+  .sp-play:hover,
+  .sp-play:focus-visible,
+  .is-playing .sp-play {
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
   }
   .sp-icon-pause,
   .is-playing .sp-icon-play {
     display: none;
   }
   .is-playing .sp-icon-pause {
-    display: inline;
+    display: block;
   }
 
+  /* 整條（含標籤）都是拖曳範圍；圓點左右各留半個 thumb 的空間不被切掉。 */
   .sp-track {
     flex: 1;
-    display: flex;
-    gap: 3px;
-    margin: 0 0.5rem;
+    padding: 0 0.5rem;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    outline: none;
   }
-  /* 點擊範圍比看到的線粗，線本身用 ::before 畫。 */
-  .sp-tick {
-    flex: 1;
-    height: 1rem;
-    display: flex;
-    align-items: center;
+  .sp-rail {
+    position: relative;
+    height: 0.75rem;
   }
-  .sp-tick::before {
+  .sp-rail::before,
+  .sp-fill {
     content: '';
-    width: 100%;
-    height: 3px;
-    border-radius: 2px;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: 1px;
+  }
+  .sp-rail::before {
     background: hsl(var(--border));
-    transition: background 180ms ease;
   }
-  .sp-tick.is-done::before {
+  .sp-fill {
     background: hsl(var(--primary));
-  }
-  .sp-tick:hover::before {
-    background: hsl(var(--primary) / 0.6);
+    transform: scaleX(0);
+    transform-origin: left;
   }
 
-  .sp-count {
-    font-variant-numeric: tabular-nums;
-    color: hsl(var(--muted-foreground));
+  .sp-dot,
+  .sp-thumb {
+    position: absolute;
+    top: 50%;
+    border-radius: 999px;
+    transform: translate(-50%, -50%);
+  }
+  .sp-dot {
+    width: 7px;
+    height: 7px;
+    background: hsl(var(--background));
+    box-shadow: inset 0 0 0 1.5px hsl(var(--border));
+    transition: box-shadow 200ms;
+  }
+  .sp-dot.is-done {
+    box-shadow: inset 0 0 0 4px hsl(var(--primary));
+  }
+  .sp-thumb {
+    z-index: 1;
+    width: 15px;
+    height: 15px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.18);
+    transition: box-shadow 150ms;
+  }
+  .sp-track:hover .sp-thumb,
+  .sp-track:focus-visible .sp-thumb,
+  .is-dragging .sp-thumb {
+    box-shadow: 0 0 0 7px hsl(var(--primary) / 0.22);
+  }
+
+  /* 不拖的時候 thumb 和填色滑過去；拖的時候直接跟著游標。 */
+  .sp-thumb,
+  .sp-fill {
+    transition-property: left, transform, box-shadow;
+    transition-duration: 280ms, 280ms, 150ms;
+    transition-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1);
+  }
+  .is-dragging .sp-thumb,
+  .is-dragging .sp-fill {
+    transition-duration: 0ms, 0ms, 150ms;
+  }
+
+  .sp-labels {
+    position: relative;
+    height: 1.4rem;
+    margin-top: 0.35rem;
+  }
+  .sp-label {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.7rem;
     white-space: nowrap;
+    color: hsl(var(--muted-foreground) / 0.7);
+    transition: color 150ms;
+  }
+  /* 頭尾兩個置中會超出時間軸被切掉，改成往內對齊。 */
+  .sp-label:first-child {
+    transform: translateX(-0.5rem);
+  }
+  .sp-label:last-child {
+    transform: translateX(calc(-100% + 0.5rem));
+  }
+  .sp-label.is-active {
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+  @media (max-width: 480px) {
+    .sp-labels {
+      display: none;
+    }
   }
 
   .sp-caption {
     min-height: 1.6em;
-    margin: 0.5rem 0 0;
+    margin: 0.4rem 0 0;
     text-align: center;
     font-size: 0.875rem;
     line-height: 1.6;
+    color: hsl(var(--foreground));
   }
 
-  figcaption {
-    margin-top: 0.4em;
-    text-align: center;
-    font-size: 0.875em;
-    line-height: 1.6;
-    color: hsl(var(--muted-foreground));
+  @media (prefers-reduced-motion: reduce) {
+    .sp-frame.is-active,
+    .sp-thumb,
+    .sp-fill {
+      transition: none;
+    }
   }
 </style>

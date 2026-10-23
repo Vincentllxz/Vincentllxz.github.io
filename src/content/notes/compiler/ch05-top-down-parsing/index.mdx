@@ -24,19 +24,19 @@ Parser 裡面也有一個 state machine，等等會說怎麼來的
 <StepPlayer
   caption="LL(1) parsing of b(c+c)"
   steps={[
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-01.webp', caption: 'Start' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-02.webp', caption: 'Push E' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-03.webp', caption: 'T[E][b] = 1：E → Prefix(E)' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-04.webp', caption: 'T[Prefix][b] = 3：Prefix → b' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-05.webp', caption: 'Match b、(' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-06.webp', caption: 'T[E][c] = 2：E → c Tail' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-07.webp', caption: 'Match c' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-08.webp', caption: 'T[Tail][+] = 5：Tail → +E' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-09.webp', caption: 'Match +' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-10.webp', caption: 'T[E][c] = 2：E → c Tail' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-11.webp', caption: 'Match c' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-12.webp', caption: 'T[Tail][)] = 6：Tail → λ' },
-    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-13.webp', caption: 'Match )，Accept' }
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-01.webp', label: 'start', caption: 'Start' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-02.webp', label: 'E', caption: 'Push E' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-03.webp', label: '#1', caption: 'T[E][b] = 1：E → Prefix(E)' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-04.webp', label: '#3', caption: 'T[Prefix][b] = 3：Prefix → b' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-05.webp', label: 'b (', caption: 'Match b、(' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-06.webp', label: '#2', caption: 'T[E][c] = 2：E → c Tail' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-07.webp', label: 'c', caption: 'Match c' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-08.webp', label: '#5', caption: 'T[Tail][+] = 5：Tail → +E' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-09.webp', label: '+', caption: 'Match +' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-10.webp', label: '#2', caption: 'T[E][c] = 2：E → c Tail' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-11.webp', label: 'c', caption: 'Match c' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-12.webp', label: '#6', caption: 'T[Tail][)] = 6：Tail → λ' },
+    { src: '/images/compiler/ch05-top-down-parsing/ll1-step-13.webp', label: ')', caption: 'Match )，Accept' }
   ]}
 />
 
@@ -48,7 +48,7 @@ Parser 裡面也有一個 state machine，等等會說怎麼來的
 
 $$
 \mathrm{Predict}(A \to X_1 \ldots X_m) = \begin{cases}
-(\mathrm{First}(X_1\ldots X_m) \setminus \{\lambda\}) \cup \mathrm{Follow}(A) &\text{if }\lambda \in \mathrm{Follow}(A) \\
+(\mathrm{First}(X_1\ldots X_m) \setminus \{\lambda\}) \cup \mathrm{Follow}(A) &\text{if }\lambda \in \mathrm{First}(X_1\ldots X_m) \\
 \mathrm{Follow}(A) &\text{otherwise}
 \end{cases}
 $$
@@ -65,11 +65,11 @@ $$
 T: V_n \times V_t \to P \cup \{\text{Error}\}
 $$
 
-- $T[A][t] = A \to X_1\ldots X_m$ if $t \in \mathrm{Prediction}(A \to X_1\ldots X_m)$
+- $T[A][t] = A \to X_1\ldots X_m$ if $t \in \mathrm{Predict}(A \to X_1\ldots X_m)$
 - $T[A][t] = \mathrm{Error}$ otherwise
 
 
-如果發現不是 disjoint 的話，我們填表就會發現某個 entry 裡面有不止一個 rule 可以被放進來，如過是 disjoint 的話，那他就是 $LL(1)$
+如果發現不是 disjoint 的話，我們填表就會發現某個 entry 裡面有不止一個 rule 可以被放進來，如果是 disjoint 的話，那他就是 $LL(1)$
 
 
 ### Trade-off in Parse Table Implementation
@@ -111,7 +111,7 @@ end procedure
 
 ### Table-Driven Driver
 
-在 $LL(1)$ 的 language 中，我們可以用讓 driver 跟 table 協作，這樣寫出來的 code
+在 $LL(1)$ 的 language 中，我們可以讓 driver 跟 table 協作，這樣寫出來的 code
 - **Smaller Code Size**
     - Recursive Descent Parser 通常每個 Nonterminal 都需要一個 Procedure
     - Table-driven Parser 只需要一個通用的 Driver Program + Parsing Table，可能減少重複的程式碼
