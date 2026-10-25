@@ -15,695 +15,1250 @@ import Fig from '@/components/Fig.astro'
 
 # Process Control & IPC
 
+前面幾章都是一個 process 自己開啟檔案、讀寫資料，但如果我們想同時做兩件事，或是讓兩個程式一起完成工作，就需要知道 process 是怎麼被建立、怎麼結束，以及彼此怎麼交換資料
+
+舉個例子，我們在 shell 裡面輸入 `ls | more`，shell 必須先建立執行這兩個程式的 processes，再把 `ls` 的輸出接到 `more` 的輸入，最後還要處理它們結束後留下來的資訊。這一章就是要把這些步驟拆開來看
+
 ## Booting 
+
 ### Bootstrapping
-- 開機用 program 在 BIOS 裡 (硬體檢查硬體)
-- 並非 Unix kernel 本人
-1. 把 Unix kernel 的幾隻 process 叫起來 (OS 檢查硬體)
-2. Unix kernel 將整個 system 叫起來到 single (super) user mode 做一些事情 
-  e.g. check host name, timezone, disk data consistency
-3. 開啟 multiuser mode
+
+電腦剛開機的時候，kernel 還沒有開始執行，因此需要先有一段程式負責把它載入，這個從開機一路把系統帶起來的過程就叫做 **Bootstrapping**
+
+可以先把流程想成：
+
+```text noLineNumbers
+BIOS / UEFI → bootloader → kernel → System services and user programs
+```
+
+1. **韌體**先做基本的硬體初始化，再把控制權交給 bootloader
+2. **Bootloader** 找到 kernel，把它載入記憶體並開始執行
+3. **Kernel** 初始化記憶體管理、裝置與 process 管理等功能，再啟動負責帶起系統服務的程式
+
+課堂以傳統 Unix 為例，會先進入 single-user mode 做必要的設定或維護，例如檢查檔案系統，再進入 multiuser mode，啟動登入與網路等服務。不同系統的開機流程不一定完全相同，但要先區分：**開機韌體、bootloader 和 kernel 是不同的東西**
 
 **Special process**
-- **`PID 0`**: swapper (scheduler)
-    - kernel process 做一些 prior 的事情，躲在 partition
-- **`PID 1`**: `init` 所有 process 的共同祖先
-    - 把系統的 service 叫起來
-    - `inetd`: 管理 remote login 會 fork surface process 出來像是 `telnetdaemon`
-- **`PID 2`**: `pagedaemon`
-<Fig src="/images/sp/ch06-process/bootstrapping.webp" caption="Bootstrapping" />
+
+在課堂使用的傳統 Unix 模型裡，有幾個特別的 processes：
+
+- **`PID 0`**: 通常用來說明 kernel 最早建立的執行環境，課堂稱為 swapper / scheduler
+- **`PID 1`**: `init`，負責啟動系統服務，也負責接手與回收失去 parent 的 processes
+- **`PID 2`**: 課堂以 `pagedaemon` 說明處理記憶體分頁的 kernel 工作
+
+這些名稱和編號是在說明特定 Unix 實作，不是所有系統都使用同一組配置。看下面這張圖，我們要注意的是 **process tree 的親子關係**：`init` 啟動服務，登入服務再啟動 shell，shell 又可以建立執行指令的 child processes
+
+<Fig src="/images/sp/ch06-process/bootstrapping.webp" caption="Unix process tree" />
 
 ### Process Control Block (PCB)
-- Process 的 metadate
-- Process states:
-    - New
-    - Running
-    - Waiting
-    - Ready
-    - Terminated
-- <Fig src="/images/sp/ch06-process/process-control-block-1.webp" caption="Process Control Block 1" />
-- Program Counter (IP: Instruction Pointer)
-- CPU registers
-    - context switch 回來要 restore
-- CPU scheduling information
-    - priority 檢查
-- Memory-management information
-- Accounting information
-    - 紀錄任何時間參數
-- I/O status information
-<Fig src="/images/sp/ch06-process/process-control-block-2.webp" caption="Process Control Block 2" />
+
+第一章提過，**program 是放在檔案裡的程式，process 則是正在執行這個程式的實例**。同一個 program 可以同時有好幾個 processes，例如我們可以同時開啟兩個執行相同程式的 terminal 視窗
+
+Kernel 必須分得清楚每個 process 現在的狀態，因此會為它保存一份管理資訊，這個資料結構就叫做 **Process Control Block (PCB)**，也就是 process 的 metadata
+
+先看 process 可能有哪些狀態：
+
+| State | 代表意義 |
+| --- | --- |
+| **New** | 正在建立 |
+| **Ready** | 已經可以執行，正在等待 CPU |
+| **Running** | 目前正在 CPU 上執行 |
+| **Waiting** | 正在等待 I/O 或其他事件，暫時不能繼續 |
+| **Terminated** | 已經結束 |
+
+<Fig src="/images/sp/ch06-process/process-control-block-1.webp" caption="Process state transitions" />
+
+看上面這張圖，假設一個 process 要從 terminal 讀取輸入，但使用者還沒打字，它就會從 running 進入 waiting。等到資料準備好了，先回到 ready，等下一次被排程到 CPU 才會繼續執行
+
+所以 **ready 是在等 CPU，waiting 是在等某件事發生**，兩者等的東西不一樣
+
+除了 state，PCB 還需要記錄：
+
+- **PID / PPID**: 自己和 parent 的身分
+- **Program Counter、CPU registers**: 上次執行到哪裡，之後要怎麼接回來
+- **CPU scheduling information**: 例如 priority，讓 scheduler 決定誰先執行
+- **Memory-management information**: 這個 process 的 virtual memory 如何對應到實體記憶體
+- **Accounting information**: 已經使用多少 CPU time 等資源紀錄
+- **I/O status information**: 例如目前開啟哪些檔案
+
+<Fig src="/images/sp/ch06-process/process-control-block-2.webp" caption="Fields of the proc structure" />
+
+圖中列的是某個 Unix 實作的 `proc` structure，不需要先把每個欄位背起來，重點是 **kernel 要能保存 process 的狀態，也要能根據這些資訊管理它**
 
 ### Process table
-- 每個 entry 都是 PCB，記錄當前所有 process
-- run 一次看看誰的 `ppid` 是自己就知道自己有多少 child 了
+
+如果把所有 processes 的 PCB 放在一起管理，就可以把它想成一張 **Process table**，每個 entry 對應一個 process。實際上也可能用多種資料結構串接，不一定真的只有一個連續的陣列
+
+舉個例子，kernel 想找出某個 process 的 children，就可以根據親子關係去找。從概念上來看，就是找出哪些 process 的 PPID 等於這個 process 的 PID
+
+我們也可以在 terminal 觀察這個關係：
+
+```bash
+ps -e -o pid,ppid,stat,comm
+```
+
+`PID` 是自己的編號，`PPID` 是 parent 的編號。Process 結束並完成回收後，PID 可以被重新使用，因此它不是永久不變的身分證號碼
 
 ### Context switch
-<Fig src="/images/sp/ch06-process/context-switch-1.webp" caption="Context switch 1" />
+
+CPU 從一個 process 切換去執行另一個 process，就叫做 **Context switch**
+
+<Fig src="/images/sp/ch06-process/context-switch-1.webp" caption="Context switch between processes" />
+
+假設 CPU 原本正在執行 P0，接著要改成 P1：
+
+1. Kernel 先保存 P0 的 registers、Program Counter 等執行狀態
+2. 根據 P0 為什麼停止執行，把它放回 ready queue，或放進對應的等待佇列
+3. 載入 P1 先前保存的狀態，切換到它使用的記憶體對應，再讓它繼續執行
+
+之後輪回 P0 時，就能從上次停下的地方接著做，不需要從 `main()` 重頭開始
+
+第一章也提過，**進入 kernel mode 不一定會發生 context switch**。如果一個 system call 可以立刻完成，kernel 可以直接回到原本的 process；如果它必須等待，才可能先讓其他 process 使用 CPU
 
 <Aside type="note" title="">
+
 **Process Scheduling Queue**
-- **Job queue**: 所有 process
-- **Ready queue**: 準備好在 main memory 的 process
-- **Device queues**: 準備 I/O 的
-<Fig src="/images/sp/ch06-process/context-switch-2.webp" caption="Context switch 2" />
+
+Kernel 會依照等待的事情，把 processes 放在不同佇列裡：
+
+- **Job queue**: 課堂中用來表示系統內所有 processes 的集合
+- **Ready queue**: 可以執行、正在等待 CPU 的 processes
+- **Device queues**: 正在等待對應裝置 I/O 的 processes
+
+<Fig src="/images/sp/ch06-process/context-switch-2.webp" caption="Ready queue and I/O queues" />
+
+這些 queues 串接的是 process 的管理資訊，不是把整份程式內容搬來搬去。I/O 完成後，kernel 讓對應的 process 回到 ready，之後再由 scheduler 決定何時執行
+
 </Aside>
 
-
 ### Process Content & Metadata
-- **Content**: Virtual memory 
-- <Fig src="/images/sp/ch06-process/process-content-and-metadata.webp" caption="Process Content &amp; Metadata" />
-- text: instruction
-- un-initialized data, initialized data: global variable
-- stack: local variable
-- heap: 只漲不縮
+
+前一章把 file 分成 metadata 和 content，process 也可以用類似的方法理解：
+
+- **Metadata**: Kernel 保存的管理資訊，例如 PCB 裡的 PID、state、registers
+- **Content**: Process 的 virtual memory，裡面有程式指令與執行時使用的資料
+
+<Fig src="/images/sp/ch06-process/process-content-and-metadata.webp" caption="Process metadata and virtual memory" />
+
+看右邊的 virtual memory，可以分成幾個主要區域：
+
+- **Text**: 程式指令
+- **Initialized data / BSS**: Global、static variables 等具有靜態儲存期的資料，依初始化方式區分
+- **Stack**: Function call 使用的 stack frames，包含許多 local variables 與返回資訊
+- **Heap**: `malloc()` 等函式配置的空間
+
+圖中 stack 往低位址成長、heap 往高位址成長，是課堂使用的簡化配置，實際排列依系統而定。`free()` 可以讓 allocator 重新使用空間，但不代表每次都會立刻把記憶體交還 kernel，因此不能只從 process 佔用的記憶體大小判斷有沒有釋放
 
 ### Process Creation & Termination
 
-<Fig src="/images/sp/ch06-process/process-creation-and-termination-1.webp" caption="Process Creation &amp; Termination 1" />
-- `fork()` 開始，會出現很多狀況: parent 先死, 直接 `exec()`
-- 兩個 process 的關聯性只有 `ppid`
+先把建立與結束 process 的三件事分開：
+
+- **`fork()`**: 建立一個 child process
+- **`exec()` 家族**: 讓目前的 process 改執行另一個 program
+- **`wait()` 家族**: 讓 parent 取得 child 的狀態，並回收已結束的 child
+
+<Fig src="/images/sp/ch06-process/process-creation-and-termination-1.webp" caption="Process creation with fork and exec" />
+
+圖中是一個常見流程：parent 呼叫 `fork()`，child 用 `exec()` 載入要執行的程式，最後 child 結束，parent 用 `wait()` 取得結果。但 child 也可以直接做原本程式裡的工作，不一定要呼叫 `exec()`
 
 <Aside type="note" title="">
-**`pid_t fork(void)`**
-- 要根據 `fork()` 的 return 判斷現在是 parent 還是 child，因為兩者跑一樣的 code
-    - 對於 parent 會 return child PID
-    - 不可能有人得 child-id 是 0 所以 return 0 就是 parent
-- **Call once return twice**
-- 在 bootstrapping 後唯一可以創建 process 的 system call
-- **只 call fork 是不會執行 process**
 
-<Fig src="/images/sp/ch06-process/process-creation-and-termination-2.webp" caption="Process Creation &amp; Termination 2" />
+**`pid_t fork(void)`**
+
+`fork()` 很特別，成功時我們只呼叫一次，卻會有兩個 processes 從這次呼叫之後繼續執行，所以課堂會說 **Call once, return twice**
+
+| 回傳值 | 現在在哪個 process |
+| --- | --- |
+| `-1` | 建立失敗，沒有新的 child，檢查 `errno` |
+| `0` | Child process |
+| 大於 `0` | Parent process，回傳值是剛建立的 child PID |
+
+```c noLineNumbers
+pid_t pid = fork();
+
+if (pid < 0) {
+    /* 建立失敗 */
+} else if (pid == 0) {
+    /* child 的工作 */
+} else {
+    /* parent 的工作，pid 是 child PID */
+}
+```
+
+<Fig src="/images/sp/ch06-process/process-creation-and-termination-2.webp" caption="Parent and child after fork" />
+
+Parent 和 child 都從同一處接著執行，但 child 不會從 `main()` 再跑一次。也正因為兩者執行相同的程式碼，我們才需要用回傳值決定各自要做什麼
+
+Child 雖然得到 `0` 這個回傳值，**它自己的 PID 並不是 0**。要查自己的 PID 用 `getpid()`，查 parent 的 PID 用 `getppid()`
+
 </Aside>
 
 **Virtual Memory 的運作**
-- 把整個 process copy 是 high-cost 的
-- 把 virtual memory map 到 physical memory 上
-    - 對應在 `p_ldt` 上的 table
-    - Virtual Memory 用不完的，所以會有洞，但這樣浪費空間
-    - <Fig src="/images/sp/ch06-process/process-creation-and-termination-3.webp" caption="Process Creation &amp; Termination 3" />
-- **Copy-on-write**
-    - <Fig src="/images/sp/ch06-process/process-creation-and-termination-4.webp" caption="Process Creation &amp; Termination 4" />
-    - 當發現出現 share memory 要更改的時候再 copy
-    - 第一次開始寫入才真正複製
+
+從程式的角度看，`fork()` 後 parent 和 child 各自擁有一份記憶體內容，普通變數的修改不會自動傳給對方。但如果真的立刻把所有 physical pages 複製一份，成本會很高，尤其 child 可能馬上就要 `exec()`，剛複製的資料根本用不到
+
+因此現代系統通常使用 **Copy-on-write (COW)**：先讓兩者的 virtual pages 指向同一批 physical pages，等到有人真的要寫入時，才複製需要修改的那一頁
+
+<Fig src="/images/sp/ch06-process/process-creation-and-termination-3.webp" caption="Shared pages before copy-on-write" />
+
+例如兩個 processes 原本都使用 page C，當 Process 1 想修改它，kernel 就先準備另一份 page C，讓 Process 1 修改自己的副本，Process 2 繼續使用原本那份
+
+<Fig src="/images/sp/ch06-process/process-creation-and-termination-4.webp" caption="Private page after copy-on-write" />
+
+**實體記憶體暫時共用，是 kernel 的最佳化；普通變數在程式裡仍然是各自獨立的**。另外，virtual address space 裡沒有使用的洞，也不需要全部配置實體記憶體，詳見 [fork(2)](https://man7.org/linux/man-pages/man2/fork.2.html)
 
 <Aside type="tip" title="Example of `vfork()`">
- ```c
-int     glob = 6;                        /* external > variable in initialized data */
-char    buf[] = "a write to stdout\n";
+
+先用 `fork()` 當作對照，看看普通變數和第四章的 standard I/O buffer 會發生什麼事：
+
+```c title="fork_buffer.c"
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+static int glob = 6;
 
 int main(void) {
-    int     var;                         /* automatic variable on the stack */
-    pid_t   pid;
+    int var = 88;
+    pid_t pid;
 
-    var = 88;
-    if (write(STDOUT_FILENO, buf, sizeof(buf)-1) != sizeof(buf)-1)
-        err_sys("write error");
-    printf("before fork\n");             /* we don't flush stdout */
+    if (write(STDOUT_FILENO, "a write to stdout\n", 18) != 18) {
+        perror("write");
+        return 1;
+    }
+    printf("before fork\n");
 
-    if ((pid = fork()) < 0)
-        err_sys("fork error");
-    else if (pid == 0) {                 /* child */
-        glob++;                          /* modify variables */
+    pid = fork();
+    if (pid < 0) {
+        perror("fork");
+        return 1;
+    }
+    if (pid == 0) {
+        glob++;
         var++;
-    } else {
-        sleep(2);                        /* parent */
+        printf("child: glob = %d, var = %d\n", glob, var);
+        exit(0);
     }
 
-    printf("pid = %d, glob = %d, var = %d\n", getpid(), glob, var);
-    exit(0);
+    while (waitpid(pid, NULL, 0) < 0) {
+        if (errno != EINTR) {
+            perror("waitpid");
+            return 1;
+        }
+    }
+    printf("parent: glob = %d, var = %d\n", glob, var);
+    return 0;
 }
 ```
-- parent 睡兩秒
-- child 改變數
 
-**Result**
-```bash
-$ ./a.out
+這裡先讓 parent 用 `waitpid()` 等 child 結束，讓輸出順序固定，後面會再說明這個函式
+
+直接在一般 terminal 執行，通常會看到：
+
+```text noLineNumbers
 a write to stdout
 before fork
-pid = 430, glob = 7, var = 89
-pid = 429, glob = 6, var = 88
-```  
-```bash
-$ ./a.out > temp.out
-a write to stdout
-before fork
-pid = 430, glob = 7, var = 89
-before fork
-pid = 429, glob = 6, var = 88
+child: glob = 7, var = 89
+parent: glob = 6, var = 88
 ```
-- File 是 fully-buffered, Terminal 是 line-buffered. 
-    - 有寫入 `\n` 但沒有 flush 出去，因為是 fully-buffered.
-    - 此時呼叫 `fork()` child copy 了一塊 parent 的 memeory 所以那句多出來的也被 copy 到了。 
+
+Child 修改 `glob` 和 `var`，parent 看到的值卻沒有改變，因為兩個 processes 的普通變數是獨立的
+
+接著把輸出導向檔案：
+
+```bash
+./a.out > temp.out
+cat temp.out
+```
+
+在 `stdout` 使用 fully buffered 的一般情況下，檔案內容會變成：
+
+```text noLineNumbers
+a write to stdout
+before fork
+child: glob = 7, var = 89
+before fork
+parent: glob = 6, var = 88
+```
+
+為什麼 `before fork` 多了一次？因為 `fork()` 時，它還留在 user space 的 standard I/O buffer，buffer 也跟著被複製了。之後 parent 和 child 各自結束，各自把自己的 buffer 送出去，就印了兩次
+
+前面的 `write()` 已經把資料交給 kernel，不在這個 buffer 裡，所以只會出現一次。如果在 `fork()` 前先成功呼叫 `fflush(stdout)`，就可以先把那句話送出去，避免重複輸出
+
 </Aside>
 
 <Aside type="note" title="Practice 1">
-```c
-void forkfunc() {
+
+```c noLineNumbers
+void forkfunc(void) {
     if (fork() && fork())
         fork();
-    write (1, “*\n”, 2);
+    write(STDOUT_FILENO, "*\n", 2);
 }
 ```
-- 4 個 `*`
-- 切記 `fork()` return twice
+
+假設所有 `fork()` 都成功，最後會印出 **4 個 `*`**。這裡除了要記住 `fork()` 會回傳兩次，也要注意 `&&` 的 short-circuit 規則：左邊為假，就不會計算右邊
+
+1. 第一次 `fork()` 的 child 得到 `0`，不做右邊的 `fork()`，最後印一次
+2. 原本的 parent 得到正值，繼續做第二次 `fork()`；第二個 child 得到 `0`，不進入 `if`，最後印一次
+3. 原本的 parent 兩次都得到正值，進入 `if` 再做一次 `fork()`，這次分成兩個 processes，各印一次
+
+所以總共是 `1 + 1 + 2 = 4`。這裡把錯誤檢查省略來練習判斷流程，實際程式仍要處理 `fork()` 失敗的情況
+
 </Aside>
 
 <Aside type="note" title="Practice 2">
-```c
-void forkfunc() {
+
+```c noLineNumbers
+void forkfunc(void) {
     if (fork() || fork())
         fork();
-    write (1, “*\n”, 2);
+    write(STDOUT_FILENO, "*\n", 2);
 }
 ```
-- 5 個 `*`
--     
+
+同樣假設 `fork()` 都成功，這次會印出 **5 個 `*`**。`||` 的規則是左邊為真，就不用計算右邊：
+
+1. 第一次 `fork()` 的 parent 得到正值，直接進入 `if`，再分成兩個 processes，各印一次
+2. 第一次的 child 得到 `0`，因此還要做右邊的 `fork()`
+3. 在第二次 `fork()` 裡得到正值的那個 process 會進入 `if`，再分成兩個，各印一次
+4. 第二次的 child 兩邊都得到 `0`，不進入 `if`，自己印一次
+
+總共是 `2 + 2 + 1 = 5`，不要直接把看到的 `fork()` 數量拿來算 `2` 的次方，因為每個 process 不一定會走到每一次呼叫
+
 </Aside>
 
 ### **Normal cases in fork**
-- 通常 parent 會等到 child 結束後 call `wait()` return 然後繼續運行
-- 但也可以 parent 繼續做事 (跟 child 並行) 但 eventually 還是得呼叫 `wait()` 
-- 有 `CHILD_MAX`
+
+`fork()` 成功後，parent 和 child 都可以繼續執行，**沒有保證哪一個先執行**。Parent 可以馬上等待 child，也可以先做自己的工作，再來取得 child 的結果
+
+但 process 數量不是無限的，系統有每個使用者的 process 數量限制與資源上限，課堂用 `CHILD_MAX` 說明相關限制。建立失敗時 `fork()` 會回傳 `-1`，不能把失敗也當成 parent 的正常分支
 
 **Inherited properties**
-- **Effective UID**, time, umask ... etc
+
+Child 會繼承 parent 的許多設定，例如：
+
+- Real / effective UID、GID、supplementary groups
+- Current working directory、root directory、`umask`
+- Environment、resource limits
+- Signal dispositions、signal mask
+- 開啟中的 file descriptors
+
+最後一項要跟第二章連起來：**parent 和 child 各有自己的 fd table，但對應的 fd 可以指向同一個 open file description**，因此會共享 current file offset 與 file status flags
+
+例如 parent 先開啟一個檔案再 `fork()`，child 讀走一個 byte，parent 接著讀，就會從移動後的 offset 繼續。Child 關閉自己的 fd，則不會順便刪掉 parent 的 fd
 
 **Differences on properties**
-- PID/PPID
-- PCB 裡面的 time 是 process time 不是 program time
-- lock
-- pending SIGNAL
 
+有些資訊則需要重新開始：
 
+- Child 有自己的 PID，PPID 指向 parent
+- Child 的 CPU time 與資源使用紀錄重新計算
+- Child 不繼承 parent 尚未處理的 pending signals，`alarm()` 剩餘時間也不直接繼承
+- 第三章的傳統 process-associated record locks 不會被 child 繼承，其他種類的 lock 要另外看規則
 
-<Fig src="/images/sp/ch06-process/normal-cases-in-fork.webp" caption="Normal cases in fork" />
+<Fig src="/images/sp/ch06-process/normal-cases-in-fork.webp" caption="Inherited and changed properties after fork" />
 
+所以「複製 process」不是每一個欄位都原封不動複製，kernel 會保留該繼承的設定，也建立 child 自己的身分與紀錄
 
 <Aside type="note" title="**Usage of fork**">
-- 複製一個 process 去跑別的東西 e.g. Network servers
-- shells (`spawn` = `fork` + `exec`)
-    - 但有些 process 是不需要 `exec()` 的
+
+常見的用法有兩種：
+
+1. **把工作分出去**：例如 server 建立 child 處理某個連線，child 繼續執行原本程式裡的函式
+2. **執行另一個 program**：例如 shell 先 `fork()`，再讓 child `exec()` 指定的程式
+
+`posix_spawn()` 也提供建立 process 並執行程式的介面，但這是在說明它提供的功能，不代表內部一定先呼叫一次 `fork()` 再呼叫 `exec()`，詳見 [posix_spawn(3)](https://man7.org/linux/man-pages/man3/posix_spawn.3.html)
+
 </Aside>
 
-
 <Aside type="note" title="**vfork**">
-- 不 copy 而是共用 virtual memory，會去改到 parent 的 variable (open fd table 也是 parent 的)
-- Child 呼叫 `exec()` 之後才會真正為了 child 去 allocate 一塊 virtual memory
-- child 永遠先執行並且 parent 要在 child 結束後執行
+
+早期 `fork()` 複製記憶體的成本比較高，因此有了 **`vfork()`**，讓 child 暫時借用 parent 的 address space，預期 child 很快就會 `exec()` 或 `_exit()`
+
+以 Linux 的行為來看，呼叫 `vfork()` 的 parent thread 會暫停，直到 child 成功 `exec()` 或結束才繼續。這裡等的是 child 不再使用原本的 address space，不是一定要等它執行的新程式結束
+
+這也代表 child 不能像一般 `fork()` 後那樣自由做事：不要修改普通變數、不要從目前的函式 `return`，也不要呼叫 `exit()` 去處理 parent 的 standard I/O buffer。它主要應該直接執行 `exec()`，失敗時用 `_exit()` 結束
+
+課堂可能用修改 `glob`、`var` 觀察共用記憶體的現象，但那不是一般程式可以依賴的合法用法；`vfork()` 也已不在 POSIX.1-2008 的標準介面中，詳見 [vfork(2)](https://man7.org/linux/man-pages/man2/vfork.2.html)
+
 </Aside>
 
 <Aside type="tip" title="Example of `vfork()`">
-```c
-int  glob = 6;        /* external variable in initialized data */
 
-int main(void)
-{
-    int     var;         /* automatic variable on the stack */
-    pid_t   pid;
+下面只示意 child 立刻執行另一個程式的用法，省略 parent 後續的等待與錯誤處理：
 
-    var = 88;
-    printf("before vfork\n");    /* we don't flush stdio */
-    if ((pid = vfork()) < 0) {
-        err_sys("vfork error");
-    } else if (pid == 0) {       /* child */
-        glob++;                  /* modify parent's variables */
-        var++;
-        _exit(0);                /* child terminates */
-    }
-    /*
-     * Parent continues here.
-     */
-    printf("pid = %d, glob = %d, var = %d\n", getpid(), glob, var);
-    exit(0);
+```c noLineNumbers
+pid_t pid = vfork();
+
+if (pid < 0) {
+    /* parent 處理建立失敗 */
+} else if (pid == 0) {
+    execl("/bin/echo", "echo", "hello", (char *)NULL);
+    _exit(127);  /* exec 失敗才會走到這裡 */
+} else {
+    /* child 已經 exec 或結束，parent 繼續 */
 }
 ```
-- Child 先行，改動 parent 的 virtual memory 的空間
-- 此處用 `_exit()` 因為 `exit()` 會被 flush 掉，parent 的 filestream 也會被關掉，要小心，如果 parent 要呼叫 Buffered I/O 會出問題
-</Aside>
 
+注意 child 沒有用 `printf()` 印錯誤，也沒有呼叫 `exit()`。因為這時候連 stack 都可能還在共用，不能把它當成一般 child 隨意操作
+
+另外，`vfork()` 仍會建立自己的 process 身分，file descriptors 也遵循繼承的規則，不是讓 child 和 parent 變成同一個 process
+
+</Aside>
 
 ###   Deadlock
-- 三個 process 互相 lock 著對方需要的 condition
-- Lock 必須互斥，並且系統不可干預
+
+假設 A 必須等 B 完成某件事，B 卻又必須等 A，兩者就可能永遠卡住，這種互相等待、沒有任何一方能往前的情況叫做 **Deadlock**
+
+不一定要有三個 processes，也不一定只發生在 lock。拿剛剛的 `vfork()` 來想，如果 child 想等 parent 修改變數，流程就會變成：
 
 <Aside type="note" title="">
-```c
-int main(void) {
-    int var;
-    pid_t pid;
 
-    var = 88;
-    printf("before vfork\n");
-    if ((pid = vfork()) < 0) {
-        err_sys("vfork error");
-    } else if (pid == 0) {      /* child */
-        while (var < 100)
-            ;                   /* busy wait */
-        _exit(0);               /* child terminates */
-    }
-
-    /* parent continues here */
-    var = 100;
-    exit(0);
-}
+```text noLineNumbers
+parent 呼叫 vfork()
+    ↓
+parent 暫停，等待 child exec 或結束
+    ↓
+child 等待 parent 把 var 從 88 改成 100
+    ↓
+但 parent 還沒恢復執行，永遠到不了 var = 100
 ```
-- child 想等 `var >= 100`
-- parent 要等 child terminate
+
+這裡用流程說明互相等待的問題，不能拿它當成合法的 `vfork()` 共用變數程式。Child 一直檢查 `var` 是 **busy waiting**，卻沒有讓能改變條件的 parent 繼續執行
+
 </Aside>
 
+對於資源與 lock，常見的 deadlock 條件包含 mutual exclusion、hold and wait、no preemption、circular wait。判斷程式會不會卡住時，可以先問：**我在等誰，而那個人現在又在等什麼？**
+
 ### Process Termination
-- **Normal termination**
-    - <Fig src="/images/sp/ch06-process/process-termination-1.webp" caption="Process Termination 1" />
-    - main 內部 call `exit()` 直接回到 kernel 直接消失
-    - 你不 exit()，C start-up routine 會幫你 `exit(main(argc, argv));`
-    - `_exit()` 就直接死，不 clean up
-- **Abnormal termination**
-    - Signal 傳出
-    
+
+Process 的結束可以先分成 normal termination 和 abnormal termination。這裡的 normal 是指透過正常的結束介面離開，不代表工作一定成功；例如 `exit(1)` 也屬於 normal termination，只是用非零的 exit status 表達失敗
+
+**Normal termination**
+
+<Fig src="/images/sp/ch06-process/process-termination-1.webp" caption="Process termination and exit handlers" />
+
+看上面這張圖，C 程式在 `main()` 前面還有一段 start-up routine，負責準備執行環境。因此從 `main()` 回傳，可以把它理解成 start-up routine 接到結果後，再做相當於 `exit(status)` 的結束處理
+
+| 寫法 | 主要行為 |
+| --- | --- |
+| 從 `main()` `return status` | 正常結束，執行 `exit()` 的清理流程 |
+| `exit(status)` | 呼叫 exit handlers、處理 standard I/O buffer，再結束 process |
+| `_exit(status)` / `_Exit(status)` | 結束 process，不呼叫 exit handlers，也不送出 standard I/O buffer 裡的內容 |
+
+普通 function 的 `return` 只是回到 caller，不會讓整個 process 結束，這裡要特別區分 `main()`
+
+`_exit()` 雖然不做 C library 的那一層清理，kernel 仍會關閉 process 的 file descriptors、釋放相關資源並保存結束狀態。所以「不 flush buffer」指的是 user space 的 standard I/O buffer，不是 kernel 完全不處理它開啟的檔案，詳見 [exit(3)](https://man7.org/linux/man-pages/man3/exit.3.html) 與 [_exit(2)](https://man7.org/linux/man-pages/man2/_exit.2.html)
+
+**Abnormal termination**
+
+Process 也可能因為 signal 被終止，例如 `abort()` 產生 `SIGABRT`，或收到預設行為是終止程式的 signal。後面會用 status macros 區分這兩種結束方式，signal 的詳細機制則放到下一章
+
 **`int atexit(void (*func)(void));`**
-- 可以註冊一連串 function先註冊再執行
-- 在要死前執行（main return 後）
-- 反向往回叫 stack
+
+如果希望正常結束前做一些事情，可以用 `atexit()` 註冊 exit handler。它接收一個沒有參數、回傳 `void` 的函式，註冊成功回傳 `0`，而 handlers 會按照**註冊順序的相反方向**執行
+
+```c noLineNumbers
+atexit(cleanup_a);
+atexit(cleanup_b);
+/* exit() 時先執行 cleanup_b，再執行 cleanup_a */
+```
+
+這跟一般 function call 的 stack 返回不同，是 C library 額外保存的清理工作。如果呼叫 `_exit()` 或被 signal 直接終止，不能期待這些 handlers 一定會執行
 
 **`pid_t wait(int *statloc)`**
-- Blocking mode，任何一個 child 死掉就死了
-- return 值會是死掉 child 的 PID
-- `statloc` 會是死亡結束碼
+
+Child 結束後，parent 通常還需要知道它的結果，這時候就可以呼叫 `wait()`：
+
+```c noLineNumbers
+int status;
+pid_t ended = wait(&status);
+```
+
+- **回傳值**是取得狀態的 child PID
+- **`status`** 由 kernel 填入，記錄 child 如何結束等資訊
+- 如果已經有結束但尚未回收的 child，就可以直接取得；否則會等待其中一個 child 結束
+- 沒有可等待的 child 時，回傳 `-1`，`errno` 為 `ECHILD`
+- 等待期間也可能被 signal 中斷，回傳 `-1` 並設定 `EINTR`，這時候可以重試
+
+所以 `wait()` 不會讓 parent 跟著 child 一起結束，它只是等待並取得結果；如果不需要狀態，也可以傳入 `NULL`
 
 **`pid_t waitpid(pid_t pid, int *statloc, int op)`**
-- 可以選擇 non-blocking 直接 return
-      - `op` 塞 `WNOHANG` 可以製造這種效果
-- 可以指定哪個 child
-- wait 到不是自己的 child 會 return error，沒 child 也一樣
+
+如果有好幾個 children，卻只想等其中一個，就可以用 `waitpid()`：
+
+| `pid` | 等待對象 |
+| --- | --- |
+| 大於 `0` | 指定 PID 的 child |
+| `-1` | 任意 child，和 `wait()` 類似 |
+| `0` | 與 caller 位於相同 process group 的 child |
+| 小於 `-1` | Process group ID 等於 `-pid` 的 child |
+
+`op` 是 options，常見的有：
+
+- `0`: 等待指定對象結束
+- `WNOHANG`: 沒有符合條件的狀態時立刻回傳 `0`，讓 parent 可以繼續做事
+- `WUNTRACED`: 也取得 child 被停止的狀態
+- `WCONTINUED`: 也取得停止後重新繼續執行的狀態
+
+**`WNOHANG` 回傳 `0` 不代表 child 已經結束**，而是這次還沒有取得符合條件的狀態。一般情況下，我們只能等待自己的 children，不能隨意指定別人的 PID
 
 <Aside type="note" title="Terminate Status">
-可以透過一系列 macro 去獲得死亡訊息
- <Fig src="/images/sp/ch06-process/process-termination-2.webp" caption="Process Termination 2" />
-- parent 呼叫 `wait()` 不一定是要等小孩死，而是要等待他狀態改變
+
+`status` 不是直接放入 child 傳給 `exit()` 的那個整數，而是包含不同資訊的編碼，要先用對應的 macro 判斷，再取出內容：
+
+| 先判斷 | 成立後可以取得 |
+| --- | --- |
+| `WIFEXITED(status)` | `WEXITSTATUS(status)`：正常結束的 exit status，取低 8 bits |
+| `WIFSIGNALED(status)` | `WTERMSIG(status)`：造成結束的 signal number |
+| `WIFSTOPPED(status)` | `WSTOPSIG(status)`：造成停止的 signal number |
+| `WIFCONTINUED(status)` | Child 已從停止狀態繼續執行 |
+
+<Fig src="/images/sp/ch06-process/process-termination-2.webp" caption="Macros for child process status" />
+
+`WCOREDUMP(status)` 則可以在支援它的環境判斷是否產生 core dump，跨較舊系統時常會用 `#ifdef WCOREDUMP` 包起來
+
+因此 `waitpid()` 不只是能等結束，也可以搭配 options 觀察狀態改變。但像 `waitpid(pid, &status, 0)` 這種最基本的用法，主要等的是 child 結束，不是每次狀態改變都會回來
+
 </Aside>
 
 <Aside type="tip" title="Example of wait()">
-```c
-#include "apue.h"
+
+下面讓第一個 child 正常結束、第二個 child 被 `SIGKILL` 終止，觀察 parent 如何解讀結果：
+
+```c title="wait_status.c"
+#include <errno.h>
+#include <signal.h>
+#include <stdio.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
-void pr_exit(int status) {
-    if (WIFEXITED(status))
-        printf("normal termination, exit status = %d\n",                 WEXITSTATUS(status));
-    else if (WIFSIGNALED(status))
-        printf("abnormal termination, signal number = %d%s\n",
-                WTERMSIG(status),
-#ifdef WCOREDUMP
-                WCOREDUMP(status) ? " (core file generated)" : "");
-#else
-                "");
-#endif
-    else if (WIFSTOPPED(status))
-        printf("child stopped, signal number = %d\n", WSTOPSIG(status));
+static void pr_exit(int status) {
+    if (WIFEXITED(status)) {
+        printf("normal termination, exit status = %d\n",
+               WEXITSTATUS(status));
+    } else if (WIFSIGNALED(status)) {
+        printf("terminated by signal %d\n", WTERMSIG(status));
+    } else if (WIFSTOPPED(status)) {
+        printf("stopped by signal %d\n", WSTOPSIG(status));
+    } else if (WIFCONTINUED(status)) {
+        printf("continued\n");
+    }
 }
-```
-```c
+
 int main(void) {
-    pid_t   pid;
-    int     status;
+    for (int i = 0; i < 2; i++) {
+        pid_t pid = fork();
+        int status;
 
-    if ((pid = fork()) < 0)
-        err_sys("fork error");
-    else if (pid == 0)              /* child */
-        exit(7);
+        if (pid < 0) {
+            perror("fork");
+            return 1;
+        }
+        if (pid == 0) {
+            if (i == 0)
+                _exit(7);
+            raise(SIGKILL);
+            _exit(1);
+        }
 
-    if (wait(&status) != pid)       /* wait for child */
-        err_sys("wait error");
-    pr_exit(status);                /* and print its status */
-
-    if ((pid = fork()) < 0)
-        err_sys("fork error");
-    else if (pid == 0)              /* child */
-        abort();                    /* generates SIGABRT */
-
-    if (wait(&status) != pid)       /* wait for child */
-        err_sys("wait error");
-    pr_exit(status);                /* and print its status */
-
-    if ((pid = fork()) < 0)
-        err_sys("fork error");
-    else if (pid == 0)              /* child */
-        status /= 0;                /* divide by 0 generates SIGFPE */
-
-    if (wait(&status) != pid)       /* wait for child */
-        err_sys("wait error");
-    pr_exit(status);                /* and print its status */
-
-    exit(0);
+        while (waitpid(pid, &status, 0) < 0) {
+            if (errno != EINTR) {
+                perror("waitpid");
+                return 1;
+            }
+        }
+        pr_exit(status);
+    }
+    return 0;
 }
 ```
+
+第一行會取得 exit status `7`，第二行則取得 `SIGKILL` 的編號。`raise()` 會把 signal 送給自己，這裡用無法被忽略或 block 的 `SIGKILL`，讓第二個 child 被終止；signal API 下一章會再介紹
+
+如果想觀察其他 signal，也可以另外測試 `abort()`，或明確呼叫 `raise(SIGFPE)`。不要用整數除以 `0` 當成保證產生 `SIGFPE` 的寫法，因為在 C 裡它是未定義行為
+
 </Aside>
 
 <Aside type="note" title="process die">
-通常 Unix 是知道有 process 死了，系統就會寄送 `SIGCHILD` 給他的 parent，但是出現的時機不一定，要進行分別處理
-- `SIGCHILD` 的 default 是 ignore
+
+Child 結束時，kernel 通常會送 **`SIGCHLD`** 通知 parent，名稱不是 `SIGCHILD`。Parent 可以在適當時機呼叫 `wait()` 家族取得結果，也可以直接在 `waitpid()` 裡等待，不一定要先安裝 handler
+
+這裡有個容易混淆的地方：`SIGCHLD` 的 default action 雖然是 ignore，**仍然不代表 kernel 已經自動回收 child 的結束狀態**。明確設定 `SIG_IGN` 或 `SA_NOCLDWAIT` 有另外的回收規則，不能把它和原本的預設狀態混在一起，詳見 [wait(2)](https://man7.org/linux/man-pages/man2/waitpid.2.html)
+
 </Aside>
 
 ## Zombie & Orphan
 
 ### Zombie  
-- Child 死了 但 Parent 還沒呼叫 `wait()` 就會出現 Zombie process，雖然沒有 virtual memory 但會有 PCB.  
-- Keep minimal information aka PCB
-- 一定要 `kill -9`
+
+Child 已經結束，但 parent 還沒取得它的結束狀態時，kernel 需要暫時保留 PID、status、資源使用紀錄等資訊，這個狀態就叫做 **Zombie**
+
+這時候 process 不會繼續執行，主要的記憶體等資源也已經釋放，但 kernel 不能連結果都丟掉，不然 parent 之後就不知道 child 發生什麼事了。用 `ps` 觀察時，通常會看到 `Z` 或 `<defunct>`
+
+因此 zombie 不能靠 `kill -9` 再殺一次，它本來就已經結束了。正常的處理方式是由 parent 呼叫 `wait()` / `waitpid()` 回收；如果 parent 結束，則由接手的 process 負責回收
+
+短暫出現 zombie 不一定是錯誤，例如 child 剛結束、parent 還沒執行到 `waitpid()`。真正要注意的是長期沒有回收，讓這些紀錄不斷累積
 
 ### Orphan
-- Process 死的時候，child 還沒有死掉，`init` 會把所有沒有 `ppid` 的 process 轉成自己
-- `init` 會定期掃描整個 `PCB` 執行 `wait()`
+
+如果 parent 先結束，而 child 還活著，這個 child 就成了 **Orphan**。Kernel 會替它安排新的 parent，它可以繼續執行，不會只是因為失去原本的 parent 就自動結束
+
+傳統 Unix 用 `init` 接手，因此課堂常看到 PPID 變成 `1`。但 Linux 也可能由最近的 ancestor subreaper 接手，所以不能把「變成 orphan」直接等同於「`getppid()` 一定等於 1」，詳見 [PR_SET_CHILD_SUBREAPER(2)](https://man7.org/linux/man-pages/man2/PR_SET_CHILD_SUBREAPER.2const.html)
+
+兩個名詞可以這樣區分：
+
+- **Zombie**: 自己已經結束，結果還沒被回收
+- **Orphan**: 自己還活著，原本的 parent 先結束
 
 <Aside type="note" title="Existence of Zombie Process">
-- Process 死了 PCB 不能丟，`p_xstat` 會記錄結束碼，parent 才能知道 child 的狀態
-    - 所以不一定是死亡，也有可能被 stop 像是視窗只有最前面的會接收 device I/O
-- 可能會不小心拿到別人的 child process，會以為自己的 child 活著
+
+為什麼不讓 child 一結束就完全消失？因為 parent 不一定剛好在同一時間呼叫 `wait()`，kernel 必須先保存結果，讓 parent 晚一點來取
+
+保留這份紀錄時，也不能立刻把相同 PID 分配給另一個 process，否則 parent 可能把新 process 和原本的 child 混在一起。等到完成回收後，PID 才能被重新使用
+
+另外，**被停止的 child 仍然活著，不是 zombie**。`waitpid()` 可以回報停止狀態，不代表每次回報都在回收一個已結束的 process
+
 </Aside>
 
 **Double fork**
-- 不想呼叫 `wait()` 但也不希望有 zombie process
-<Fig src="/images/sp/ch06-process/orphan.webp" caption="Orphan" />
-- Grandchild 才是真正我們想要的
+
+如果希望某個工作最後交給其他管理者回收，可以透過 **Double fork** 改變親子關係：
+
+<Fig src="/images/sp/ch06-process/orphan.webp" caption="Process creation with double fork" />
+
+1. 原本的 parent 建立第一個 child
+2. 第一個 child 再建立 grandchild，讓 grandchild 做真正的工作
+3. 第一個 child 結束，grandchild 由 kernel 安排新的 parent
+4. 原本的 parent 只需要回收第一個 child，grandchild 之後由接手的 parent 回收
+
+所以 double fork 並不是「完全不用 `wait()`」，而是把 grandchild 的回收責任交給會處理它的新 parent
 
 <Aside type="tip" title="Example of double fork">
-```c
-int main(void)
-{
-  pid_t   pid;
 
-  if ((pid = fork()) < 0) {
-      err_sys("fork error");
-  } else if (pid == 0) {   /* first child */
-      if ((pid = fork()) < 0)
-          err_sys("fork error");
-      else if (pid > 0)
-          exit(0);  /* parent from second fork == first child */
-      /*
-       * We're the second child; our parent becomes init as soon
-       * as our real parent calls exit() in the statement above.
-       * Here's where we'd continue executing, knowing that when
-       * we're done, init will reap our status.
-       */
-      sleep(2);
-      printf("second child, parent pid = %d\n", getppid());
-      exit(0);
-  }
+```c title="double_fork.c"
+#include <errno.h>
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-  if (waitpid(pid, NULL, 0) != pid)   /* wait for first child */
-      err_sys("waitpid error");
+int main(void) {
+    pid_t child = fork();
+    int status;
 
-  /*
-   * We're the parent (the original process); we continue executing,
-   * knowing that we're not the parent of the second child.
-   */
-  exit(0);
+    if (child < 0) {
+        perror("fork");
+        return 1;
+    }
+    if (child == 0) {
+        pid_t grandchild = fork();
+
+        if (grandchild < 0)
+            _exit(1);
+        if (grandchild > 0)
+            _exit(0);
+
+        /* 只有 grandchild 會走到這裡 */
+        dprintf(STDOUT_FILENO, "grandchild: pid = %ld, parent = %ld\n",
+                (long)getpid(), (long)getppid());
+        _exit(0);
+    }
+
+    while (waitpid(child, &status, 0) < 0) {
+        if (errno != EINTR) {
+            perror("waitpid");
+            return 1;
+        }
+    }
+    return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : 1;
 }
 ```
-```
-$ ./a.out
-second child, parent pid = 1
-```
-- `sleep()` 是為了讓 CPU schedule 到 kill first child 這個動作
-- 可以讓 grandchild 短暫變 orphan 然後 `init` 成為 parent，會自己 `wait` 他
-- 可以讓他變成 background process
-    - 組成 group 可以控制誰是 background or 前面
+
+注意 grandchild 印出 PPID 的時候，第一個 child 不一定已經結束，因此看到的數字可能還是原本的 parent，也可能已經是接手的管理者。加上 `sleep(2)` 只是讓某種順序比較容易發生，不能保證同步
+
+Double fork 常出現在 daemon 的建立流程，但**親子關係和 foreground / background 是不同的事情**。要處理 terminal、session、process group，還有其他設定，不是呼叫兩次 `fork()` 就自動完成全部工作
+
 </Aside>
 
-**`pid_t waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);`**
-- 可以用 `idtype` 指定要等
-    - `P_PID`: wait for a particular process
-    - `P_PGID`: wait for a group of process
-    - `P_ALL`: wait for any child process
-- 可以選擇 blocking or non-blocking
-- `WNOWAIT` 是一個 `option` 可以把 PCB 留下
+**`int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);`**
 
-**`pid_t wait3(int *statloc, int op, struct rusage
-*rusage);`**, 
-**`pid_t wait4(pid_t pid, int *statloc, int op, struct
-rusage *rusage);`**
-- 檢查 CPU time 跟 Mem usage
+`waitid()` 可以更明確指定等待對象和狀態，透過 `infop` 取得結果：
+
+- `P_PID`: 指定 child PID
+- `P_PGID`: 指定 process group 裡的 child
+- `P_ALL`: 任意 child
+- `WEXITED`、`WSTOPPED`、`WCONTINUED`: 選擇要觀察哪些狀態
+- `WNOHANG`: 不等待
+- `WNOWAIT`: 先查看狀態，保留成可再次等待的狀態；如果 child 已經結束，這次不完成最後的回收
+
+它成功時回傳 `0`，不是 child PID；child 的 PID 在 `infop->si_pid`。用 `WNOHANG` 查詢卻沒有結果時，也不要只看到回傳 `0` 就當成有 child 結束
+
+**`pid_t wait3(int *statloc, int op, struct rusage *rusage);`**,
+**`pid_t wait4(pid_t pid, int *statloc, int op, struct rusage *rusage);`**
+
+這兩個是 BSD 系列提供、Linux 等系統也支援的介面，不是 POSIX 的通用等待 API。除了狀態，還可以取得 `struct rusage`，例如 child 使用的 CPU time 與記憶體使用統計。需要跨系統時，要另外確認支援情況
 
 ### Race Condition
-- 兩個 Process 的執行先後順序不一定是誰，要看 CPU Schedule，是個 **Nondeterministic** 的過程
-- 可能因為順序不同，造成不想要的結果
+
+前面一直強調 `fork()` 後沒有固定的執行順序，如果程式的正確性剛好依賴某個順序，就可能出現 **Race condition**
+
+舉個例子，parent 和 child 都想在同一個 terminal 印一句話，如果兩者逐字輸出，字元就可能交錯：
 
 <Aside type="tip" title="Example">
-```c
-static void charatatime(char *);
 
-int main(void)
-{
-    pid_t   pid;
+```c title="race_output.c"
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-    if ((pid = fork()) < 0) {
-        err_sys("fork error");
-    } else if (pid == 0) {
-        charatatime("output from child\n");
-    } else {
-        charatatime("output from parent\n");
+static void charatatime(const char *str) {
+    for (; *str != '\0'; str++)
+        putchar((unsigned char)*str);
+}
+
+int main(void) {
+    pid_t pid;
+
+    setbuf(stdout, NULL);
+    pid = fork();
+    if (pid < 0) {
+        perror("fork");
+        return 1;
     }
-    exit(0);
-}
+    if (pid == 0) {
+        charatatime("output from child\n");
+        exit(0);
+    }
 
-static void charatatime(char *str)
-{
-    char    *ptr;
-    int     c;
-
-    setbuf(stdout, NULL);          /* set unbuffered */
-    for (ptr = str; (c = *ptr++) != 0; )
-        putc(c, stdout);
+    charatatime("output from parent\n");
+    while (waitpid(pid, NULL, 0) < 0) {
+        if (errno != EINTR) {
+            perror("waitpid");
+            return 1;
+        }
+    }
+    return 0;
 }
 ```
-```
-$ ./a.out
+
+可能看到完整的兩行，也可能看到這種結果：
+
+```text noLineNumbers
 ooutput from child
 utput from parent
-
-$ ./a.out
-ooutput from child
-utput from parent
-
-$ ./a.out
-output from child
-output from parent
 ```
-- 雖然是 buffer I/O 但是我們得從 unbuffered I/O 走，因為 `NULL`
-- child, parent 會 share **terminal** 這個資源
-    - 因為是 unbuffered 所以會產生 context switch，在 **terminal 的 buffer 滿的時候**會 context switch
-- 真正要進行 I/O 才會創建 buffer，並且決定 type
-    - 在執行真正 I/O 前設定 buffer 就有效 
-<Fig src="/images/sp/ch06-process/race-condition-1.webp" caption="Race Condition 1" />
+
+我們在任何 I/O 前用 `setbuf(stdout, NULL)` 關閉 standard I/O buffer，讓每個字元更容易分開送出。雖然呼叫的是 C library 的 `putchar()`，但這個 stream 已經是 unbuffered，不會先把整句累積在 user space
+
+<Fig src="/images/sp/ch06-process/race-condition-1.webp" caption="Standard I/O buffer and kernel data structures" />
+
+看上面這張圖，parent 和 child 各有自己的 `FILE` object，但底下可能指向同一個 terminal。Kernel 可以在兩次輸出之間排程其他 process，不必等 terminal buffer 滿了才會切換
+
+這裡 parent 在印完後才呼叫 `waitpid()`，所以它只確保最後有回收 child，**沒有規定誰先印**。後面會用 pipe 傳送通知，明確決定輸出順序
+
 </Aside>
 
 <Aside type="note" title="Example of double fork">
-- 其實 double fork 的情況，`sleep()` 可能會發生 race condition，可能產生錯誤
-- 用這段 code 可以等，但是這是一段 busy waiting
-  ```c
-  while (getppid() != 1)
-      sleep(1);
-  ```
+
+回到 double fork，如果用固定時間的 `sleep()` 等待原本的 parent 結束，就會把正確性押在 scheduler 的執行速度上
+
+改成下面這樣也有問題：
+
+```c noLineNumbers
+while (getppid() != 1)
+    sleep(1);
+```
+
+它每隔一秒檢查一次，屬於 polling；因為有 `sleep()`，不是一直佔著 CPU 的 busy loop。但它仍然假設接手的 parent 一定是 PID 1，在有 subreaper 的環境可能永遠等不到，也無法當成通用的同步方法
+
 </Aside>
 
 **`int execl(const char *pathname, const char *arg0, … /* (char *) 0 */);`**
 **`int execv(const char *pathname, char *const argv[]);`**
 **`int execle(const char *pathname, const char *arg0, … /* (char *) 0, char *const envp[] */);`**
 **`int execve(const char *pathname, char *const argv[], char *const envp[]);`**
-- 程式執行一定要在一個 process 上，但執行並非從 exec 開始算，而是 fork 開始
-    - `spawn()` 會同時 `fork()`, `exec()`
-- **`exec` 是把既有的 process 換成另一隻 process，instruction, data (virtual memory) 全部替換，但是不改 open file descriptor table**
-- `l`, `v` argument 用 list 還是 vector 表示 `e` 是 environment
+
+前面說 `fork()` 建立 child，但如果想讓它執行 `ls`，光有一份原本程式的副本還不夠，需要用 **`exec()` 家族替換目前 process 的程式內容**
+
+成功後，新的程式有自己的 text、data、heap、stack，開始執行新的 start-up routine；原本程式不會再接著往下跑。**Process 本人還在，PID 也沒有因為 exec 換掉**
+
+`exec()` 成功不會回傳，失敗才回傳 `-1` 並設定 `errno`。這也是為什麼常看到 `exec()` 後面直接接錯誤處理
+
+這一串名稱可以拆開記：
+
+| 字母 | 代表意義 |
+| --- | --- |
+| **`l`** | List，參數一個一個列出，最後加 `(char *)NULL` |
+| **`v`** | Vector，用以 `NULL` 結尾的 `argv` 陣列傳入 |
+| **`e`** | Environment，自己提供新的 `envp` |
+| 沒有 **`e`** | 使用 caller 的 environment |
+
+例如下面兩種呼叫，都是執行 `echo hello`：
+
+```c noLineNumbers
+execl("/bin/echo", "echo", "hello", (char *)NULL);
+
+char *args[] = {"echo", "hello", NULL};
+execv("/bin/echo", args);
+```
+
+第一個參數是要載入的 pathname，後面的 `"echo"` 則是新程式看到的 `argv[0]`，兩者用途不一樣
 
 <Aside type="note" title="Environment">
-- **`int main(int agrc, char **argv, char **envp);`**
-    - `main()` function 裡面的 `**envp` 指向一個 environment list，`NULL` 結尾
-    - C library 會提供一個 `extern char **environ` 如果 virtual memory 不夠，系統會動這個參數，所以不要亂指令 `**envp`
-    - `PATH` 會按照 `PATH=/bin:/usr/bin:/usr/local/bin \0` 的順序，因為 ls 是 internal command，要看要執行哪裡的 `ls` 這個順序就是他找的順序
-    - 通常會被放在 stack 的上層
-<Fig src="/images/sp/ch06-process/race-condition-2.webp" caption="Race Condition 2" />
 
-<Fig src="/images/sp/ch06-process/race-condition-3.webp" caption="Race Condition 3" />
+Environment 可以想成 process 帶著的一組 `NAME=value` 字串，例如 `PATH=/bin:/usr/bin`。新程式透過這些資料取得執行環境的設定
+
+<Fig src="/images/sp/ch06-process/race-condition-2.webp" caption="Process image replaced by exec" />
+
+課堂把啟動時的 command-line arguments 和 environment 畫在 stack 附近，`exec()` 會根據傳入的參數為新程式建立這些內容，不是留下原本程式的整份 stack
+
+C library 提供 `extern char **environ`，它指向以 `NULL` 結尾的指標陣列，每個元素再指向一個環境變數字串：
+
+<Fig src="/images/sp/ch06-process/race-condition-3.webp" caption="Environment list and environment strings" />
+
+有些系統也支援 `main(int argc, char **argv, char **envp)` 這個形式，但第三個參數不是 ISO C 保證的 `main()` 介面。需要讀取或修改環境變數時，可以用 `getenv()`、`setenv()`、`unsetenv()`，不要假設所有字串永遠放在同一個位置
+
+`PATH` 裡面用 `:` 分隔的是執行檔搜尋目錄，例如 `/bin:/usr/bin:/usr/local/bin`。它不會讓每一個 `exec()` 都自動搜尋，還要看是否使用下面的 `p` 家族
+
 </Aside>
 
 **`int execlp(const char *filename, const char *arg0, … /* (char *) 0 */);`**
-**`int execvp(const char *filename, , char *const argv[]);`**
-- p 家族放 `filename`
-- 用 `PATH=/bin:/usr/bin:.` 的順序找執行檔
-- p 會把東西 binary file 當 shell script 執行，先呼叫 `/bin/sh` 讓他去執行
+**`int execvp(const char *filename, char *const argv[]);`**
+
+**`p`** 代表會使用 `PATH` 搜尋。像 `execlp("ls", "ls", (char *)NULL)`，可以依序在搜尋目錄裡找 `ls`，不必自己寫出完整的 `/bin/ls`
+
+如果 filename 本身包含 `/`，例如 `./myprog`，就直接使用這個 pathname，不走 `PATH` 搜尋。Shell 內建的指令則是另一回事，`execvp()` 不會因為某個指令能在 shell 使用，就自動執行 shell 的內建功能
+
+當 `p` 家族遇到 `ENOEXEC`，也就是檔案格式無法作為程式載入時，可能改交給 `/bin/sh` 嘗試解讀。這不是把任意 binary 都轉成可執行的 shell script，詳見 [exec(3)](https://man7.org/linux/man-pages/man3/exec.3.html)
 
 <Aside type="note" title="">
-<Fig src="/images/sp/ch06-process/race-condition-4.webp" caption="Race Condition 4" />
-同常只有 `execve` 是 system call 其他都可以根據這張圖，用 function call 外包
+
+<Fig src="/images/sp/ch06-process/race-condition-4.webp" caption="Relationship between exec functions" />
+
+圖中把各種介面拆成幾個工作：整理 `argv`、搜尋 `PATH`、補上 `environ`，最後交給 `execve()`。在 Linux 等實作裡，`execve()` 是底層的 system call，其他函式可以在 library 裡完成前面的包裝
+
 </Aside>
 
 **Close on exec**
-<Fig src="/images/sp/ch06-process/race-condition-5.webp" caption="Race Condition 5" />
-- 要不要再執行後把 element 關掉
-- child 的 open fd table 就是 parent 的
-    - 預設是 close，只有 open 的時候才會長得不一樣
+
+前幾章開好的 file descriptors，在 `exec()` 成功後通常會繼續保留。這個特性讓 shell 可以先安排 `stdin`、`stdout`，再把它們交給新程式使用
+
+如果某個 fd 不應該留給新程式，就可以設定 **`FD_CLOEXEC`**：
+
+<Fig src="/images/sp/ch06-process/race-condition-5.webp" caption="FD_CLOEXEC in the file descriptor table" />
+
+```c noLineNumbers
+int flags = fcntl(fd, F_GETFD);
+/* 實際使用時要檢查兩次 fcntl() 是否失敗 */
+fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+```
+
+也可以在 `open()` 時直接加上 `O_CLOEXEC`，一次完成開啟與設定。這個 flag 記錄在各個 fd 上，**`fork()` 會繼承它，`exec()` 成功時才依照它關閉 fd**，不會一做 `fork()` 就先關掉
+
+一般 `open()` 若沒有指定 `O_CLOEXEC`，預設會讓 fd 跨過 `exec()` 保留下來。若 `exec()` 失敗，則不會因為這個 flag 提前關閉它，詳見 [execve(2)](https://man7.org/linux/man-pages/man2/execve.2.html)
 
 <Aside type="caution" title="為何要分開 fork(), exec()">
-- child 只是要執行 parent 的某些 code 而已，並沒有要額外 `exec()`
-- `exec()` 要在某個環境底下運作，要在 `fork()` 後設定，然後才能 `exec()`，可以分開 parent, child 的環境設定
+
+因為「建立另一個 process」和「換一個 program」是不同的需求：child 可以只做原本程式裡的工作，也可以在 `fork()` 後先設定 fd、工作目錄等環境，再用 `exec()` 把這個環境交給新的程式
+
+下面是把它們接起來的完整範例：
+
+```c title="fork_exec.c"
+#include <errno.h>
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+int main(void) {
+    pid_t pid = fork();
+    int status;
+
+    if (pid < 0) {
+        perror("fork");
+        return 1;
+    }
+    if (pid == 0) {
+        execl("/bin/echo", "echo", "hello from exec", (char *)NULL);
+        perror("execl");
+        _exit(127);
+    }
+
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR) {
+            perror("waitpid");
+            return 1;
+        }
+    }
+    if (WIFEXITED(status))
+        return WEXITSTATUS(status);
+    return 1;
+}
+```
+
+Child 成功 `exec()` 後會由 `echo` 接手，不會執行後面的 `perror()`。只有載入失敗，才會印出錯誤並用 `_exit(127)` 結束；parent 則一直等待同一個 child PID
+
 </Aside>
 
 ## IPC (Inter-process Communication)
 
+`fork()` 之後普通變數各自獨立，所以不能只靠 child 寫入一個變數，就期待 parent 自動看到。如果要傳資料或通知對方某件事完成，就需要 **Inter-process Communication (IPC)**
+
+前面幾章都是 process 和檔案、裝置交換資料，接下來的 pipe 與 FIFO 則讓 processes 透過 kernel 交換資料，而且一樣使用熟悉的 `read()`、`write()`
+
 ### Pipe
 
-**` int pipe( int filedes[2] );`**
+**`int pipe(int filedes[2]);`**
 
-- 一端寫一端讀，不一定多少人
-- <Fig src="/images/sp/ch06-process/pipe-1.webp" caption="Pipe 1" />
-- `fork()` 時如何送資訊給別人
-    - 都是單向讀寫，一個 process 只會有一個 fd 開著
-    - 一端寫了另一端還沒讀就 suspend 因為這是 fd blocking mode
-    - Multiplexing 就 `poll` 就好了，因為也是 file
-    - pipe 完畢再 fork 就可以繼承 pipe
-- <Fig src="/images/sp/ch06-process/pipe-2.webp" caption="Pipe 2" />
-- <Fig src="/images/sp/ch06-process/pipe-3.webp" caption="Pipe 3" />
-- `$ ls | more`
-    - 就是 `$` shell 先呼叫 pipe 然後 fork 出兩個 process
+`pipe()` 建立一條單向的資料通道，成功回傳 `0`，並把兩個 fd 填進陣列：
+
+- **`filedes[0]`**: 讀端
+- **`filedes[1]`**: 寫端
+
+<Fig src="/images/sp/ch06-process/pipe-1.webp" caption="Read and write ends of a pipe" />
+
+資料從寫端進入 kernel 裡的 pipe buffer，再從讀端被取出。它不是一般檔案，不能用 `lseek()` 跳回去重讀，也不會把已經讀走的內容繼續保存給下一次讀取
+
+如果想讓 parent 和 child 溝通，常見的做法是 **先 `pipe()`，再 `fork()`**。因為 child 會繼承 fd，兩者就都能找到同一條通道
+
+<Fig src="/images/sp/ch06-process/pipe-2.webp" caption="Pipe descriptors after fork" />
+
+假設要讓 parent 傳資料給 child，就關閉兩邊不使用的端點：
+
+1. Parent 關閉 `fd[0]`，保留 `fd[1]` 寫入
+2. Child 關閉 `fd[1]`，保留 `fd[0]` 讀取
+
+<Fig src="/images/sp/ch06-process/pipe-3.webp" caption="Pipe from parent to child" />
+
+這是我們替這次工作選擇的分工，不是 kernel 規定一個 process 永遠只能保留一個端點。更重要的是，**沒有用到的端點如果沒關，可能會影響 EOF 和 SIGPIPE 的判斷**
+
+例如 reader 自己還留著寫端，kernel 就認為還有人可能繼續寫，reader 讀完目前的資料後，就可能繼續等待，永遠看不到預期的 EOF
+
+在 blocking mode 下，讀寫的規則可以先記成：
+
+| 狀況 | 行為 |
+| --- | --- |
+| Pipe 有資料 | `read()` 取得目前能讀到的資料，不必等指定數量全部湊齊 |
+| Pipe 沒資料，但還有寫端開著 | `read()` 等待資料 |
+| Pipe 空間足夠 | `write()` 把資料放進 buffer，不必等對方先讀走 |
+| Pipe 空間不足 | `write()` 可能需要等待 reader 騰出空間 |
+
+所以「寫端寫了、讀端還沒讀」不代表寫端一定立刻暫停，中間有 pipe buffer 可以暫存。要避免等待，也可以設定 `O_NONBLOCK`，搭配第三章的 `select()` / `poll()` 管理多個 fd
+
+第一章的 `ls | more` 就是同一個概念。Shell 先準備 pipe，再建立兩個 processes，把 `ls` 的 standard output 和 `more` 的 standard input 接到對應端點。這裡會用到第二章的 `dup2()`，接好之後再分別 `exec()`
 
 <Aside type="note" title="">
-- **有人讀沒人寫**
-    - 讀到 `EOF` 剛好停止
-- **有人寫沒人讀**
-    - 系統會送 `SIG_PIPE` 給 process
 
-PIPE 可以保證，只要訊息比較 buffer size 小，絕對不會被切開
+Pipe 的結束條件要看**所有指向該端點的 fd**，不是只看最早建立 pipe 的 process：
+
+- **所有寫端都關閉**：Reader 先讀完 buffer 裡剩下的資料，再讀就得到 `0`，也就是 EOF
+- **所有讀端都關閉**：Writer 再寫入會收到 `SIGPIPE`；如果忽略或處理後繼續執行，這次寫入會失敗並設定 `EPIPE`
+
+另外，**pipe 是 byte stream，沒有保留每次 write 的訊息邊界**。寫端分兩次寫入 `abc` 和 `def`，讀端可能一次讀到 `abcdef`，也可能分成好幾次取得，程式需要自己決定如何分隔訊息
+
+`PIPE_BUF` 說的是另一件事：單次 `write()` 要求的大小不超過 `PIPE_BUF` bytes 時，成功寫入的資料不會和其他 writers 的寫入交錯。它不是 pipe 的總容量，也不保證 reader 一次就讀到完整一筆訊息
+
+在 non-blocking mode 下，這種不超過 `PIPE_BUF` 的寫入如果放不下，會以 `EAGAIN` 失敗，而不是寫一半。更大的寫入則要另外處理 partial write，詳見 [pipe(7)](https://man7.org/linux/man-pages/man7/pipe.7.html)
+
 </Aside>
 
 <Aside type="tip" title="Example of pipe()">
-```c
-int main(void) {
-    int     n;
-    int     fd[2];
-    pid_t   pid;
-    char    line[MAXLINE];
 
-    if (pipe(fd) < 0)
-        err_sys("pipe error");
-    if ((pid = fork()) < 0) {
-        err_sys("fork error");
-    } else if (pid > 0) {          /* parent */
-        close(fd[0]);
-        write(fd[1], "hello world\n", 12);
-    } else {                      /* child */
-        close(fd[1]);
-        n = read(fd[0], line, MAXLINE);
-        write(STDOUT_FILENO, line, n);
+下面讓 parent 寫入一句話，child 持續讀取到 EOF，再把資料寫到 standard output。`write_all()` 用來處理 partial write 與 `EINTR`，這部分和第二章的 I/O 規則相同
+
+```c title="pipe_message.c"
+#include <errno.h>
+#include <stdio.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+static int write_all(int fd, const char *buf, size_t size) {
+    while (size > 0) {
+        ssize_t n = write(fd, buf, size);
+        if (n < 0) {
+            if (errno == EINTR)
+                continue;
+            return -1;
+        }
+        if (n == 0) {
+            errno = EIO;
+            return -1;
+        }
+        buf += n;
+        size -= (size_t)n;
     }
-    exit(0);
+    return 0;
+}
+
+int main(void) {
+    int fd[2];
+    int status;
+    pid_t pid;
+
+    if (pipe(fd) < 0) {
+        perror("pipe");
+        return 1;
+    }
+    pid = fork();
+    if (pid < 0) {
+        perror("fork");
+        return 1;
+    }
+    if (pid == 0) {
+        char buf[128];
+        close(fd[1]);
+
+        for (;;) {
+            ssize_t n = read(fd[0], buf, sizeof(buf));
+            if (n == 0)
+                break;
+            if (n < 0) {
+                if (errno == EINTR)
+                    continue;
+                perror("read");
+                _exit(1);
+            }
+            if (write_all(STDOUT_FILENO, buf, (size_t)n) < 0) {
+                perror("write");
+                _exit(1);
+            }
+        }
+        close(fd[0]);
+        _exit(0);
+    }
+
+    close(fd[0]);
+    const char message[] = "hello world\n";
+    int failed = write_all(fd[1], message, sizeof(message) - 1) < 0;
+    if (failed)
+        perror("write");
+    close(fd[1]);
+
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR) {
+            perror("waitpid");
+            return 1;
+        }
+    }
+    return failed || !WIFEXITED(status) || WEXITSTATUS(status) != 0;
 }
 ```
-- `close()` 掉自己不用的 pipe 防止出錯
+
+Parent 的 `close(fd[1])` 很重要，child 才知道不會再有資料。也要先送完資料、關閉寫端，再去等待 child；如果 parent 先 `waitpid()`，child 卻在等 parent 傳資料或關閉 pipe，兩邊就可能互相等待
+
 </Aside>
 
 <Aside type="caution" title="Avoiding Race Condition">
-```c
-#include "apue.h"
+
+剛剛兩邊搶著印字，是因為沒有任何通知告訴對方「現在可以換你了」。如果我們要求 parent 一定先印，就可以用 pipe 傳一個 byte 作為完成通知
+
+課堂把它包成四個操作：
+
+- `TELL_CHILD()` / `WAIT_PARENT()`：Parent 通知，child 等待
+- `TELL_PARENT()` / `WAIT_CHILD()`：Child 通知，parent 等待
+
+需要兩個方向時，就建立兩條單向 pipe：
+
+<Fig src="/images/sp/ch06-process/pipe-4.webp" caption="Parent-child synchronization with two pipes" />
+
+```c title="pipe_sync.c"
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 static int pfd1[2], pfd2[2];
 
-void TELL_WAIT(void) {
+static void fail(const char *name) {
+    perror(name);
+    exit(1);
+}
+
+static void send_byte(int fd, char value) {
+    ssize_t n;
+    do {
+        n = write(fd, &value, 1);
+    } while (n < 0 && errno == EINTR);
+    if (n != 1) {
+        if (n == 0)
+            errno = EIO;
+        fail("send notification");
+    }
+}
+
+static void receive_byte(int fd, char expected) {
+    char value;
+    ssize_t n;
+    do {
+        n = read(fd, &value, 1);
+    } while (n < 0 && errno == EINTR);
+    if (n < 0)
+        fail("read notification");
+    if (n != 1 || value != expected) {
+        fprintf(stderr, "unexpected notification or EOF\n");
+        exit(1);
+    }
+}
+
+static void TELL_WAIT(void) {
     if (pipe(pfd1) < 0 || pipe(pfd2) < 0)
-        err_sys("pipe error");
+        fail("pipe");
 }
 
-void TELL_PARENT(pid_t pid) {
-    if (write(pfd2[1], "c", 1) != 1)
-        err_sys("write error");
+static void TELL_CHILD(pid_t pid) {
+    (void)pid;
+    send_byte(pfd1[1], 'p');
 }
 
-void WAIT_PARENT(void) {
-    char c;
-
-    if (read(pfd1[0], &c, 1) != 1)
-        err_sys("read error");
-
-    if (c != 'p')
-        err_quit("WAIT_PARENT: incorrect data");
+static void WAIT_PARENT(void) {
+    receive_byte(pfd1[0], 'p');
 }
 
-void TELL_CHILD(pid_t pid) {
-    if (write(pfd1[1], "p", 1) != 1)
-        err_sys("write error");
+static void TELL_PARENT(pid_t pid) {
+    (void)pid;
+    send_byte(pfd2[1], 'c');
 }
 
-void WAIT_CHILD(void) {
-    char c;
-
-    if (read(pfd2[0], &c, 1) != 1)
-        err_sys("read error");
-
-    if (c != 'c')
-        err_quit("WAIT_CHILD: incorrect data");
+static void WAIT_CHILD(void) {
+    receive_byte(pfd2[0], 'c');
 }
-```
-```c
-static void charatatime(char *);
+
+static void charatatime(const char *str) {
+    for (; *str != '\0'; str++)
+        putchar((unsigned char)*str);
+}
 
 int main(void) {
+    int status;
     pid_t pid;
 
+    setbuf(stdout, NULL);
     TELL_WAIT();
-
-    if ((pid = fork()) < 0) {
-        err_sys("fork error");
-    } else if (pid == 0) {
-        WAIT_PARENT();   /* parent goes first */
+    pid = fork();
+    if (pid < 0)
+        fail("fork");
+    if (pid == 0) {
+        close(pfd1[1]);
+        close(pfd2[0]);
+        WAIT_PARENT();
         charatatime("output from child\n");
-    } else {
-        charatatime("output from parent\n");
-        TELL_CHILD(pid);
+        TELL_PARENT(getppid());
+        close(pfd1[0]);
+        close(pfd2[1]);
+        _exit(0);
     }
 
-    exit(0);
-}
+    close(pfd1[0]);
+    close(pfd2[1]);
+    charatatime("output from parent\n");
+    TELL_CHILD(pid);
+    WAIT_CHILD();
+    close(pfd1[1]);
+    close(pfd2[0]);
 
-static void charatatime(char *str) {
-    char *ptr;
-    int c;
-
-    setbuf(stdout, NULL);          /* set unbuffered */
-    for (ptr = str; (c = *ptr++) != 0; )
-        putc(c, stdout);
+    while (waitpid(pid, &status, 0) < 0) {
+        if (errno != EINTR)
+            fail("waitpid");
+    }
+    return !WIFEXITED(status) || WEXITSTATUS(status) != 0;
 }
 ```
-<Fig src="/images/sp/ch06-process/pipe-4.webp" caption="Pipe 4" />
-- 用這樣的 one way pipe 讓雙方互相溝通
+
+這裡 `pid` 參數是為了保留課堂 TELL / WAIT 介面的形式，pipe 版本實際上根據 fd 決定通知對象，沒有使用 PID
+
+這次的順序就明確了：
+
+```text noLineNumbers
+parent 印完 → 傳送 'p' → child 讀到通知後才印
+child 印完  → 傳送 'c' → parent 收到後完成等待與回收
+```
+
+如果 child 先執行，就在 `read()` 等通知；如果 parent 先傳了，通知會先留在 pipe buffer，child 之後仍能讀到。這才是同步，不需要猜應該 `sleep()` 幾秒
+
 </Aside>
 
 ### FIFO
-- 為了讓 `pipe` 不必要用 `fork()` 形成繼承關係
-- 另外創建一個獨立的 file，當作 pipe 的 fd
-    - 無法 random access
-    - 把 data 讀掉就沒了，不會像傳統檔案留東西在裡面
-    - 沒人去 reference 那個 pipe 裡面的 data 會被 remove
- 
+
+剛剛的 pipe 沒有 pathname，常見的使用方式是先建立，再透過 `fork()` 把 fd 交給 child。但如果是兩個分別啟動、沒有這種繼承關係的程式，就需要一個共同找得到的入口
+
+**FIFO** 也叫做 **Named pipe**，它在檔案系統裡有名字，process 可以根據同一個 pathname 開啟它，之後就和 pipe 一樣讀寫
+
 **`int mkfifo(const char *pathname, mode_t mode);`**
-- 跟傳統 `open` 相同，權限都跟傳統檔案一樣
-- `O_NONBLOCK` 
-    - NO: 會讓沒人 write 的時候 suspend，寫端也一樣
-    - YES: 直接 return
-- Write for no-reader FIFO: 會收到 `SIGPIPE`
-- `PIPE_BUF` 指定最多讀多少，避免資料混淆
+
+`mkfifo()` 只建立這個入口，成功回傳 `0`，失敗回傳 `-1`，不會直接給我們 fd。之後要再用 `open()` 取得讀端或寫端，建立時的 permission 也會受到 `umask` 影響
+
+例如在一個 terminal 建立 FIFO，再開始讀取：
+
+```bash
+mkfifo /tmp/sp-demo.fifo
+cat /tmp/sp-demo.fifo
+```
+
+接著在另一個 terminal 寫入：
+
+```bash
+printf 'hello from FIFO\n' > /tmp/sp-demo.fifo
+```
+
+這時候第一個 terminal 的 `cat` 就會收到資料。Writer 關閉後，reader 把剩下資料讀完就看到 EOF，但 **FIFO 的 pathname 還在**，不會因為這次溝通結束就自動從檔案系統刪除
+
+它和普通檔案的差別是：
+
+- 資料經過 kernel 裡的 pipe buffer，不是把訊息存成 disk 上的一般檔案內容
+- 讀走的資料不會保留下來，也不能 `lseek()` 回去重讀
+- 沒有任何 process 開啟它之後，這次使用的 buffer 不會替下次溝通保存資料，但命名入口可以繼續存在
+
+`open()` 的等待規則要特別注意，以下假設另一端目前沒有人開啟：
+
+| 開啟方式 | 結果 |
+| --- | --- |
+| `O_RDONLY` | 等到有人開啟寫端 |
+| `O_WRONLY` | 等到有人開啟讀端 |
+| `O_RDONLY \| O_NONBLOCK` | 可以直接取得讀端 |
+| `O_WRONLY \| O_NONBLOCK` | 失敗，`errno` 為 `ENXIO` |
+
+取得 fd 之後，則回到 pipe 的 I/O 規則：沒有資料但還有 writer 時，blocking reader 等待；non-blocking reader 得到 `EAGAIN`；沒有任何 writer 且資料已讀完時得到 EOF。寫入沒有 reader 的 FIFO，一樣會有 `SIGPIPE` / `EPIPE`
+
+Linux 允許用 `O_RDWR` 同時開啟 FIFO 兩端，但這不是 POSIX 保證的用法，而且可能讓自己一直被算成 writer，影響 EOF 的判斷。實際要做雙向通知時，先用兩條單向通道會比較容易理解，詳見 [fifo(7)](https://man7.org/linux/man-pages/man7/fifo.7.html)
 
 <Aside type="tip" title="Example">
-<Fig src="/images/sp/ch06-process/fifo-1.webp" caption="FIFO 1" />
-- 把東西同時送給兩個地方
+
+FIFO 也可以和第一章的 filters 接在一起。假設有三個程式，我們希望 `prog1` 的同一份輸出，同時交給 `prog2` 和 `prog3`：
+
+<Fig src="/images/sp/ch06-process/fifo-1.webp" caption="Output duplication with tee and FIFO" />
+
+```bash
+mkfifo fifo1
+prog3 < fifo1 &
+prog1 < infile | tee fifo1 | prog2
+```
+
+`tee` 會把收到的資料寫到 standard output，也寫到指定的檔案。這裡 standard output 接到 `prog2`，而 `fifo1` 的另一端接到 `prog3`，所以兩邊可以各取得一份資料
+
+這裡能收到兩份，是因為 `tee` 主動複製並分送。**如果只是讓兩個 readers 同時讀同一條 FIFO，它們會分走資料，不是每個人都得到完整副本**
+
 </Aside>
- 
+
 <Aside type="tip" title="Socket">
-<Fig src="/images/sp/ch06-process/fifo-2.webp" caption="FIFO 2" />
-- 可以讓大家都寫在裡面，server 可以讀
-- pipe 無法單端讀寫，因此 response 需要這樣送，如下圖
-    - client 的會是 specific 的，不然會混淆
-<Fig src="/images/sp/ch06-process/fifo-3.webp" caption="FIFO 3" />
-- open well-known FIFO for `R`, `W` 變成
+
+下面先用 FIFO 建立 client/server 的溝通方式：server 準備一個大家都知道 pathname 的 **well-known FIFO**，clients 把 request 寫進去，server 從另一端讀取
+
+<Fig src="/images/sp/ch06-process/fifo-2.webp" caption="Client requests through a well-known FIFO" />
+
+如果有多個 clients 同時寫，除了要自己定義 request 格式，也要注意前面說的 `PIPE_BUF`：讓一筆 request 在一次不超過上限的 `write()` 裡送出，可以避免和其他 writers 交錯，但 server 仍要自己辨識訊息邊界
+
+如果還需要回傳 response，可以讓每個 client 準備自己的 FIFO，並在 request 裡告訴 server 回覆的位置：
+
+<Fig src="/images/sp/ch06-process/fifo-3.webp" caption="Client-server communication with FIFOs" />
+
+這樣 request 集中送到 well-known FIFO，response 則回到指定 client 的 FIFO，不會讓其他 client 把這份回覆讀走
+
+實作時還要安排好兩端 `open()` 的順序，避免 server 等 client 開啟讀端、client 卻又在等 server 完成其他動作。和前面的 deadlock 一樣，先畫清楚「誰在等誰」，就比較容易看出問題
+
 </Aside>
 
 

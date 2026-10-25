@@ -211,7 +211,7 @@ Process 還可以屬於其他 **supplementary groups**，因此判斷基本 file
 
 先看沒有 set-user-ID 的情況，假設 user B 不在 A 的 group 裡面，而且沿途的 directories 都可以 search：
 
-<Fig src="/images/sp/ch05-file/gid-uid-1.webp" caption="GID, UID 1" width="40rem" />
+<Fig src="/images/sp/ch05-file/gid-uid-1.webp" caption="File access without set-user-ID" width="40rem" />
 
 1. `A1` 的 owner 是 A，permission 是 `0755`，B 看 other 那一組 `r-x`，所以可以執行
 2. 執行後 process 的 real UID 和 effective UID 都還是 B
@@ -220,7 +220,7 @@ Process 還可以屬於其他 **supplementary groups**，因此判斷基本 file
 
 現在我們把 `A1` 改成 `04755`，也就是多加上 set-user-ID：
 
-<Fig src="/images/sp/ch05-file/gid-uid-2.webp" caption="GID, UID 2" width="40rem" />
+<Fig src="/images/sp/ch05-file/gid-uid-2.webp" caption="File access with set-user-ID" width="40rem" />
 
 1. B 一樣先用自己的身分判斷可不可以執行 `A1`，other 的 `x` 仍然存在，所以可以執行
 2. 執行後 **real UID 還是 B，effective UID 變成 A**
@@ -458,7 +458,7 @@ Directory 本身也是一種 file，只是他的 content 是用來記錄其他�
 
 換句話說 directory 負責記錄「這個名字對應到哪個 file」，owner、permission、size 則是記錄在 file 的 i-node 裡面
 
-<Fig src="/images/sp/ch05-file/structure-2.webp" caption="Structure 2" width="44rem" />
+<Fig src="/images/sp/ch05-file/structure-2.webp" caption="Directory entries and i-nodes" width="44rem" />
 
 看上面這張圖，兩個不同 directory block 裡面的 filename 都可以指向同一個 i-node，因此 **一個 file 可以有多個名字，但這些名字背後是同一份 metadata 和 content**，這就是後面會介紹的 hard link
 
@@ -466,7 +466,7 @@ Directory entry 的格式由 file system 決定，process 要新增或移除 ent
 
 每個 directory 都可以用 `.` 表示自己，用 `..` 表示 parent directory，下面這張圖就是一個例子：
 
-<Fig src="/images/sp/ch05-file/structure-3.webp" caption="Structure 3" width="44rem" />
+<Fig src="/images/sp/ch05-file/structure-3.webp" caption="Directory entries for . and .." width="44rem" />
 
 - Parent directory 的 i-node number 是 `1267`，裡面的 `testdir` entry 指向 `2549`
 - `testdir` 裡面的 `.` 指向自己，所以是 `2549`
@@ -480,7 +480,7 @@ Unix 會把不同 file system 接在同一棵以 `/` 為根的 directory tree �
 
 以下是課堂用來說明的傳統 BSD file system layout：
 
-<Fig src="/images/sp/ch05-file/structure-1.webp" caption="Structure 1" width="44rem" />
+<Fig src="/images/sp/ch05-file/structure-1.webp" caption="BSD file system layout" width="44rem" />
 
 - **Boot blocks**: 保留給開機相關的資訊
 - **Super block**: 記錄整個 file system 的資訊，像是大小、block size 等等
@@ -491,7 +491,7 @@ Super block 也可以有備份，不同 file system 不一定採用一樣的 lay
 
 一個 file 可能很小，也可能大到需要很多 blocks，如果每個 file 的 i-node 都直接放一大堆 pointers，就算檔案只有幾個 bytes，也會浪費很多空間，因此傳統 Unix 會把 pointer 分成幾個層次：
 
-<Fig src="/images/sp/ch05-file/structure-4.webp" caption="Structure 4" width="44rem" />
+<Fig src="/images/sp/ch05-file/structure-4.webp" caption="Direct and indirect block pointers" width="44rem" />
 
 - **Direct block**: pointer 直接指向存放 content 的 data block
 - **Single indirect**: pointer 指向一個裝滿 block pointers 的 block，再從那裡找到 data
@@ -506,7 +506,7 @@ Super block 也可以有備份，不同 file system 不一定採用一樣的 lay
 
 現在我們把第二章的 file descriptor 放回來，就可以看到完整的關係：
 
-<Fig src="/images/sp/ch05-file/structure-5.webp" caption="Structure 5" width="40rem" />
+<Fig src="/images/sp/ch05-file/structure-5.webp" caption="File descriptors, open file descriptions and i-nodes" width="40rem" />
 
 ```text noLineNumbers
 fd → open file description → i-node → data blocks
@@ -532,7 +532,7 @@ fd → open file description → i-node → data blocks
 
 前面說 filename 是記錄在 directory entry 裡面，因此我們可以新增另一個 entry，讓另一個 filename 也指向同一個 i-node，這個動作就叫做 **hard link**
 
-<Fig src="/images/sp/ch05-file/hard-link-and-soft-link-1.webp" caption="Hard link &amp; Soft link 1" width="28rem" />
+<Fig src="/images/sp/ch05-file/hard-link-and-soft-link-1.webp" caption="Hard links to the same i-node" width="28rem" />
 
 看上面這張圖，`/usr/joe/foo` 和 `/usr/sue/bar` 都指向同一個 i-node，所以 `st_nlink = 2`，兩個名字背後的 owner、permission、content 都是同一份
 
@@ -558,7 +558,7 @@ Hard link 有幾個限制：
 
 Soft link 的做法不一樣，他會建立一個 **新的 link file**，有自己的 i-node，內容則是一條 pathname。當 kernel 遇到這個 link 時，就沿著裡面的 pathname 繼續找 target
 
-<Fig src="/images/sp/ch05-file/hard-link-and-soft-link-2.webp" caption="Hard link &amp; Soft link 2" width="32rem" />
+<Fig src="/images/sp/ch05-file/hard-link-and-soft-link-2.webp" caption="Symbolic link to a pathname" width="32rem" />
 
 看上面這張圖，`/usr/sue/bar` 指向的是 link 自己的 i-node，link 裡面記錄 `/usr/joe/foo`，再透過這條 path 去找 `foo`
 
