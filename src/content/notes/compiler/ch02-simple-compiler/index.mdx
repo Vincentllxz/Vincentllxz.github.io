@@ -312,14 +312,14 @@ A → BcD
 那我們的 procedure 可以設計成
 ```text
 function A {
-    if (lookahead == First(BcD)) {
+    if (lookahead == FIRST(BcD)) {
         call B; match(c); call D;
-    } else if (lookahead == First(EF)) {
+    } else if (lookahead == FIRST(EF)) {
         call E; call F;
     }
 }
 ```
-`First()` 就是去維護一個 set of starting terminal token，所有可能由此產生的 starting terminal，為什麼需要 `First(BcD)` 而不是 `First(B)` 是因為 `B → λ` 空字串
+`FIRST()` 就是去維護一個 set of starting terminal token，所有可能由此產生的 starting terminal，為什麼需要 `FIRST(BcD)` 而不是 `FIRST(B)` 是因為 `B → λ` 空字串
 
 #### Predictive Parsing
 

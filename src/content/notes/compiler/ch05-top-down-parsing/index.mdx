@@ -48,14 +48,14 @@ Parser 裡面也有一個 state machine，等等會說怎麼來的
 
 $$
 \mathrm{Predict}(A \to X_1 \ldots X_m) = \begin{cases}
-\mathrm{First}(X_1\ldots X_m) &\lambda \notin \mathrm{First}(X_1\ldots X_m) \\
-(\mathrm{First}(X_1\ldots X_m) \setminus \{\lambda\}) \cup \mathrm{Follow}(A) &\lambda \in \mathrm{First}(X_1\ldots X_m)
+\mathrm{FIRST}(X_1\ldots X_m) &\lambda \notin \mathrm{FIRST}(X_1\ldots X_m) \\
+(\mathrm{FIRST}(X_1\ldots X_m)-\{\lambda\}) \cup \mathrm{FOLLOW}(A) &\lambda \in \mathrm{FIRST}(X_1\ldots X_m)
 \end{cases}
 $$
 
 如果我們需要找到一個 $LL(1)$ 的 parsing method 有一個先決條件就是，對於**同一個 Symbol 的所有 rule 的 Predict set** 一定要是 **disjoint** 的
 
-以此類推我們可以知道想找到 $LL(k)$ 我們就需要 $\mathrm{Predict}_k()$ function，$k$ 就是我們的 First set, Follow set 要往後看幾個 token
+以此類推我們可以知道想找到 $LL(k)$ 我們就需要 $\mathrm{Predict}_k()$ function，$k$ 就是我們的 FIRST set, FOLLOW set 要往後看幾個 token
 
 ### LL(1) Parse Table
 
@@ -126,7 +126,7 @@ procedure LL_PARSER(ts)
     call PUSH(S)
     accepted ← false
     while not accepted do
-        if TOS() ∈ Σ then
+        if TOS() ∈ V_t then
             call MATCH(ts, TOS())
             if TOS() = $ then
                 accepted ← true
@@ -225,9 +225,9 @@ $$
 \begin{aligned}
 1.\quad &\texttt{<stmt>} \to \texttt{<label> <unlabeled stmt>} \\[4pt]
 2.\quad &\texttt{<label>} \to \texttt{ID :}
-\qquad \mathrm{PredictSet}=\{\texttt{ID}\} \\[4pt]
+\qquad \mathrm{Predict}=\{\texttt{ID}\} \\[4pt]
 3.\quad &\texttt{<label>} \to \lambda
-\qquad \mathrm{PredictSet}=\mathrm{FOLLOW}(\texttt{<label>}) \\[4pt]
+\qquad \mathrm{Predict}=\mathrm{FOLLOW}(\texttt{<label>}) \\[4pt]
 4.\quad &\texttt{<unlabeled stmt>} \to \texttt{ID := <exp> ;}
 \end{aligned}
 $$

@@ -94,8 +94,8 @@ stmt → id • ;
 ### Closure
 
 Closure of $I$，$I$ 是 **a set of items**
-1. $I$ 裡面的所有 item 都在 $\text{Closure}(I)$ 裡面
-2. 若 $A\to\alpha\bullet B\beta$ 在 $\text{Closure}(I)$ 中，則對每個 Production $B\to\gamma$，加入 $B\to\bullet\ \gamma$。重複此過程，直到沒有新的 Item 可以加入為止（替換到 Dot 後面的那個 token 不是 non terminal 為止）
+1. $I$ 裡面的所有 item 都在 $\operatorname{Closure}(I)$ 裡面
+2. 若 $A\to\alpha\bullet B\beta$ 在 $\operatorname{Closure}(I)$ 中，則對每個 Production $B\to\gamma$，加入 $B\to\bullet\ \gamma$。重複此過程，直到沒有新的 Item 可以加入為止（替換到 Dot 後面的那個 token 不是 non terminal 為止）
 
 
 假設有以下 Grammar：
@@ -150,7 +150,7 @@ $$
 
 $$
 \boxed{
-\operatorname{Goto}(I,X)=\operatorname{Closure}(\{A\to\alpha X\bullet\beta\mid A\to\alpha\bullet X\beta\in I\})
+\operatorname{GoTo}(I,X)=\operatorname{Closure}(\{A\to\alpha X\bullet\beta\mid A\to\alpha\bullet X\beta\in I\})
 }
 $$
 
@@ -178,10 +178,10 @@ $$
 對每個 $I\in C$ 與 Grammar Symbol $X$，計算：
 
 $$
-I_{\text{new}}=\operatorname{Goto}(I,X)
+I_{\text{new}}=\operatorname{GoTo}(I,X)
 $$
 
-若 $I_{\text{new}}\neq\varnothing$，且 $I_{\text{new}}\notin C$，則將其加入 $C$。
+若 $I_{\text{new}}\neq\emptyset$，且 $I_{\text{new}}\notin C$，則將其加入 $C$。
 
 **Step 3：重複直到沒有新 State**
 
@@ -248,7 +248,7 @@ $$
 
 我們加入這個條件
 $$
-\boxed{\text{Reduce }A\to\alpha\quad\text{only if }a\in FOLLOW(A)}
+\boxed{\text{Reduce }A\to\alpha\quad\text{only if }a\in \mathrm{FOLLOW}(A)}
 $$
 $a$ 是 lookahead 的 symbol
 
@@ -274,8 +274,8 @@ I=\left\{
 $$
 
 $$
-FOLLOW(\texttt{stmt})=\{\texttt{;}\},\quad
-FOLLOW(\texttt{var})=\{\texttt{:=},\texttt{;}\}
+\mathrm{FOLLOW}(\texttt{stmt})=\{\texttt{;}\},\quad
+\mathrm{FOLLOW}(\texttt{var})=\{\texttt{:=},\texttt{;}\}
 $$
 
 當 Lookahead 為 $\texttt{;}$ 時，兩條 Production 都可以 Reduce，造成 **Reduce-Reduce Conflict**，但實際上，這個 State 中的 $\texttt{var}\to\texttt{id}\bullet$ 來自 $\texttt{stmt}\to\bullet\texttt{var}\ \texttt{:=}\ \texttt{expr}$，因此後面只可能接 $\texttt{:=}$，不可能接 $\texttt{;}$
@@ -310,12 +310,12 @@ $$
 [A\to\alpha\bullet B\beta,\ \{a\}]
 $$
 
-對每個 Production $B\to\gamma$，在 $\text{Closure}(I)$ 裡面加入：
+對每個 Production $B\to\gamma$，在 $\operatorname{Closure}(I)$ 裡面加入：
 
 $$
 \boxed{
 [B\to\bullet\gamma,\ \{b\}],
-\quad b\in FIRST(\beta a)
+\quad b\in \mathrm{FIRST}(\beta a)
 }
 $$
 
@@ -324,17 +324,17 @@ $$
 **GoTo**：與 $LR(0)$ 相同，將 Dot 移過指定 Symbol $X$，再做 Closure：
 
 $$
-\boxed{GoTo(I,X)=\text{Closure}(\{[A\to\alpha X\bullet\beta,\{a\}]\mid[A\to\alpha\bullet X\beta,\{a\}]\in I\})}
+\boxed{\operatorname{GoTo}(I,X)=\operatorname{Closure}(\{[A\to\alpha X\bullet\beta,\{a\}]\mid[A\to\alpha\bullet X\beta,\{a\}]\in I\})}
 $$
 
 ### LR(1) Parsing Table
 
 1. 先利用 Closure 和 GoTo 建立所有 LR(1) States
 2. 根據每個 State 的 Items 填入 ACTION / GOTO Table
-    - **Shift**：若 $[A\to\alpha\bullet a\beta,\{b\}]\in I_i$，且 $a$ 是 Terminal，$GoTo(I_i,a)=I_j$，則 $ACTION[i,a]=s_j$
-    - **Reduce**：若 $[A\to\alpha\bullet,\{a\}]\in I_i$，則 $ACTION[i,a]=r_{A\to\alpha}$
-    - **Accept**：若 $[S'\to S\bullet,\{\text{\textdollar}\}]\in I_i$，則 $ACTION[i,\text{\textdollar}]=accept$
-3. **GOTO**：若 $GoTo(I_i,A)=I_j$，且 $A$ 是 Non-terminal，則 $GOTO[i,A]=j$
+    - **Shift**：若 $[A\to\alpha\bullet a\beta,\{b\}]\in I_i$，且 $a$ 是 Terminal，$\operatorname{GoTo}(I_i,a)=I_j$，則 $\operatorname{ACTION}[i,a]=s_j$
+    - **Reduce**：若 $[A\to\alpha\bullet,\{a\}]\in I_i$，則 $\operatorname{ACTION}[i,a]=r_{A\to\alpha}$
+    - **Accept**：若 $[S'\to S\bullet,\{\text{\textdollar}\}]\in I_i$，則 $\operatorname{ACTION}[i,\text{\textdollar}]=accept$
+3. **GOTO**：若 $\operatorname{GoTo}(I_i,A)=I_j$，且 $A$ 是 Non-terminal，則 $GOTO[i,A]=j$
 
 
 沿用前面的 Grammar，假設 $\texttt{stmt}$ 後面接 $\texttt{;}$，初始 State 包含：
@@ -352,10 +352,10 @@ $$
 第三個 Item 由 Closure 產生，其 Lookahead 來自：
 
 $$
-FIRST(\texttt{:=}\ \texttt{expr}\ \texttt{;})=\{\texttt{:=}\}
+\mathrm{FIRST}(\texttt{:=}\ \texttt{expr}\ \texttt{;})=\{\texttt{:=}\}
 $$
 
-經過 $GoTo(I_0,\texttt{id})$，得到：
+經過 $\operatorname{GoTo}(I_0,\texttt{id})$，得到：
 
 $$
 I_1=\left\{
@@ -467,7 +467,7 @@ $LL(1)$ Parsing 設計有很大的彈性，設計的好，可以跟 $LR(1)$ 一�
 
 ### Error Recovery in LR Parsing
 
-LR Parser 透過 ACTION Table 偵測 Syntax Error，當 $ACTION[i,a]$ 沒有定義時，就代表發生錯誤
+LR Parser 透過 ACTION Table 偵測 Syntax Error，當 $\operatorname{ACTION}[i,a]$ 沒有定義時，就代表發生錯誤
 
 - **LR(1)**：Lookahead 足夠精確，因此遇到不合法的 Token 時，可以立即偵測錯誤，不會在報錯前對該 Token 額外執行 Reduce
 - **SLR(1) / LALR(1)**：可能因為 Lookahead 不夠精確，先執行數次 Reduce 才發現錯誤，但不會 Shift 造成錯誤的 Token
@@ -477,7 +477,7 @@ LR Parser 透過 ACTION Table 偵測 Syntax Error，當 $ACTION[i,a]$ 沒有定�
 當 Parser 發現 Syntax Error 時，可以透過以下步驟恢復 Parsing：
 
 1. **Pop Stack**：從 Stack 往下尋找某個 State $s$，使得 $GOTO[s,A]$ 有定義，其中 $A$ 是 Non-terminal
-2. **Discard Tokens**：丟棄輸入直到遇到可以接在 $A$ 後面的 **Synchronization Token (Sync Token)**，例如 $\texttt{;}$、$\texttt{)}$，通常可以從 $FOLLOW(A)$ 中選擇
+2. **Discard Tokens**：丟棄輸入直到遇到可以接在 $A$ 後面的 **Synchronization Token (Sync Token)**，例如 $\texttt{;}$、$\texttt{)}$，通常可以從 $\mathrm{FOLLOW}(A)$ 中選擇
 3. **Resume Parsing**：將 $A$ 視為已辨識，Push $GOTO[s,A]$ 對應的 State，繼續 Parsing
 
 Panic Mode 的目的不是修正原本的錯誤，而是跳過錯誤區域，讓 Parser 能繼續分析後面的程式
