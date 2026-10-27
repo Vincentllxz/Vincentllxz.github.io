@@ -1,0 +1,143 @@
+---
+import { Icon } from 'astro-pure/user'
+
+interface Props {
+  header: string
+  content: string
+  needPercent?: boolean
+  progressBar?: string
+}
+
+const {
+  header: headerName,
+  content: contentName,
+  needPercent = true,
+  progressBar: progressBarId
+} = Astro.props
+---
+
+<div
+  class='z-10 group fixed bottom-8 end-4 transition-all flex flex-col gap-y-4 sm:end-8'
+  id='action-buttons'
+>
+  <slot name='other-icons' />
+  <button
+    aria-label='Back to Top'
+    class='relative size-10 flex items-center justify-center rounded-full border-2 border-transparent bg-muted text-muted-foreground duration-300 hover:border-border/75 sm:size-12 opacity-0'
+    id='to-top-btn'
+  >
+    <div
+      class='top-text absolute bottom-0 end-0 start-0 top-0 flex items-center justify-center group-[.ended]:opacity-0'
+    >
+      <span class='text'>0</span>
+      <span class='text-xs'>%</span>
+    </div>
+    <Icon name='up' class='top-icon group-[.ended]:opacity-100' />
+  </button>
+</div>
+
+<script is:inline define:vars={{ headerName, contentName, needPercent, progressBarId }}>
+  ;(() => {
+    const actionBtns = document.getElementById('action-buttons')
+    const scrollBtn = document.getElementById('to-top-btn')
+    const scrollPercentEl = scrollBtn?.querySelector('.text')
+    const targetHeader = document.getElementById(headerName)
+    const articleElement = document.getElementById(contentName)
+    const progressBar = progressBarId && document.getElementById(progressBarId)
+    if (!actionBtns || !scrollBtn || !scrollPercentEl || !articleElement) return
+
+    scrollBtn.addEventListener('click', () => {
+      document.documentElement.scrollTo({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'instant'
+          : 'smooth',
+        top: 0
+      })
+    })
+
+    if (targetHeader) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          actionBtns.classList.toggle('show', !entry.isIntersecting)
+        })
+      })
+      observer.observe(targetHeader)
+    }
+
+    const updateProgress = () => {
+      // Lazy images, fonts and viewport changes can all change these bounds.
+      const rect = articleElement.getBoundingClientRect()
+      const scrollTop = window.scrollY
+      const articleTop = rect.top + scrollTop
+      const end = Math.max(0, rect.bottom + scrollTop - document.documentElement.clientHeight)
+      const start = Math.min(articleTop, end)
+      const progress =
+        end > start
+          ? Math.max(0, Math.min(1, (scrollTop - start) / (end - start)))
+          : scrollTop >= end
+            ? 1
+            : 0
+
+      scrollPercentEl.textContent = Math.round(progress * 100).toString()
+      actionBtns.classList.toggle('ended', !needPercent || progress === 1)
+      if (progressBar) progressBar.style.width = `${progress * 100}%`
+    }
+
+    let framePending = false
+    const scheduleUpdate = () => {
+      if (framePending) return
+      framePending = true
+      window.requestAnimationFrame(() => {
+        framePending = false
+        updateProgress()
+      })
+    }
+
+    updateProgress()
+    document.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+    window.addEventListener('pageshow', scheduleUpdate)
+    window.addEventListener('load', scheduleUpdate)
+
+    const resizeObserver = new ResizeObserver(scheduleUpdate)
+    resizeObserver.observe(articleElement)
+    if (targetHeader) resizeObserver.observe(targetHeader)
+  })()
+</script>
+
+<style>
+  #action-buttons {
+    transform: translateY(4rem);
+    &.show {
+      transform: translateY(0);
+      & #to-top-btn {
+        opacity: 1;
+      }
+    }
+
+    /* To top button status change */
+    & #to-top-btn {
+      & .top-text,
+      & .top-icon {
+        transition-property: opacity;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+      }
+      & .top-text {
+        opacity: 1;
+      }
+      & .top-icon {
+        opacity: 0;
+      }
+    }
+    &.ended #to-top-btn,
+    & #to-top-btn:hover {
+      & .top-text {
+        opacity: 0;
+      }
+      & .top-icon {
+        opacity: 1;
+      }
+    }
+  }
+</style>

@@ -1,9 +1,9 @@
 ---
-import { BackToTop } from 'astro-pure/components/pages'
 import type { SiteMeta } from 'astro-pure/types'
 import { Button, Icon } from 'astro-pure/user'
 import { cn } from 'astro-pure/utils'
 import PageLayout from '@/layouts/BaseLayout.astro'
+import BackToTop from '@/components/BackToTop.astro'
 import { integ } from '@/site-config'
 
 interface Props {
@@ -63,7 +63,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
     </div>
   </div>
 
-  <BackToTop header='content-header' content='content'>
+  <BackToTop header='content-header' content='content' progressBar='reading-progress'>
     <button
       slot='other-icons'
       aria-label='Toggle sidebar'
@@ -100,19 +100,6 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
   sidebarButton?.addEventListener('click', () => {
     toggleSidebar()
   })
-
-  // Reading progress bar — fills as the page is scrolled.
-  const progressBar = document.getElementById('reading-progress')
-  if (progressBar) {
-    const updateProgress = () => {
-      const el = document.documentElement
-      const max = el.scrollHeight - el.clientHeight
-      progressBar.style.width = (max > 0 ? (el.scrollTop / max) * 100 : 0) + '%'
-    }
-    updateProgress()
-    window.addEventListener('scroll', updateProgress, { passive: true })
-    window.addEventListener('resize', updateProgress)
-  }
 </script>
 <style>
   .reading-progress {
