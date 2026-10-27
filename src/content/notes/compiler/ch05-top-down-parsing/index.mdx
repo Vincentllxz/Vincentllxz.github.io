@@ -48,8 +48,8 @@ Parser 裡面也有一個 state machine，等等會說怎麼來的
 
 $$
 \mathrm{Predict}(A \to X_1 \ldots X_m) = \begin{cases}
-(\mathrm{First}(X_1\ldots X_m) \setminus \{\lambda\}) \cup \mathrm{Follow}(A) &\text{if }\lambda \in \mathrm{First}(X_1\ldots X_m) \\
-\mathrm{Follow}(A) &\text{otherwise}
+\mathrm{First}(X_1\ldots X_m) &\lambda \notin \mathrm{First}(X_1\ldots X_m) \\
+(\mathrm{First}(X_1\ldots X_m) \setminus \{\lambda\}) \cup \mathrm{Follow}(A) &\lambda \in \mathrm{First}(X_1\ldots X_m)
 \end{cases}
 $$
 
