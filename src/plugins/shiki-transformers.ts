@@ -89,6 +89,21 @@ export const addLanguage = (): ShikiTransformer => {
   }
 }
 
+// Strip Shiki notation comments (`// [!code highlight]`, `# [!code ++]`, ...) so the
+// copy button copies the code as written, not the markup. A line that held nothing
+// but the notation is dropped, matching what the notation transformers render.
+const notationComment =
+  /\s*(?:(?:\/\/|#|--|;|%)\s*\[!code [^\]]+\]|(?:\/\*|<!--)\s*\[!code [^\]]+\]\s*(?:\*\/|-->))\s*$/
+const stripNotation = (source: string) =>
+  source
+    .split('\n')
+    .flatMap((line) => {
+      if (!notationComment.test(line)) return [line]
+      const stripped = line.replace(notationComment, '')
+      return stripped.trim() ? [stripped] : []
+    })
+    .join('\n')
+
 // Add a copy button to the code block
 export const addCopyButton = (timeout?: number): ShikiTransformer => {
   const toggleMs = timeout || 3000
@@ -100,7 +115,7 @@ export const addCopyButton = (timeout?: number): ShikiTransformer => {
         'button',
         {
           class: 'copy text-muted-foreground p-1 box-content border rounded bg-primary-foreground',
-          'data-code': this.source,
+          'data-code': stripNotation(this.source),
           onclick: `
           navigator.clipboard.writeText(this.dataset.code);
           this.classList.add('copied');

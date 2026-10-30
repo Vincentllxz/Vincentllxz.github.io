@@ -1,0 +1,410 @@
+---
+title: "NTU-CA 計算機結構 Ch6 Pipeline: Overview"
+description: "NTU Computer Architecture 計算機結構:Ch6 Pipeline: Overview"
+publishDate: "2026-10-30 12:00:00"
+tags:
+  - "NTU"
+  - "CSIE"
+  - "CA"
+  - "note"
+language: "zh-TW"
+draft: false
+comment: true
+---
+import Fig from '@/components/Fig.astro'
+
+# Pipeline: Overview
+
+上一個章節介紹的 Datapath 是 **Single-cycle datapath**，也就是所有整個過程中 $\text{CPI} = 1$，但這樣可能會出 Performance 上的問題，因為 Clock time 必須是固定的（hardware 特性），為了讓我們的 performance 提升，我們想讓他越短越好，但
+
+$$
+T_{\text{CLK}} = \max_i(t_{\text{instruction}})
+$$
+
+我們的 Cycle time 被執行時間最長的那個 instruction 限制了
+
+- 在 RISC-V 裡面 `load` instruction，他需要經過 5 個 component
+
+<Fig src="/images/ca/ch06-pipeline-overview/execution-time-of-instruction.webp" caption="Execution Time of Instruction" width={80} />
+
+> 在真實情況下，我們的 Memory Access 不一定會這麼順利，可能會包含很多奇怪的 delay 導致他沒辦法在 single cycle 裡面完成，也會造成 single cycle 的進度嚴重拖延
+
+因此，我們提出一種全新的 method：**pipeline**，為此我們需要一個新的 architecture 以及 datapath
+
+## Concept of Pipeline
+
+我們在做一件事情的時候可能可以分成很多步驟，拿洗衣服舉例，可能分四個步驟
+1. Washer 30 min
+2. Dryer 30 min
+3. Folding 30 min
+4. 拿回衣櫃 30 min
+
+假設現在有 4 個人都需要做這個任務，但這四個任務一次都只有一個人能做，因為機器就那麼一個，每個人要輪流做，我們想要優化的目標是 **Total Execution time** 而不是單一個 task 的時長
+
+
+當我們 single path 的時候，每個時間只能執行一個任務，一個人做完才能換下一個人
+
+<Fig src="/images/ca/ch06-pipeline-overview/execution-in-single-path.webp" caption="Execution in Single path" width={80} />
+
+但其實我們可以觀察到，Dryer 在使用的時候 Washer 並沒有在使用，我們可以讓下一個人先去洗衣服，而當後面機器使用結束的時候又剛好可以換成下一個機器
+
+這樣**將工作拆成不同階段，並讓多個工作在不同階段同時進行，以提高整體效率**的方法我們稱為 **Pipeline**，從圖上也能明顯看出他的整體速度大大提升
+
+<Fig src="/images/ca/ch06-pipeline-overview/execution-in-pipelining.webp" caption="Execution in Pipelining" width={80} />
+
+這裡整理幾個 pipeline 的 properties
+1. Pipeline 會**增加 throughput**，但**不會減少 single task 的 latency**
+2. Pipeline 需要啟動時間，因此 **Multitask** 的 scenario 比較適合 pipeline
+3. 因此 pipeline 的速度會取決於 **slowest pipeline stage**
+4. Unbalanced task length 會讓 speedUp 下降
+
+## Pipeline in CPU
+
+複習一下，既然 pipeline 有分 **stage**，其實 RISC-V 的 code execution 也有
+1. **Instruction Fetch (IF)**
+2. **Instruction Decode (ID)** and **Register Fetch (RF)**
+3. **Execution (EX)**, Memory Address Computation, or Branch Completion
+4. **Memory Access (Mem)**
+5. **Write-back (WB)**
+
+以 `load` instruction 為例，這個指令一共需要五個 stage
+
+<Fig src="/images/ca/ch06-pipeline-overview/stages-of-load-instruction.webp" caption="Stages of Load Instruction" width={80} />
+
+以下是 Load instruction 在 Pipeline 後的 Performance improve
+
+$$
+\frac{P_\text{pipeline}}{P_{\text{single}}} = \frac{T_\text{single}}{T_{\text{pipeline}}} = \frac{0.8 \times 4}{0.2 \times (4 \times 1 + \underset{\text{drain the pipeline}}{4})} = 2
+$$
+
+Pipeline 首先需要 4 個 clock cycle 來啟動，然後用剩下每個 instruction 就等同於只需要一個 cycle 就能處理完成
+
+<Fig src="/images/ca/ch06-pipeline-overview/pipelining-in-load-instruction.webp" caption="Pipelining in Load Instruction" width={80} />
+
+### Ideal Pipeline Performance
+
+把剛剛的 performance generalize 一下，Ideally 
+
+$$
+CPI_{\text{pipeline}} = 1
+$$
+
+總運行時間
+$$
+T_{\text{total}} = 1 \times n + T_{\text{drain}}
+$$
+
+所以當每個 stage 都是 balanced 的，並且有大量的 instruction 需要執行，**ideal pipeline speedup** 就是
+
+$$
+\boxed{\text{SpeedUp} = \# \text{ of pipeline stages}}
+$$
+
+並且理論上
+$$
+T_{\text{pipeline}} = \frac{T_{\text{non-pipeline}}}{N}
+$$
+
+- $T$：兩個 instruction 執行間隔時間
+- $N$：pipeline stages
+
+### Pipeline and ISA
+
+在 pipeline 設計的時候 ISA 的設計理念又顯得更重要了，比如說
+- 為了維持 decoding 都在一個 cycle 內執行，RISC-V 設計讓所有 instruction 都是 32-bits **fixed size** 所以我們可以在一個 clock 裡面 fetch 到
+- 為了讓 decode 跟 register fetch 在一個 cycle 裡面，我們要讓 instruction format few and **regular**
+- 設計 instruction 要讓他 stage 容易分且 balanced，例如 `load`, `store` 都可以拆解成 calculate memory address 跟 access memory
+
+### Graphical Representation of Pipeline
+
+接下來我們分析這個問題都會建立在這種 representation 之上，**Graphically Representing Pipelines**
+
+<Fig src="/images/ca/ch06-pipeline-overview/graphically-representing-pipelines.webp" caption="Graphically Representing Pipelines" width={80} />
+
+這些階段前面都介紹過了，這裡著重講
+- 如果前半（左半）塗色，代表這輪的指令是 **write**
+- 如果後半（右半）塗色，代表這輪的指令是 **read**
+
+
+## Pipeline Hazard
+
+剛剛分析的 performance 是在 ideal pipeline 上，但其實很多時候，pipeline 並不會是完全完美的，我們統稱這種會造成 pipeline latency 的情況叫做 **Hazard**，基本上分為以下幾種
+- **Structural Hazard**：當多個 instruction stage 同時需要用某個 component
+- **Data Hazard**：當後面的某些 instruction 想在 data ready 前就先使用他
+- **Control Hazard**：在 conditional instruction 後的 instruction 想在 branch 結果出來前就預先往前跑
+
+這些 Hazard 不外乎都是因為 component 的使用 conflict 造成的，永遠有一招 **waiting** 非常萬用
+
+### Structural Hazard
+
+在第四個 tic 的時候我們發現 Memory read 需要同時間被操作在兩個 Instruction 上，這種情況就會造成 Hazard
+
+<Fig src="/images/ca/ch06-pipeline-overview/structural-hazard-in-memory-component.webp" caption="Structural Hazard in Memory Component" width={80} />
+
+#### Stall for Structural Hazard
+
+跟上面說的一樣，我們永遠可以用 **Stall** 來解決這個問題
+
+<Fig src="/images/ca/ch06-pipeline-overview/stall-for-structural-hazard-in-memory-component.webp" caption="Stall for Structural Hazard in Memory Component" width={80} />
+
+我們在發生 Hazard 的那個 tic 插入一個無意義的 instruction `stall` 也就是讓整個 CPU 空轉一個 clock，然後讓兩個使用 memory component 的 tic 錯開
+
+#### Split memory component
+
+仔細觀察會發現兩個 instruction 使用 memory component 的目的是不一樣的，第一個是要 read **data**，而第二個是要 fetch **instruction**，所以我們不如把 **data memory** 跟 **instruction memory** 分開來做，讓他們獨立成兩個 component
+
+<Fig src="/images/ca/ch06-pipeline-overview/split-memory-for-structural-hazard-in-memory-component.webp" caption="Split memory for Structural Hazard in Memory Component" width={80} />
+
+### Data Hazard
+
+下面這個例子，我們不停的在使用 `r1` 裡面的 data，但其實從第二個 instruction 開始，就沒有使用到正確的資料，也就是說我們應該要等到所有 data 被算出來才能去使用它
+
+<Fig src="/images/ca/ch06-pipeline-overview/data-hazard.webp" caption="Data Hazard" width={80} />
+
+#### Forward
+
+其實 ALU 計算完成後，結果不一定需要先寫回 Register File 才能使用，我們可以直接將結果傳給後續的 Instruction，藉此減少 Pipeline Stall。這種技術稱為 **Forwarding（Bypassing）**
+
+<Fig src="/images/ca/ch06-pipeline-overview/forward-for-data-hazard.webp" caption="Forward for Data Hazard" width={80} />
+
+我們來看一下 forwarding 可能的失敗情況，在這個情況下 Forwarding 可以運作的很順利，因為每個 instruction 都是 r-type 的 instruction，所以我們只需要在 ALU 計算完後就直接 Forward 就會成功
+
+<Fig src="/images/ca/ch06-pipeline-overview/forward-for-data-hazard-2.webp" caption="Forward for Data Hazard" width={80} />
+
+但下面這個例子，第一個 instruction 是 `load` 也就是說要使用的 data 必須等到 **MEM** 結束才能拿到，也就是第一個 instruction 的第四個 tic，但第二個 instruction 在第三個 tic 就想要使用了，所以我們還是必須要 **Stall** 一個輪次，我們稱這個情況為 **load-use**
+
+> 這裡你會發現 R-type instruction 其實不需要用到 MEM 這個 stage，但我們依然給他一個空轉的 stage，這是為了讓 pipeline align 後面會解釋
+
+<Fig src="/images/ca/ch06-pipeline-overview/forward-for-data-hazard-stall.webp" caption="Forward for Data Hazard Stall" width={80} />
+
+
+#### Reordering
+
+還有一種方式可以避免這個問題，就是 **Code Scheduling** 或是 **Reordering**，下面一個範例程式
+
+```asm
+ld   $t1, 0($t0)
+ld   $t2, 4($t0) # [!code highlight]
+add  $t3, $t1, $t2 # [!code highlight]
+sd   $t3, 12($t0)
+ld   $t4, 8($t0) # [!code highlight]
+add  $t5, $t1, $t4 # [!code highlight]
+sd   $t5, 16($t0)
+```
+
+在 `3`, `4` 以及 `6`, `7`，兩組 instruction，我們都可以把 ALU 的 execution result 直接 forward，來維持 pipeline 的順暢，但明顯的我們看到 `2`, `3` 以及 `5`, `6` 都有 load-use 的情況
+
+```asm
+ld   $t1, 0($t0)
+ld   $t2, 4($t0)
+ld   $t4, 8($t0)
+add  $t3, $t1, $t2
+sd   $t3, 12($t0)
+add  $t5, $t1, $t4
+sd   $t5, 16($t0)
+```
+
+Reorder 後我們發現，執行結果不變，下面依然可以 forwarding，但 load-use 只剩下 `3`, `4` 一次
+
+這是一個很重要的 Compiler Optimization issue
+
+### Control Hazard
+
+Control Hazard 情況比較特殊，我們一般來說有兩種解決方法
+- **Stall**：萬用，但會讓 pipeline 效率大大減低
+- **Prediction**：需要有 **roll back** mechanism，因為預測不會永遠都正確，需要一個 correction 機制
+
+#### Stall
+
+因為 branch 的結果會在第三個 tic 的 ALU 計算完後才會有結果，所以我們需要 stall 兩個 instruction
+
+<Fig src="/images/ca/ch06-pipeline-overview/stall-for-control-hazard.webp" caption="Stall for Control Hazard" width={80} />
+
+#### Resolve Branch Earlier
+
+原本的 Hazard 需要 stall 兩個輪次才能夠繼續維持 pipeline，但是我們可以重新設計 hardware，**我們設計 hardware 讓他，可以在 Reg stage 就把 branch 結果傳出來**，這樣就能減少一個 stall instruction
+
+<Fig src="/images/ca/ch06-pipeline-overview/branch-earlier-for-control-hazard.webp" caption="Branch Earlier for Control Hazard" width={80} />
+
+#### Predicted Untaken
+
+我們可以預測這個 branch 沒有被觸發，也就是預測他繼續執行 `PC + 4` 的下一個指令，Predict Untaken 整體上來說會比 Predict Taken 更加好實作，因為 `Target` 運算通常都需要更多的 computation
+
+<Fig src="/images/ca/ch06-pipeline-overview/predicted-untaken-for-control-hazard.webp" caption="Predicted Untaken for Control Hazard" width={80} />
+
+運行邏輯會長這樣，以下是預設的 pipeline 順序，**ID 後 untaken 直接執行下去**
+
+```
+Branch Inst (i) IF  ID  EX  MEM WB
+Inst i+1            IF  ID  EX  MEM WB
+Inst i+2                IF  ID  EX  MEM WB
+Inst i+3                    IF  ID  EX  MEM WB
+Inst i+4                        IF  ID  EX  MEM WB
+```
+
+如果 **ID 結果是 taken** 但第 `i+1` 個 instruction 已經執行一個 stage 的話，我們會需要 roll back
+```
+Branch Inst (i) IF  ID  EX  MEM WB
+Inst i+1            IF  nop nop nop nop
+Branch target           IF  ID  EX  MEM WB
+```
+
+Roll back 簡而言之就是把已經進入 pipeline 的 instruction **flush** 出去，CPU 需要做兩件事
+1. 標記 instruction 也就是我們看到的 `nop`
+2. 把 `PC` 挪到 `Target`
+
+在這個情況下，只有 Instruction `i+1` 需要 roll back，我們稱為 **One cycle penalty**
+
+## Pipeline Datapath
+
+回憶一下先前的 Single Datapath，但如果我們要直接套 pipeline 的話，很明顯會出問題
+- 我們需要維持所有 stage 的時間一樣，來保證資料可以不要跟下一輪的 data 混在一起
+- 每一個 stage 的 control signal 不能混用
+
+<Fig src="/images/ca/ch06-pipeline-overview/datapath-with-instruction-execution-stage.webp" caption="Datapath with Instruction Execution Stage" width={90} />
+
+我們只需要在**每個 Stage 的 Component 之間都加上一個 register** 來儲存這輪的 data 就能很好的解決這個問題，五個 stage 需要四個 Register，而他們的命名方法就是鄰接他的兩個 stage：**IF/ID**, **ID/EX**, **EX/MEM**, **MEM/WB**
+
+<Fig src="/images/ca/ch06-pipeline-overview/datapath-with-pipeline.webp" caption="Datapath with Pipeline" width={90} />
+
+### Pipeline in Load
+
+因為並不是所有 instruction 都需要四個 stage 都用到，我們拿 load 來舉例
+
+1. **Instruction Fetch**: 
+```c
+IF/ID.IR = mem[PC];
+IF/ID.PC = PC;
+PC = PC + 4;
+```
+
+<Fig src="/images/ca/ch06-pipeline-overview/instruction-fetch-of-pipeline-load.webp" caption="Instruction Fetch of Pipeline load" width={90} />
+
+2. **Instruction Decode**:
+```c
+ID/EX.A = Reg[IF/ID.IR[19-15]];
+ID/EX.B = Reg[IF/ID.IR[24-20]];
+ID/EX.immediate = sin_ext(IF/ID.IR[31-20]);
+ID/EX.PC = IF/ID.PC;
+```
+
+<Fig src="/images/ca/ch06-pipeline-overview/instruction-decode-of-pipeline-load.webp" caption="Instruction Decode of Pipeline load" width={90} />
+
+3. **Execution**:
+
+```c
+EX/MEM.ALUout = ID/EX.A + ID/EX.immediate
+```
+
+<Fig src="/images/ca/ch06-pipeline-overview/execution-of-pipeline-load.webp" caption="Execution of Pipeline load" width={90} />
+
+4. **Memory Access**:
+
+```c
+MEM/WB.MDR = mem[EX/MEM.ALUout]
+```
+
+
+<Fig src="/images/ca/ch06-pipeline-overview/memory-access-of-pipeline-load.webp" caption="Memory Access of Pipeline load" width={90} />
+
+
+5. **Write Back**: 
+
+```c
+Reg[Rd] = MEM/WB.MDR
+```
+
+<Fig src="/images/ca/ch06-pipeline-overview/write-back-of-pipeline-load.webp" caption="Write Back of Pipeline load" width={90} />
+
+這裡 Stage 我們可以發現一個問題，Write Register 的 Number 已經在第一個 stage 就被 pass 掉了，我們應該要把 Write Register number 也就是 `rd` 從 `ID/EX` 傳到 `EX/MEM` 傳到 `MEM/WB` 才能夠放回去給 register，所以我們需要多接一條線回去
+
+<Fig src="/images/ca/ch06-pipeline-overview/correct-pipeline-datapath-of-load-instruction.webp" caption="Correct Pipeline Datapath of Load instruction" width={90} />
+
+### Pipeline for Branch
+
+接下來我們來討論 `beq` 這個 instruction，整體而言他的運作流程如下
+
+1. **Instruction Fetch (IF)**：Fetch Instruction，並預設 `PC = PC + 4`
+2. **Instruction Decode (ID)**：讀取兩個 Source Registers，並取得 Immediate
+3. **Execution (EX)**：計算 Branch Target Address，並透過 ALU 比較兩個 Registers 是否相等
+4. **Memory (MEM)**：根據 Zero Flag 決定是否將 PC 更新為 Branch Target Address
+5. **Write Back (WB)**：不需要執行任何操作
+
+
+我們著重討論 PC 決定的 pipeline datapath，首先在 Execution stage 如果 ALU 的計算結果是 `0` 的話，發出一個 `zero signal` 到後面，並且同時把 `Target` 算出來
+
+```c
+EX/MEM.PC = ID/EX.PC + (ID/EX.immediate << 1);
+EX/MEM.Zero = (ID/EX.A – ID/EX.B) ? 0 : 1
+```
+
+<Fig src="/images/ca/ch06-pipeline-overview/execution-stage-of-the-branch-instruction.webp" caption="Execution stage of the Branch Instruction" width={80} />
+
+在 Memory access stage 的時候，我們用利用 `zero signal` 作為上面的 Mux 的 control signal，判斷 `PC` 要變成 `Target` 還是維持 `PC+4`
+
+```c
+If (EX/MEM.zero) PC = EX/MEM.PC;
+```
+
+<Fig src="/images/ca/ch06-pipeline-overview/memory-access-stage-of-the-branch-instruction.webp" caption="Memory Access stage of the Branch Instruction" width={80} />
+
+## Pipeline Stage Alignment
+
+一般來說 Load instruction 有 5 個 stage
+1. Instruction Fetch
+2. Instruction Decode
+3. Execution
+4. Memory Access
+5. Write Back
+
+但 R-type instruction 只有 4 個 stage
+1. Instruction Fetch
+2. Instruction Decode
+3. Execution
+4. Write Back
+
+這個情況如果我們混用 Load, R-type instruction 的話就會發現，在某些階段，Load 承接 R-type 的時候會發生 conflict 或是 **structural hazard**
+
+<Fig src="/images/ca/ch06-pipeline-overview/r-type-instruction-and-load-instruction.webp" caption="R-type Instruction and Load instruction" width={80} />
+
+### Inserting "Bubble"
+
+一種方法是在 Structural Hazard 發生的時候插入一個 Bubble 在前面，要往下插入讓所有 instruction 都往後一格，但這樣會讓
+- **Control Logic 變複雜**
+- Cycle 6 沒有 instruction 被 fetch，會出問題
+
+<Fig src="/images/ca/ch06-pipeline-overview/bubble-insertion-in-the-pipeline.webp" caption="Bubble Insertion in the Pipeline" width={80} />
+
+### Delay R-type's Write
+
+第二種常見的方法是我們讓 R-type instruction 全體延後一格，對齊 Load instruction，也就是多塞一個**空轉的 MEM stage**
+
+<Fig src="/images/ca/ch06-pipeline-overview/delaying-r-type.webp" caption="Delaying R-type" width={60} />
+
+這樣我們的整體 Pipeline 就不用做額外設計
+
+<Fig src="/images/ca/ch06-pipeline-overview/pipeline-of-delaying-r-type.webp" caption="Pipeline of Delaying R-type" width={80} />
+
+少了 WB stage 的 store instruction 也是一樣道理，多加上一個不做事的 WB stage
+
+<Fig src="/images/ca/ch06-pipeline-overview/delaying-store.webp" caption="Delaying Store" width={60} />
+
+Branch 比較特別一點，我們需要在
+1. MEM stage 決定是否更新 PC，並選擇 Branch Target
+2. WB 空轉一輪
+
+<Fig src="/images/ca/ch06-pipeline-overview/delaying-branch.webp" caption="Delaying Branch" width={60} />
+
+## Pipeline Control
+
+複習一下 Single Cycle Datapath，這個東西
+
+<Fig src="/images/ca/ch06-pipeline-overview/datapath-with-control-signal.webp" caption="Datapath with control signal" width={90} />
+
+但在 pipeline 的情況下，**control signal 應該是要跟著 stage** 而非跟著 instruction，但我們原本的設計上，硬是把 Pipeline 套上去的話 Control Signal 會無法跟 data 傳到的時間配合，所以我們可以把他跟 stage 之間的 register 們配合
+
+<Fig src="/images/ca/ch06-pipeline-overview/control-signal-in-pipeline.webp" caption="Control Signal in Pipeline" width={80} />
+
+所有 Control Signal 從 Main control 出來之後，根據他該在哪個 stage 使用，不在那個 stage 使用的 signal 繼續傳給下一個 register
+
+<Fig src="/images/ca/ch06-pipeline-overview/datapath-with-pipeline-control-signal.webp" caption="Datapath with pipeline control signal" width={90} />
