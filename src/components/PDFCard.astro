@@ -101,8 +101,8 @@ const filename = `${abbr}.${isPdf ? 'pdf' : 'note'}`
     border-radius: 9999px;
     background: hsl(var(--muted-foreground) / 0.35);
     transition:
-      background 0.3s ease,
-      transform 0.3s ease;
+      background var(--dur) var(--ease-ink),
+      transform var(--dur) var(--ease-spring);
   }
   .pdfcard:hover .pdfcard-dot:nth-child(1) {
     background: #ff5f56;
@@ -133,7 +133,7 @@ const filename = `${abbr}.${isPdf ? 'pdf' : 'note'}`
     line-height: 1.1;
     letter-spacing: 0.01em;
     color: var(--accent);
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform var(--dur-slow) var(--ease-ink);
   }
   .pdfcard:hover .pdfcard-abbr {
     transform: translateX(4px);
@@ -149,7 +149,7 @@ const filename = `${abbr}.${isPdf ? 'pdf' : 'note'}`
     transform: translateY(0.12em);
     background: var(--accent);
     opacity: 0.3;
-    transition: opacity 0.25s ease;
+    transition: opacity var(--dur-fast) var(--ease-ink);
   }
   .pdfcard:hover .pdfcard-cursor {
     opacity: 1;

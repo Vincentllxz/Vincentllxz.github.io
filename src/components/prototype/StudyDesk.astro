@@ -1,0 +1,250 @@
+---
+import { getCollection } from 'astro:content'
+
+const notebooks = [
+  {
+    id: 'ca', zh: '計算機結構', en: 'Computer Architecture',
+    term: '2026 Fall', teacher: '楊佳玲、洪士灝',
+    figure: 'ca/ch05-datapath/single-cycle-datapath.webp', width: 1176, height: 796, caption: 'Single Cycle Datapath',
+    alt: '單週期處理器內，指令、暫存器、ALU 與資料記憶體的連線。'
+  },
+  {
+    id: 'compiler', zh: '編譯程式設計', en: 'Compiler Design',
+    term: '2026 Fall', teacher: '洪鼎詠',
+    figure: 'compiler/ch01-intro/retargetable-compiler.webp', width: 1588, height: 962, caption: 'Retargetable Compiler',
+    alt: '編譯器共用前端與中介表示，再依不同指令集選擇程式碼產生器。'
+  },
+  {
+    id: 'os', zh: '作業系統', en: 'Operating System',
+    term: '2026 Spring', teacher: '林忠緯',
+    figure: 'os/ch01-intro/computer-system-organization.webp', width: 1600, height: 666, caption: 'Computer-System Organization',
+    alt: 'CPU、各裝置控制器與記憶體透過系統匯流排互連。'
+  },
+  {
+    id: 'sp', zh: '系統程式設計', en: 'System Programming',
+    term: '2025 Fall', teacher: '鄭卜壬',
+    figure: 'sp/ch02-unbufio/fig-2.webp', width: 1260, height: 806, caption: 'Unbuffered I/O',
+    alt: 'Unbuffered I/O 章節的讀寫路徑示意圖。'
+  },
+  {
+    id: 'cn', zh: '計算機網路', en: 'Computer Networking',
+    term: '2025 Fall', teacher: '逄愛君',
+    figure: 'cn/ch01-intro/services-layering-encapsulation.webp', width: 1600, height: 950, caption: 'Services, Layering, Encapsulation',
+    alt: '資料經過主機、交換器與路由器時，各層標頭的封裝與拆封。'
+  }
+]
+
+const notes = (await getCollection('notes', ({ data }) => !data.draft))
+  .sort((a, b) => a.id.localeCompare(b.id))
+const courses = notebooks.map((course) => ({
+  ...course,
+  figureChapter: '/notes/' + course.figure.split('/').slice(0, 2).join('/'),
+  chapters: notes.filter((entry) => entry.id.startsWith(course.id + '/')).map((entry) => ({
+    href: '/notes/' + entry.id,
+    number: entry.id.match(/\/ch(\d+)/)?.[1],
+    title: entry.data.title.replace(/^.*?\bCh\d+\s+/i, '')
+  }))
+}))
+---
+
+<div class="desk">
+  <div class="desk-inner">
+    <header class="course-selector">
+      <h1>台大資工課程筆記</h1>
+      <nav class="courses" aria-label="選擇課程">
+        {courses.map((course, i) => (
+          <a class="course" href={'/notes/' + course.id} id={'desk-tab-' + course.id}
+            data-course={course.id} data-active={i === 0 ? '' : undefined}>
+            {course.zh}
+          </a>
+        ))}
+      </nav>
+    </header>
+
+    <div class="reading">
+      {courses.map((course, i) => (
+        <article id={'desk-panel-' + course.id} hidden={i > 0}>
+          <header class="course-info">
+            <h2 lang="en">{course.en}</h2>
+            <p>{course.term} · {course.teacher} 教授</p>
+          </header>
+          <div class="course-spread">
+            <section class="directory" aria-labelledby={'chapters-' + course.id}>
+              <h3 id={'chapters-' + course.id}>章節目錄</h3>
+              <ol>
+                {course.chapters.map((ch) => (
+                  <li><a href={ch.href}>
+                    <span class="chapter-number">{ch.number}</span>
+                    <span lang="en">{ch.title}</span>
+                  </a></li>
+                ))}
+              </ol>
+              <a class="course-home" href={'/notes/' + course.id}>課程首頁</a>
+            </section>
+            <a class="figure-source" href={course.figureChapter}
+              aria-label={'閱讀圖解所在章節，' + course.caption}>
+              <figure>
+                <img src={'/images/' + course.figure} alt={course.alt} width={course.width} height={course.height} loading="lazy" />
+                <figcaption lang="en">{course.caption}</figcaption>
+              </figure>
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .desk {
+    --ink: #182e49;
+    --blue: #1b48b1;
+    min-height: 85svh;
+    color: var(--ink);
+    background: #f3f3ea;
+    font: 500 16px/1.5 Satoshi, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  .desk-inner {
+    width: min(100%, 1400px);
+    margin: auto;
+    padding: clamp(28px, 4vw, 64px) clamp(20px, 5.5vw, 80px) 44px;
+  }
+  .course-selector {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px 24px;
+  }
+  .course-selector h1 {
+    margin: 0;
+    font-size: clamp(25px, 2.7vw, 42px);
+    line-height: 1.3;
+    font-weight: 700;
+  }
+  .courses { display: flex; flex-wrap: wrap; gap: 0 6px; }
+  .course {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 10px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 15px;
+  }
+  .course[data-active] { color: var(--ink); background: #dce5ed; font-weight: 700; }
+  .course:hover { text-decoration: underline; text-underline-offset: .22em; }
+  .desk a:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+  .reading { margin-top: clamp(36px, 5vw, 68px); }
+  .reading article[hidden] { display: none; }
+  .course-info h2 {
+    margin: 0;
+    font-size: clamp(30px, 3.8vw, 56px);
+    line-height: 1.15;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  .course-info p {
+    margin: .45em 0 0;
+    color: #475565;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .course-spread {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: start;
+    gap: clamp(28px, 4vw, 65px);
+    margin-top: clamp(24px, 3vw, 48px);
+  }
+  .directory h3 { margin: 0 0 8px; font-size: 19px; font-weight: 600; }
+  .directory ol { margin: 0; padding: 0; list-style: none; }
+  .directory ol a {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    align-items: baseline;
+    gap: 12px;
+    min-height: 44px;
+    padding: 8px 0;
+    color: var(--blue);
+    font-size: clamp(17px, 1.4vw, 21px);
+    text-decoration: none;
+  }
+  .chapter-number {
+    color: #475565;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .course-home {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 12px;
+    color: var(--ink);
+    font-size: 14px;
+    text-underline-offset: .2em;
+  }
+  .directory ol a:hover span:last-child, .directory ol a:focus-visible span:last-child { text-decoration: underline; }
+  .reading figure { margin: 0; }
+  .figure-source { display: block; color: var(--blue); text-decoration: none; }
+  .figure-source img {
+    display: block;
+    width: 100%;
+    height: auto;
+    mix-blend-mode: multiply;
+  }
+  .reading figcaption { margin-top: 9px; font-size: 14px; text-decoration: underline; text-underline-offset: .2em; }
+  @media (max-width: 780px) {
+    .course-selector { display: block; }
+    .courses { margin: 12px -4px 0; gap: 0 2px; }
+    .course { padding: 0 7px; font-size: 14px; }
+    .course-spread { grid-template-columns: minmax(0, 1fr); }
+    .reading { margin-top: 30px; }
+    .reading figure { max-width: 620px; }
+  }
+</style>
+
+<script>
+  for (const desk of document.querySelectorAll<HTMLElement>('.desk')) {
+    const nav = desk.querySelector<HTMLElement>('.courses')!
+    const tabs = Array.from(nav.querySelectorAll<HTMLAnchorElement>('[data-course]'))
+    const panels = Array.from(desk.querySelectorAll<HTMLElement>('.reading article'))
+    nav.setAttribute('role', 'tablist')
+
+    function select(index: number) {
+      tabs.forEach((tab, i) => {
+        const current = i === index
+        tab.toggleAttribute('data-active', current)
+        tab.setAttribute('aria-selected', String(current))
+        tab.tabIndex = current ? 0 : -1
+        panels[i].hidden = !current
+      })
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.setAttribute('role', 'tab')
+      tab.setAttribute('aria-controls', panels[i].id)
+      panels[i].setAttribute('role', 'tabpanel')
+      panels[i].setAttribute('aria-labelledby', tab.id)
+      tab.addEventListener('click', (event) => {
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+        event.preventDefault()
+        select(i)
+      })
+      tab.addEventListener('keydown', (event) => {
+        const next = i + 1
+        const prev = i - 1
+        const targets: Record<string, number> = {
+          ArrowRight: next, ArrowDown: next, ArrowLeft: prev, ArrowUp: prev,
+          Home: 0, End: tabs.length - 1, ' ': i
+        }
+        if (!(event.key in targets)) return
+        event.preventDefault()
+        const target = (targets[event.key] + tabs.length) % tabs.length
+        select(target)
+        tabs[target].focus()
+      })
+    })
+    select(0)
+  }
+</script>

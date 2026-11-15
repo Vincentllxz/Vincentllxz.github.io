@@ -1,0 +1,120 @@
+---
+// Compare a personal introduction, a photo story, and a course directory as the homepage.
+import LetterCover from '@/components/prototype/LetterCover.astro'
+import PhotoJournal from '@/components/prototype/PhotoJournal.astro'
+import StudyDesk from '@/components/prototype/StudyDesk.astro'
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { page: 'home' } }] : []
+}
+---
+
+<!doctype html>
+<html lang="zh-Hant" data-variant="letter">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="icon" href="/favicon/favicon.ico" />
+    <title>VinSong · 首頁原型</title>
+    <script is:inline>
+      const initialVariant = new URLSearchParams(location.search).get('variant')
+      if (['photo', 'desk'].includes(initialVariant)) document.documentElement.dataset.variant = initialVariant
+    </script>
+  </head>
+  <body>
+    <div class="preview-scroll">
+      <a class="skip" href="#prototype-main">跳到主要內容</a>
+      <header class="topbar">
+        <div class="topbar-inner">
+          <a class="wordmark" href="/prototype/home" aria-label="VinSong 原型首頁">vinsong.csie.org</a>
+          <nav aria-label="主選單">
+            <a href="/blog">文章</a><a href="/notes">筆記</a><a href="/about">關於</a>
+          </nav>
+        </div>
+      </header>
+      <main id="prototype-main" tabindex="-1">
+        <section data-design="letter" aria-label="個人手記"><LetterCover /></section>
+        <section data-design="photo" aria-label="攝影暗房"><PhotoJournal /></section>
+        <section data-design="desk" aria-label="筆記工作桌"><StudyDesk /></section>
+      </main>
+    </div>
+    <aside class="switcher" aria-label="切換首頁原型">
+      <button type="button" data-step="-1" aria-label="上一款原型">←</button>
+      <div class="switcher-name" aria-live="polite"><span>原型</span> <strong>A · 航空手記</strong></div>
+      <button type="button" data-step="1" aria-label="下一款原型">→</button>
+    </aside>
+    <script>
+      const names = { letter: 'A · 航空手記', photo: 'B · 攝影暗房', desk: 'C · 筆記工作桌' }
+      type Variant = keyof typeof names
+      const variants = Object.keys(names) as Variant[]
+      const current = () => document.documentElement.dataset.variant as Variant
+
+      function render(variant: Variant) {
+        document.documentElement.dataset.variant = variant
+        document.querySelector('.switcher-name strong')!.textContent = names[variant]
+        document.title = names[variant] + ' · VinSong 首頁原型'
+      }
+
+      function cycle(step: number) {
+        const index = (variants.indexOf(current()) + step + variants.length) % variants.length
+        const variant = variants[index]
+        const url = new URL(location.href)
+        url.searchParams.set('variant', variant)
+        url.hash = ''
+        history.replaceState(null, '', url)
+        render(variant)
+        document.querySelector('.preview-scroll')!.scrollTop = 0
+      }
+
+      render(current())
+      document.querySelectorAll<HTMLButtonElement>('.switcher button').forEach(button => {
+        button.addEventListener('click', () => cycle(Number(button.dataset.step)))
+      })
+      document.addEventListener('keydown', event => {
+        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+        if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable], [role="tablist"], [data-design] button')) return
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+        event.preventDefault()
+        cycle(event.key === 'ArrowLeft' ? -1 : 1)
+      })
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @font-face {font-family: Satoshi; src: url('/fonts/Satoshi-Variable.ttf') format('truetype'); font-weight: 300 900; font-display: swap;}
+  :root {--surface: #f7f4ea; --ink: #252d3c; --rule: #ccc9bc; --stamp: #b5412b; color-scheme: light;}
+  :root[data-variant="photo"] {--surface: #171918; --ink: #f4f1e8; --rule: #43463f; --stamp: #ffc465; color-scheme: dark;}
+  :root[data-variant="desk"] {--surface: #f3f3ea; --ink: #182e49; --rule: #bbc4cc; --stamp: #1b48b1;}
+  *, *::before, *::after {box-sizing: border-box;}
+  html, body {margin: 0; min-width: 0; background: var(--surface); color: var(--ink);}
+  body {font-family: Satoshi, "PingFang TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; display: grid; height: 100vh; height: 100dvh; grid-template-rows: minmax(0, 1fr) auto;}
+  .preview-scroll {overflow: auto; min-width: 0;}
+  button {font: inherit;}
+  astro-dev-toolbar {display: none !important;}
+  a {color: inherit;}
+  :focus-visible {outline: 2px solid currentColor; outline-offset: 4px;}
+  [data-design] {display: none;}
+  [data-variant="letter"] [data-design="letter"], [data-variant="photo"] [data-design="photo"], [data-variant="desk"] [data-design="desk"] {display: block;}
+  .skip {position: absolute; z-index: 12; left: 10px; top: -100px; padding: 12px; background: var(--surface);}
+  .skip:focus {top: 8px;}
+  .topbar {padding-inline: clamp(20px, 5.5vw, 80px);}
+  .topbar-inner {max-width: 1240px; height: 68px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 15px;}
+  .wordmark {display: inline-flex; align-items: center; min-height: 44px; font-weight: 750; font-size: 17px; text-decoration: none;}
+  .topbar nav {display: flex; gap: clamp(13px, 2.6vw, 42px);}
+  .topbar nav a {display: grid; place-items: center; min-width: 44px; min-height: 44px; font-size: 14px; text-decoration: none; font-weight: 650;}
+  .topbar nav a:hover, .wordmark:hover {color: var(--stamp);}
+  .switcher {display: flex; justify-content: center; align-items: center; gap: 8px; padding-bottom: env(safe-area-inset-bottom); background: #272b2b; color: #faf9f4; color-scheme: dark;}
+  .switcher button {height: 44px; width: 44px; color: inherit; background: none; border: none; font: 19px/1 Satoshi, sans-serif; cursor: pointer;}
+  .switcher button:hover {background: #414645;}
+  .switcher button:focus-visible {outline-offset: -4px;}
+  .switcher-name {min-width: 116px; text-align: center; font-size: 13px;}
+  .switcher-name span {color: #c5c7c0;}
+  .switcher-name strong {font-weight: 600;}
+  @media (max-width: 600px) {
+    .topbar-inner {height: 62px;}
+    .wordmark {font-size: 15px;}
+    .topbar nav {gap: 0;}
+  }
+</style>

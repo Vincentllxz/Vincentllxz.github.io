@@ -39,6 +39,39 @@ html {
   --radius: 0.5rem;
   --info: 200 80% 50%;
   --warning: 285 70% 60%;
+
+  /* Motion — Apple-style curves (ported from apple-ink-preview, 2026-11-16).
+     `--ease-ink` is the long deceleration used for almost everything;
+     `--ease-spring` overshoots slightly for things that lift or pop. */
+  --ease-ink: cubic-bezier(0.25, 1, 0.3, 1);
+  --ease-in-out-ink: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: linear(
+    0,
+    0.009,
+    0.035 2.1%,
+    0.141 4.4%,
+    0.723 12.9%,
+    0.938 16.7%,
+    1.017,
+    1.077,
+    1.121,
+    1.149 24.3%,
+    1.159,
+    1.163 27%,
+    1.154,
+    1.129 32.8%,
+    1.051 39.6%,
+    1.017 43.1%,
+    0.991,
+    0.977 51%,
+    0.975 57.1%,
+    0.997 69.8%,
+    1.003 76.9%,
+    1
+  );
+  --dur-fast: 0.25s;
+  --dur: 0.45s;
+  --dur-slow: 0.8s;
 }
 .dark {
   /* Deep purple-black — near-black with a purple undertone. */
@@ -70,13 +103,40 @@ html {
 html.dark {
   color-scheme: dark;
 }
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01s;
+    --dur: 0.01s;
+    --dur-slow: 0.01s;
+  }
+}
 
 /* Global */
 a {
-  transition: color 0.2s ease;
+  transition:
+    color var(--dur) var(--ease-ink),
+    opacity var(--dur) var(--ease-ink);
   &:hover {
     color: hsl(var(--primary) / var(--un-text-opacity, 1));
   }
+}
+
+/* Every UnoCSS transition utility (theme components included) moves on the
+   ink curve instead of Tailwind's stock ease; ones without an explicit
+   `duration-*` also get the longer default. (0,1,1) beats the utilities'
+   (0,1,0) regardless of stylesheet order. */
+html :is(.transition, .transition-all, .transition-colors, .transition-opacity, .transition-transform) {
+  transition-timing-function: var(--ease-ink);
+}
+html
+  :is(
+    .transition,
+    .transition-all,
+    .transition-colors,
+    .transition-opacity,
+    .transition-transform
+  ):not([class*='duration-']) {
+  transition-duration: var(--dur);
 }
 
 /* 補充摺疊框（文章裡的「關於 X」）：左側一條主色線，其餘完全交給下面的
@@ -155,7 +215,7 @@ figcaption {
   content: '▶';
   position: absolute;
   inset-inline-start: 0;
-  transition: transform 0.3s ease;
+  transition: transform var(--dur) var(--ease-spring);
   color: hsl(var(--muted-foreground) / 0.9);
 }
 .prose details[open] summary::before {
@@ -230,7 +290,7 @@ figcaption {
 }
 /* Body rows: zebra + hover, with the last row meeting the rounded edge. */
 .prose tbody tr {
-  transition: background-color 0.15s ease;
+  transition: background-color var(--dur) var(--ease-ink);
 }
 .prose tbody tr:nth-child(even) {
   background: hsl(var(--muted) / 0.4);
@@ -355,20 +415,23 @@ html.reveal-on [data-reveal] > * {
   opacity: 0;
   transform: translateY(1.5rem);
   transition:
-    opacity 0.6s ease,
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.7s var(--ease-ink),
+    transform 0.9s var(--ease-ink);
 }
 html.reveal-on [data-reveal] > *.is-revealed {
   opacity: 1;
   transform: none;
 }
 html.reveal-on [data-reveal] > *:nth-child(2) {
-  transition-delay: 0.08s;
+  transition-delay: 0.06s;
 }
 html.reveal-on [data-reveal] > *:nth-child(3) {
-  transition-delay: 0.16s;
+  transition-delay: 0.12s;
 }
 html.reveal-on [data-reveal] > *:nth-child(4) {
+  transition-delay: 0.18s;
+}
+html.reveal-on [data-reveal] > *:nth-child(5) {
   transition-delay: 0.24s;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -425,8 +488,8 @@ html {
   background-repeat: no-repeat;
   background-size: 0% 1.5px;
   transition:
-    background-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.2s ease;
+    background-size var(--dur-slow) var(--ease-ink),
+    color var(--dur) var(--ease-ink);
 }
 .prose :is(p, li, td, th) a:not(:where([class~='not-prose'] *)):not(:has(img)):hover {
   background-size: 100% 1.5px;
@@ -435,10 +498,16 @@ html {
 /* Article images are click-to-zoom (medium-zoom) — show the affordance. */
 .prose :where(img):not(:where([class~='not-prose'] *)) {
   cursor: zoom-in;
-  transition: filter 0.3s ease;
+  transition: filter var(--dur) var(--ease-ink);
 }
 .prose :where(img):not(:where([class~='not-prose'] *)):hover {
   filter: brightness(1.04);
+}
+/* medium-zoom's own open/close glides on the same curve. */
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  transition-timing-function: var(--ease-ink) !important;
+  transition-duration: 0.5s !important;
 }
 
 /* Header nav — underline sweeps in on hover, and stays lit on the
@@ -456,7 +525,7 @@ html {
     border-radius: 2px;
     background-color: hsl(var(--primary));
     transform: scaleX(0);
-    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform var(--dur-slow) var(--ease-ink);
   }
   #headerExpandContent a[aria-label='Nav menu item']:hover::after,
   #headerExpandContent a[aria-label='Nav menu item'].nav-active::after {
@@ -502,6 +571,152 @@ body {
     radial-gradient(hsl(var(--foreground) / 0.07) 1px, transparent 1.4px),
     radial-gradient(36rem 26rem at 4% -6%, hsl(199 80% 62% / 0.16), transparent 60%),
     radial-gradient(32rem 24rem at 103% 106%, hsl(265 70% 62% / 0.16), transparent 60%);
+}
+
+/* ============================================================
+   Motion (ported from apple-ink-preview, 2026-11-16) — only timing,
+   easing and movement; the header keeps its original solid look.
+   ============================================================ */
+/* Header — padding / margin-inline are layout properties, so they keep the
+   theme's short 0.3s; transform and colours get the long ink curve. The
+   view-transition-name lets the header stay put across page navigations.
+   The theme's scoped rule is (0,1,1); `html header-component[class]` wins. */
+html header-component[class] {
+  transition:
+    padding 0.3s var(--ease-ink),
+    transform var(--dur-slow) var(--ease-ink),
+    margin-inline 0.3s var(--ease-ink),
+    border-color var(--dur) var(--ease-ink),
+    background-color var(--dur) var(--ease-ink),
+    box-shadow var(--dur) var(--ease-ink);
+  view-transition-name: site-header;
+}
+/* Theme / menu buttons press in and spring back. */
+html header-component #toggleDarkMode,
+html header-component #toggleMenu {
+  transition:
+    color var(--dur) var(--ease-ink),
+    background-color var(--dur) var(--ease-ink),
+    border-color var(--dur) var(--ease-ink),
+    transform var(--dur) var(--ease-spring);
+}
+html header-component #toggleDarkMode:active,
+html header-component #toggleMenu:active {
+  transform: scale(0.9);
+}
+
+/* Post cards — soft lift on hover, spring back on release. */
+.post-preview {
+  transition:
+    background-color var(--dur) var(--ease-ink),
+    border-color var(--dur) var(--ease-ink),
+    box-shadow var(--dur-slow) var(--ease-ink),
+    transform var(--dur-slow) var(--ease-spring) !important;
+}
+@media (hover: hover) {
+  .post-preview:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px -18px rgb(0 0 0 / 0.28);
+  }
+  .dark .post-preview:hover {
+    box-shadow: 0 14px 34px -18px rgb(0 0 0 / 0.9);
+  }
+}
+.post-preview:active {
+  transform: scale(0.99);
+}
+
+/* Page transitions — cross-document View Transitions (Chrome 126+,
+   Safari 18.2+; other browsers just navigate). The outgoing page fades
+   out quickly; the incoming page is NOT faded as a whole — its content
+   already rises in through `.animate`, and fading the root as well made
+   articles take ~1s to become readable. No blur on the root either: a
+   full-page blur is expensive, worst on Safari. The header carries over
+   in place. Theme switching (BaseLayout) uses `.theme-switching` for a
+   cross-fade. */
+/* The `@view-transition { navigation: auto }` opt-in itself lives inline at
+   the top of <head> in BaseLayout.astro — see the note there. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: ink-page-out 0.2s var(--ease-in-out-ink) both;
+  }
+  ::view-transition-new(root) {
+    animation: none;
+  }
+  ::view-transition-group(site-header) {
+    animation-duration: 0.5s;
+    animation-timing-function: var(--ease-ink);
+  }
+  html.theme-switching::view-transition-old(root) {
+    animation: ink-fade-out 0.6s var(--ease-in-out-ink) both;
+  }
+  html.theme-switching::view-transition-new(root) {
+    animation: ink-fade-in 0.6s var(--ease-in-out-ink) both;
+  }
+  html.theme-switching::view-transition-old(site-header) {
+    animation: ink-fade-out 0.6s var(--ease-in-out-ink) both;
+  }
+  html.theme-switching::view-transition-new(site-header) {
+    animation: ink-fade-in 0.6s var(--ease-in-out-ink) both;
+  }
+}
+@keyframes ink-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes ink-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ink-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   Hover transitions (2026-11-16, 「blog 有 hover 的話 … smoothly 的
+   transition」). Everything that changes on hover eases on the ink
+   curve instead of snapping. An audit of /blog and a post found these
+   hover states with no transition at all.
+   ============================================================ */
+/* Header nav links — the theme marks them `transition-none`, so their
+   colour snapped. (1,1,2) beats the utility's (0,1,0). */
+html #headerExpandContent a[aria-label='Nav menu item'] {
+  transition: color var(--dur) var(--ease-ink);
+}
+/* Icons recoloured by a hover group (card arrows, prev/next chevrons,
+   the theme toggle) — SVGs without a transition utility of their own. */
+html svg:is([class*='group-hover'], [class*='hover:']):not([class*='transition']) {
+  transition:
+    stroke var(--dur) var(--ease-ink),
+    fill var(--dur) var(--ease-ink),
+    color var(--dur) var(--ease-ink);
+}
+/* `hover:underline` links (the tags above a post) — the underline is
+   always there but transparent, so its colour and offset can ease in. */
+html a[class*='hover:underline'] {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.12em;
+  transition:
+    color var(--dur) var(--ease-ink),
+    text-decoration-color var(--dur) var(--ease-ink),
+    text-underline-offset var(--dur) var(--ease-ink);
+}
+html a[class*='hover:underline']:hover {
+  text-decoration-color: currentColor;
+}
+/* Article images — medium-zoom injects `transition: transform …
+   !important`, which replaced the brightness fade, so the hover
+   brightening snapped. Matching !important with higher specificity. */
+.prose img.medium-zoom-image:not(.medium-zoom-image--opened) {
+  transition:
+    transform 0.5s var(--ease-ink),
+    filter var(--dur) var(--ease-ink) !important;
 }
 
 /* ============================================================

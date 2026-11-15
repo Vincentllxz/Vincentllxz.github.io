@@ -1,0 +1,202 @@
+---
+// Four photographs from four published entries, with a direct link to each photographed moment.
+const photographs = [
+  {
+    src: '/images/band.webp',
+    alt: '資訊營晚會舞台上，五位團員拿著麥克風、木吉他和樂器合奏',
+    caption: '樂團表演',
+    title: '台大資訊營 隊輔心得',
+    date: '2025-07-20',
+    href: '/blog/2025-csie-camp#晚會',
+    wide: true
+  },
+  {
+    src: '/images/ntu-csie-sophomore-2/prof-lin-writing-1.webp',
+    alt: '一張印有研究投影片的紙，空白處寫滿老師的藍色筆記',
+    caption: '超絕藝術字體 1',
+    title: '台大資工大二下 114-2 修課心得',
+    date: '2026-06-30',
+    href: '/blog/ntu-csie-sophomore-2#專題研究'
+  },
+  {
+    src: '/images/得閒.webp',
+    alt: '身穿三商虎球衣的老師在球員卡上留下簽名',
+    caption: '棒球卡',
+    title: '台大資工大一上 113-1 修課心得',
+    date: '2025-06-16',
+    href: '/blog/ntu-csie-freshman-1#健康體適能'
+  },
+  {
+    src: '/images/東坡.webp',
+    alt: '東坡詞選注的書頁上留著老師親筆簽名和寄語',
+    caption: '簽名與寄語',
+    title: '台大資工大一下 113-2 修課心得',
+    date: '2025-06-17',
+    href: '/blog/ntu-csie-freshman-2#東坡詞'
+  }
+]
+---
+
+<div class="light-table" data-photo-journal>
+  <div class="contact-strip" role="tablist" aria-label="選擇文章照片">
+    {photographs.map((photo, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`journal-tab-${index}`}
+        aria-selected={index === 0 ? 'true' : 'false'}
+        aria-controls={`journal-panel-${index}`}
+        tabindex={index === 0 ? 0 : -1}
+      >
+        <img src={photo.src} alt="" width="90" height="60" loading="lazy" />
+        <span>{photo.caption}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="frames">
+    {photographs.map((photo, index) => (
+      <div
+        class="exposure"
+        role="tabpanel"
+        id={`journal-panel-${index}`}
+        aria-labelledby={`journal-tab-${index}`}
+        hidden={index !== 0}
+      >
+        <div class:list={['negative', { wide: photo.wide }]}>
+          <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" />
+        </div>
+        <div class="print-caption">
+          <h1><a href={photo.href}>{photo.title}</a></h1>
+          <time datetime={photo.date} aria-label={`文章發表於 ${photo.date}`}>{photo.date.replaceAll('-', '.')}</time>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<script>
+  const journal = document.querySelector('[data-photo-journal]')
+  if (journal) {
+    const tabs = Array.from(journal.querySelectorAll<HTMLButtonElement>('[role="tab"]'))
+    const frames = Array.from(journal.querySelectorAll<HTMLElement>('[role="tabpanel"]'))
+    function show(index: number) {
+      tabs.forEach((tab, position) => {
+        const selected = position === index
+        tab.setAttribute('aria-selected', String(selected))
+        tab.tabIndex = selected ? 0 : -1
+        frames[position].hidden = !selected
+      })
+    }
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => show(index))
+      tab.addEventListener('keydown', (event) => {
+        const keys: Record<string, number> = {
+          ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+          ArrowRight: (index + 1) % tabs.length,
+          Home: 0,
+          End: tabs.length - 1
+        }
+        const next = keys[event.key]
+        if (next === undefined) return
+        event.preventDefault()
+        event.stopPropagation()
+        show(next)
+        tabs[next].focus()
+      })
+    })
+  }
+</script>
+
+<style>
+  .light-table {
+    --gutter: clamp(1.1rem, 4.8vw, 5rem);
+    display: flex;
+    flex-direction: column;
+    padding-block-end: 2rem;
+    background: #171918;
+    color: #f4f1e8;
+    font-family: "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  .frames { order: 1; }
+  .exposure[hidden] { display: none; }
+  .negative {
+    block-size: clamp(16rem, 52svh, 38rem);
+    background: #252725;
+  }
+  .negative img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .negative.wide img { object-fit: cover; object-position: center 52%; }
+  .print-caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding: clamp(1.1rem, 2.4vw, 2.4rem) var(--gutter) 1.1rem;
+  }
+  .print-caption time {
+    flex-shrink: 0;
+    color: #c1c0b6;
+    font-size: .82rem;
+    font-variant-numeric: tabular-nums;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.65rem, 3.4vw, 3.4rem);
+    font-weight: 650;
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  h1 a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: .16em;
+  }
+  h1 a:hover { color: #ffc465; }
+  .contact-strip {
+    order: 2;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(.4rem, 1.7vw, 1.4rem);
+    padding: .2rem var(--gutter);
+  }
+  .contact-strip button {
+    display: flex;
+    align-items: center;
+    gap: clamp(.5rem, 1vw, 1rem);
+    min-inline-size: 0;
+    padding: .6rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #c1c0b6;
+    text-align: start;
+    font: inherit;
+    font-size: .83rem;
+    cursor: pointer;
+  }
+  .contact-strip img {
+    display: block;
+    width: clamp(3.5rem, 7vw, 6rem);
+    height: clamp(2.5rem, 4.7vw, 4rem);
+    object-fit: cover;
+  }
+  .contact-strip button[aria-selected="true"] { color: #f4f1e8; font-weight: 700; }
+  .contact-strip button[aria-selected="true"] img { outline: 2px solid currentColor; outline-offset: 2px; }
+  .contact-strip button:hover span { text-decoration: underline; }
+  .light-table :is(button, a):focus-visible { outline: 2px solid #ffc465; outline-offset: 3px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .exposure:not([hidden]) img { animation: expose .27s ease-out both; }
+    @keyframes expose { from { opacity: .55; } to { opacity: 1; } }
+  }
+  @media (max-width: 700px) {
+    .negative { block-size: clamp(15rem, 39svh, 21rem); }
+    .negative.wide img { object-fit: contain; }
+    .print-caption { display: block; }
+    .print-caption h1 { font-size: clamp(1.6rem, 5.5vw, 2rem); min-height: 2lh; }
+    .print-caption time { display: block; margin-top: .4rem; }
+    .contact-strip button { flex-direction: column; align-items: flex-start; gap: .5rem; }
+    .contact-strip img { width: 100%; height: auto; aspect-ratio: 1.5; }
+    .contact-strip button span { font-size: .75rem; line-height: 1.45; }
+  }
+</style>

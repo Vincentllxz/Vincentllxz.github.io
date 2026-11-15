@@ -23,6 +23,19 @@ const {
 
 <html lang={config.locale.lang}>
   <head>
+    {
+      /* Opt in to cross-document View Transitions first thing in <head>. In the
+        bundled CSS the rule arrives after ThemeProvider's module script, and
+        Chrome then reveals the new page before it has seen the rule, so the
+        page transition was skipped ("ViewTransition opt-in disabled"). */
+    }
+    <style is:inline>
+      @media (prefers-reduced-motion: no-preference) {
+        @view-transition {
+          navigation: auto;
+        }
+      }
+    </style>
     <BaseHead {articleDate} {description} {ogImage} {title} />
     {
       /* Default to dark for first-time visitors (no saved preference yet). Must
@@ -34,6 +47,54 @@ const {
       } catch (e) {}
     </script>
     <ThemeProvider />
+    {
+      /* Cross-fade the theme switch. astro-pure's header handles the click by
+        flipping `.dark` synchronously, so a capture-phase listener holds that
+        click back, starts a View Transition, and replays it inside the update
+        callback — the old snapshot is the old theme, the new one the new. */
+    }
+    <script is:inline>
+      ;(function () {
+        var root = document.documentElement
+        var replaying = false
+        document.addEventListener(
+          'click',
+          function (event) {
+            var target = event.target
+            var button = target && target.closest && target.closest('#toggleDarkMode')
+            if (
+              !button ||
+              replaying ||
+              typeof document.startViewTransition !== 'function' ||
+              window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            )
+              return
+            event.stopImmediatePropagation()
+            event.preventDefault()
+            root.classList.add('theme-switching')
+            try {
+              var transition = document.startViewTransition(function () {
+                replaying = true
+                try {
+                  button.click()
+                } finally {
+                  replaying = false
+                }
+              })
+              transition.finished.finally(function () {
+                root.classList.remove('theme-switching')
+              })
+            } catch (err) {
+              root.classList.remove('theme-switching')
+              replaying = true
+              button.click()
+              replaying = false
+            }
+          },
+          true
+        )
+      })()
+    </script>
     {/* Scroll-reveal: reveal children of [data-reveal] as they enter the viewport. */}
     <script is:inline>
       ;(function () {
