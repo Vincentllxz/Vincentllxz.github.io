@@ -10,6 +10,7 @@
 <style>
 :root {
   --page: #f2f2f5; --bg: #ffffff; --card: #ffffff;
+  --emph: #d40000;
   --fg: #1d1d1f; --fg2: #3c3c43; --dim: #86868b; --line: #e2e2e6; --field: #f4f4f6; --track: #d9d9de; --raised: #ffffff;
   --orange: #ff8700; --red: #d70000; --on-orange: #000000; --on-red: #ffffff;
   --accent: #1a6ce0; --accent-ring: rgba(26, 108, 224, .55);
@@ -23,12 +24,14 @@
   :root:not([data-theme="light"]) {
     --page: #111214; --bg: #17181b; --card: #1e1f23;
     --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
+    --emph: #ff5c55;
   }
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] {
   --page: #111214; --bg: #17181b; --card: #1e1f23;
   --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
+  --emph: #ff5c55;
   color-scheme: dark;
 }
 
@@ -133,6 +136,8 @@ b, strong { font-weight: 700; }
 .rules .head { font-weight: 600; text-wrap: balance; }
 .rules .body { color: var(--fg2); text-wrap: pretty; }
 .rules .body b { color: var(--fg); }
+.red, .rules .body .red b { color: var(--emph); }
+.left .callout:has(.red) { border-left-color: var(--emph); }
 .nb { white-space: nowrap; }
 .notesbox { margin-top: calc(var(--row) * 2); }
 .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .5); }
@@ -305,18 +310,18 @@ const RULE_SETS = {
   },
   exam: {
     en: [
-      "! Do NOT submit the scratch paper",
+      "! ==Do NOT submit the scratch paper (計算紙).==",
       "Place your backpack near the stage. ::",
       "No electric devices, no calculator and no cheating. ::",
-      "If you need to use the restroom :: Leave your **examination paper (including scratch paper)** and **cellphone** on the stage. If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
-      "Do NOT use your own scratch paper. ::",
+      "==If you need to use the restroom== :: ==Leave your **examination paper (including scratch paper)** and **cellphone** on the stage.== If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
+      "==Do NOT use your own scratch paper.== ::",
     ],
     zh: [
-      "! 交卷時，不要繳交計算紙！",
+      "! ==交卷時，不要繳交計算紙！==",
       "請將書包放置於|講台附近。 ::",
       "不得使用任何|電子設備|（包含計算機）。 ::",
-      "不得使用|自行攜帶的|計算紙。 ::",
-      "如考試期間|需要上廁所 :: 請先將**考卷（包含計算紙）**及**手機**|放置於講台上。|若手機放在書包內，|也請先取出並|放置於講台上，|再離開教室。",
+      "==不得使用|自行攜帶的|計算紙。== ::",
+      "==如考試期間|需要上廁所== :: ==請先將**考卷（包含計算紙）**及**手機**|放置於講台上。==|若手機放在書包內，|也請先取出並|放置於講台上，|再離開教室。",
       "嚴禁作弊。 ::",
     ],
   },
@@ -376,16 +381,25 @@ const T = () => TEXT[S.lang];
 const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // "**bold**" and "|" break hints → HTML. With hints, each piece between | stays on one line.
+const TAGS = { "**": ["<b>", "</b>"], "==": ['<span class="red">', "</span>"] };
 function markup(s) {
-  const hinted = s.includes("|");
-  let bold = false, out = "", piece = "";
+  const hinted = s.includes("|"), open = [];
+  let out = "", piece = "";
+  const opens = list => list.map(k => TAGS[k][0]).join("");
+  const closes = list => [...list].reverse().map(k => TAGS[k][1]).join("");
   const flush = () => { if (piece) out += hinted ? `<span class="nb">${piece}</span>` : piece; piece = ""; };
-  for (const tok of s.split(/(\*\*|\|)/)) {
-    if (tok === "**") { piece += bold ? "</b>" : "<b>"; bold = !bold; }
-    else if (tok === "|") { if (bold) piece += "</b>"; flush(); if (bold) piece += "<b>"; }
+  for (const tok of s.split(/(\*\*|==|\|)/)) {
+    if (TAGS[tok]) {
+      const i = open.indexOf(tok);
+      if (i < 0) { open.push(tok); piece += TAGS[tok][0]; continue; }
+      const inner = open.splice(i);  // close this tag and whatever opened after it, then reopen those
+      inner.shift();
+      piece += closes(inner) + TAGS[tok][1] + opens(inner);
+      open.push(...inner);
+    } else if (tok === "|") { piece += closes(open); flush(); piece += opens(open); }
     else piece += esc(tok);
   }
-  if (bold) piece += "</b>";
+  piece += closes(open);
   flush();
   return out;
 }
