@@ -9,29 +9,37 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23888' stroke-width='3'/%3E%3Cpath d='M16 9v8l5 3' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root {
-  /* light = paper: off-white with a faint grain (body::after), like an exam sheet */
-  --page: #ece8de; --bg: #f5f2ea; --card: #f8f6f0;
-  --hl: #b3d1ff;  /* highlighter: the accent blue, light enough to read through, strong enough for a projector */
-  --fg: #21201c; --fg2: #45423b; --dim: #8b867b; --line: #dcd6c8; --field: #ebe7dc; --track: #d9d3c4; --raised: #fbfaf6;
-  --orange: #ff8700; --red: #d70000; --on-orange: #000000; --on-red: #ffffff;
-  --accent: #1a6ce0; --accent-ring: rgba(26, 108, 224, .55);
+  /* Ink on paper: Apple's near-black ink and greys on an off-white sheet with a faint grain (body::after).
+     Hierarchy comes from size, weight and grey, not from boxes. */
+  --bg: #f5f2ea; --raised: #fdfcf9;
+  --fg: #1d1d1f; --fg2: #424245; --dim: #6e6e73; --faint: #8e8e93;
+  --line: rgba(29, 29, 31, .14); --track: rgba(29, 29, 31, .1); --fill: rgba(29, 29, 31, .06);
+  --hl: #b3d1ff;  /* highlighter: light enough to read through, strong enough for a projector */
+  --orange: #ff9500; --red: #ff3b30; --on-orange: #1d1d1f; --on-red: #ffffff;
+  --accent: #0071e3;
+  --band: #1d1d1f; --on-band: #f5f5f7; --band-dim: #a1a1a6;  /* key guide: a dark strip, so "not full screen" is obvious */
+  --grain: .3;
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* quick start, long soft landing */
   --sans: system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Songti TC", "Noto Serif TC", "Noto Serif CJK TC", "Source Han Serif TC", PMingLiU, serif;
   --digits: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
 }
 /* Light unless T switches to dark; a projected exam room should not change with the laptop's own setting. */
 :root[data-theme="dark"] {
-  --page: #111214; --bg: #17181b; --card: #1e1f23;
-  --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
+  --bg: #0e0e0f; --raised: #545458;
+  --fg: #f5f5f7; --fg2: #d2d2d7; --dim: #a1a1a6; --faint: #7c7c80;
+  --line: rgba(255, 255, 255, .14); --track: rgba(255, 255, 255, .15); --fill: rgba(255, 255, 255, .09);
   --hl: rgba(64, 132, 255, .45);
+  --orange: #ff9f0a; --red: #ff453a;
+  --accent: #0a84ff;
+  --band: #1c1c1e;
+  --grain: 0;
   color-scheme: dark;
 }
 
-/* paper grain: fine fibres + very soft unevenness, multiplied over everything; none in dark */
-:root:not([data-theme="dark"]) body::after {
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; mix-blend-mode: multiply; opacity: .3;
+/* paper grain: fine fibres + very soft unevenness, multiplied over everything; fades out in dark */
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; mix-blend-mode: multiply; opacity: var(--grain);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 2.4 0 0 0 -1.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.6 0 0 0 0 0.52 0 0 0 0 0.38 0.9 0 0 0 -0.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -40,100 +48,131 @@
 html, body { margin: 0; height: 100%; }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
-button, input { font: inherit; color: inherit; }
-b, strong { font-weight: 700; }
+button, input { font: inherit; color: inherit; letter-spacing: inherit; }
+b, strong { font-weight: 600; }
 
-/* ── Setup: laid out like the cover page of an exam paper ──────────────── */
-#setup { min-height: 100%; display: grid; place-items: center; padding: 56px 24px; font-family: var(--serif); }
-#form { width: 100%; max-width: 760px; font-size: 19px; line-height: 1.5; }
+/* ── Motion ────────────────────────────────────────────────────────────────
+   New text "inks in": it settles onto the page from a soft blur. Theme changes fade instead of flashing. */
+@keyframes ink { from { opacity: 0; filter: blur(6px); transform: translateY(var(--rise, .4em)); } }
+.ink { animation: ink .7s var(--ease) var(--delay, 0s) both; }
+.clock.ink { --rise: .06em; }  /* the clock is huge: a small rise in its own em */
+.theming, .theming *, .theming *::before, .theming *::after {
+  transition: background-color .5s ease, color .5s ease, border-color .5s ease, opacity .5s ease !important;
+}
+
+/* ── Setup: the cover page of an exam paper ────────────────────────────── */
+#setup { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 56px 24px; }
+#form { width: 100%; max-width: 720px; font-size: 18px; line-height: 1.45; }
 .topline {
   display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
-  color: var(--dim); font-size: 15px; padding-bottom: 10px; border-bottom: 3px solid var(--fg);
+  color: var(--dim); font-size: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--fg);
 }
 .topline b { font-family: var(--digits); font-weight: 500; color: var(--fg); font-variant-numeric: tabular-nums; margin-left: .4em; }
-#form h1 { font-size: 44px; line-height: 1.2; font-weight: 700; letter-spacing: .06em; margin: 0 0 14px; padding: 22px 0 20px; border-bottom: 1px solid var(--fg); }
-.row { display: grid; grid-template-columns: 7em 1fr; align-items: baseline; gap: 6px 20px; padding: 14px 0; }
-.row .label { font-weight: 700; }
-.row input {
-  width: 100%; border: 0; border-bottom: 1px solid var(--dim); border-radius: 0; background: none; outline: none;
-  padding: 2px 2px 5px; font-weight: 600;
+#form h1 { font-size: 56px; line-height: 1.05; font-weight: 600; letter-spacing: -.022em; margin: 0; padding: 30px 0 28px; }
+.row {
+  display: grid; grid-template-columns: 7.5em 1fr; align-items: baseline; gap: 6px 20px; padding: 15px 0;
+  border-top: 1px solid var(--line); transition: border-color .2s;
 }
-.row input:focus { border-bottom-color: var(--fg); box-shadow: 0 1px 0 var(--fg); }
-.row input::placeholder { color: var(--dim); font-weight: 400; opacity: .7; }
-.choices { display: flex; flex-wrap: wrap; gap: 6px 36px; }
-.choices button { border: 0; background: none; padding: 2px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; color: var(--dim); }
-.choices button:hover { color: var(--fg); }
-.choices i { width: .8em; height: .8em; border: 1.5px solid currentColor; border-radius: 50%; flex: none; }
-.choices button[aria-checked="true"] { color: var(--fg); font-weight: 700; }
-.choices button[aria-checked="true"] i { background: var(--fg); border-color: var(--fg); }
-.choices button:focus-visible, .go:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
-.times { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
-.times input { width: 4.4em; text-align: center; font-family: var(--digits); font-variant-numeric: tabular-nums; }
-.times .to { color: var(--dim); }
-.hint { color: var(--dim); font-size: 15px; margin-left: 10px; }
+.row .label { color: var(--dim); font-size: 16px; font-weight: 500; transition: color .2s; }
+.row:focus-within .label { color: var(--fg); }
+.row input { width: 100%; border: 0; border-radius: 0; background: none; outline: none; padding: 0; font-size: 20px; font-weight: 500; letter-spacing: -.01em; }
+.row input::placeholder { color: var(--faint); font-weight: 400; opacity: .75; }
+/* segmented control: the white thumb slides to the chosen option */
+.choices {
+  --i: 0; position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; justify-self: start;
+  padding: 2px; border-radius: 9px; background: var(--fill);
+}
+.choices::before {
+  content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 2px); border-radius: 7px;
+  background: var(--raised); box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .05);
+  transform: translateX(calc(var(--i) * 100%)); transition: transform .4s var(--ease);
+}
+.choices button {
+  position: relative; border: 0; background: none; padding: 5px 22px; cursor: pointer; white-space: nowrap;
+  color: var(--dim); font-size: 16px; font-weight: 500; transition: color .2s;
+}
+.choices button[aria-checked="true"] { color: var(--fg); }
+.choices button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 7px; }
+.times { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.times input {
+  width: 4.1em; padding: 3px 0; border-radius: 8px; background: var(--fill); text-align: center;
+  font-family: var(--digits); font-variant-numeric: tabular-nums; transition: box-shadow .2s;
+}
+.times input:focus { box-shadow: 0 0 0 2px var(--accent); }
+.times .to { color: var(--dim); font-size: 16px; }
+.hint { color: var(--dim); font-size: 15px; margin-left: 6px; }
 .hint.error { color: var(--red); }
-.preview { margin-top: 12px; font-size: 16px; line-height: 1.6; color: var(--fg2); }
-.preview .callout { color: var(--fg); font-weight: 700; margin-bottom: 4px; }
-.preview ol { margin: 0; padding-left: 1.4em; }
-.preview li::marker { color: var(--dim); }
+.preview { margin-top: 14px; font-size: 15px; line-height: 1.6; color: var(--dim); }
+.preview .callout { color: var(--fg); font-weight: 600; margin-bottom: 6px; }
+.preview ol { margin: 0; padding-left: 1.3em; }
+.preview li::marker { color: var(--faint); }
 .actions {
   display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-  margin-top: 18px; padding-top: 24px; border-top: 1px solid var(--fg);
+  padding-top: 26px; border-top: 1px solid var(--line);
 }
-.actions .note { color: var(--dim); font-size: 15px; }
+.actions .note { color: var(--dim); font-size: 14px; }
 .go {
-  border: 0; border-radius: 2px; padding: 13px 36px; background: var(--fg); color: var(--bg);
-  font-size: 19px; font-weight: 700; letter-spacing: .1em; cursor: pointer;
+  border: 0; border-radius: 980px; padding: 12px 34px; background: var(--accent); color: #fff;
+  font-size: 17px; font-weight: 600; cursor: pointer; transition: transform .15s var(--ease), filter .2s;
 }
-.go:hover { opacity: .85; }
+.go:hover { filter: brightness(1.08); }
+.go:active { transform: scale(.97); }
+.go:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (max-width: 600px) {
-  .row { grid-template-columns: 1fr; padding: 10px 0; }
-  #form h1 { font-size: 34px; }
+  #setup { padding: 32px 16px; }
+  .topline { flex-wrap: wrap; }
+  .row { grid-template-columns: 1fr; padding: 12px 0; }
+  .preview .nb { white-space: normal; }  /* the projector's line-break hints are too long for a phone */
+  #form h1 { font-size: 42px; }
   .go { width: 100%; }
 }
 
 /* ── Display ───────────────────────────────────────────────────────────── */
 #show { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
 .stage { flex: 1; min-height: 0; container-type: size; position: relative; }
-.tip {
-  position: absolute; left: 1.2em; bottom: 1.2em; padding: .35em .8em; border-radius: .4em;
-  background: var(--fg); color: var(--bg); font-size: 15px; font-weight: 600; pointer-events: none;
-  opacity: 0; transition: opacity .25s;
+.tip {  /* a small dark HUD, like the volume indicator */
+  position: absolute; left: 50%; bottom: 28px; z-index: 60; padding: 9px 18px; border-radius: 980px;
+  background: rgba(29, 29, 31, .86); color: #f5f5f7; font-size: 15px; font-weight: 500; pointer-events: none;
+  -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
+  opacity: 0; transform: translate(-50%, 8px) scale(.97); transition: opacity .35s, transform .35s var(--ease);
 }
-.tip.on { opacity: .92; transition: none; }
+.tip.on { opacity: 1; transform: translate(-50%, 0); transition-duration: .2s; }
 .display {
   /* same proportions as the terminal version (about 90 columns × 26 rows) */
   --row: 1.4em; --col: .6em;
   height: 100%; font-size: min(1.85cqw, 2.9cqh); line-height: 1.4;  /* = --row, but scales with the left side */
   display: grid; grid-template-rows: auto 1fr; overflow: hidden;
 }
+/* top line: three small labelled values, like the heading of an answer sheet */
 .info {
-  display: flex; justify-content: space-between; gap: 3em; white-space: nowrap; align-items: baseline;
-  padding: calc(var(--row) * .9) calc(var(--col) * 3); border-bottom: 1px solid var(--line);
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 2em; align-items: end; white-space: nowrap;
+  padding: calc(var(--row) * .75) calc(var(--col) * 3.5) calc(var(--row) * .7); border-bottom: 1px solid var(--line);
 }
-.info .item { display: flex; gap: calc(var(--col) * 1.6); min-width: 0; align-items: baseline; }
-.info .label { color: var(--dim); font-size: .82em; letter-spacing: .04em; }
-.info .value { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.info[data-n="2"] { grid-template-columns: 1fr 1fr; }
+.info[data-n="1"] { grid-template-columns: 1fr; text-align: center; }
+.info .item { display: grid; min-width: 0; }
+.info[data-n="3"] .item:nth-child(2) { text-align: center; }
+.info .item:last-child:not(:first-child) { text-align: right; }
+.info .label { color: var(--dim); font-size: .66em; font-weight: 500; line-height: 1.4; }
+.info .value { font-size: 1.08em; font-weight: 600; letter-spacing: -.012em; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; }
 .cols { display: grid; grid-template-columns: 42% 58%; min-height: 0; }
-.left { min-height: 0; overflow: hidden; padding: calc(var(--row) * 1.2) calc(var(--col) * 2.5) var(--row) calc(var(--col) * 3.5); }
-.right { border-left: 1px solid var(--line); display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; min-height: 0; overflow: hidden; }
+.left { min-height: 0; overflow: hidden; padding: calc(var(--row) * 1.3) calc(var(--col) * 2.5) var(--row) calc(var(--col) * 3.5); }
+.right { position: relative; display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; min-height: 0; overflow: hidden; }
+.right::before {  /* the column rule stops short of the edges, as on a printed page */
+  content: ""; position: absolute; left: 0; top: calc(var(--row) * 1.3); bottom: calc(var(--row) * 1.3); border-left: 1px solid var(--line);
+}
 
 .leftin { width: fit-content; max-width: 100%; font-size: calc(var(--left-scale, 1) * 1em); }
-.title {
-  color: var(--dim); font-size: .82em; font-weight: 600; letter-spacing: .06em;
-  padding-bottom: calc(var(--row) * .3); border-bottom: 1px solid var(--line); margin-bottom: var(--row);
-}
+.title { color: var(--dim); font-size: .72em; font-weight: 600; letter-spacing: .015em; margin-bottom: calc(var(--row) * .4); }
+/* the one thing that must not be missed: set as the headline of the rules, not boxed */
 .left .callout {
-  font-weight: 700; margin-bottom: var(--row); text-wrap: balance;
-  background: var(--field); border-left: .22em solid var(--fg); border-radius: .3em; padding: .45em .8em;
+  font-size: 1.3em; line-height: 1.22; font-weight: 600; letter-spacing: -.015em; text-wrap: balance;
+  padding-bottom: calc(var(--row) * .75); margin-bottom: calc(var(--row) * .85); border-bottom: 1px solid var(--line);
 }
-.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--row); }
-.rules li { display: grid; grid-template-columns: 1.55em 1fr; gap: .75em; align-items: start; }
-.rules .num {
-  /* a small circle, centred on the first line of the rule */
-  font-size: .78em; width: 2em; height: 2em; margin-top: -.1em; border-radius: 50%;
-  display: grid; place-items: center; border: 1px solid var(--track); color: var(--dim); font-variant-numeric: tabular-nums;
-}
+.callout[hidden] + .rules { margin-top: calc(var(--row) * .55); }
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .7); }
+.rules li { display: grid; grid-template-columns: .9em 1fr; gap: .75em; align-items: baseline; }
+.rules .num { color: var(--faint); font-weight: 500; font-variant-numeric: tabular-nums; }
 .rules .head { font-weight: 600; text-wrap: balance; }
 .rules .body { color: var(--fg2); text-wrap: pretty; }
 .rules .body b { color: var(--fg); }
@@ -142,75 +181,90 @@ b, strong { font-weight: 700; }
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
 .nb { white-space: nowrap; }
-.notesbox { margin-top: calc(var(--row) * 2); }
-.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .5); }
-.notes li { display: grid; grid-template-columns: 3.4em 1fr; gap: .6em; }
-.notes .stamp { color: var(--dim); font-variant-numeric: tabular-nums; }
+.notesbox { margin-top: calc(var(--row) * 1.9); }
+.notesbox .title { margin-bottom: calc(var(--row) * .5); }
+.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .45); }
+.notes li { position: relative; display: grid; grid-template-columns: 3.2em 1fr; gap: .6em; align-items: baseline; }
+.notes li.new::before {  /* posted in the last 10 minutes: a blue dot, like an unread mail */
+  content: ""; position: absolute; left: -.85em; top: calc(var(--row) / 2 - .19em); width: .38em; height: .38em; border-radius: 50%; background: var(--accent);
+}
+.notes .stamp { color: var(--faint); font-variant-numeric: tabular-nums; }
 .notes .ntext { color: var(--fg2);  /* not ".text": KaTeX uses that class for \\text{} */ overflow-wrap: anywhere; text-wrap: pretty; }
-.notes .fresh { color: var(--fg); font-weight: 700; }
+.notes .fresh { color: var(--fg); font-weight: 600; }
 .notes .katex { font-size: 1.08em; }
 .notes .katex-display, .mathpreview .katex-display { margin: .25em 0; }  /* KaTeX's own 1em is too roomy here */
 .notes .katex, .mathpreview .katex { overflow-wrap: normal; }  /* "break anywhere" is for long words, not formulas */
 .draftrow { display: grid; gap: .3em; min-width: 0; }
 .mathpreview { color: var(--fg2); overflow-wrap: anywhere; }
 .mathpreview:empty { display: none; }
-.notes input { width: 100%; border: 0; border-bottom: 2px solid var(--accent); background: none; outline: none; padding: 0; font-weight: 600; line-height: var(--row); }
-.earlier { color: var(--dim); font-size: .85em; margin-bottom: calc(var(--row) * .5); }
-.compact .title { margin-bottom: calc(var(--row) * .5); }
-.compact .rules { gap: calc(var(--row) * .5); }
-.compact .left .callout, .compact .callout { margin-bottom: calc(var(--row) * .5); }
+.notes input { width: 100%; border: 0; border-bottom: 2px solid var(--accent); background: none; outline: none; padding: 0; font-weight: 600; line-height: var(--row); caret-color: var(--accent); }
+.notes input::placeholder { color: var(--faint); font-weight: 400; }
+.earlier { color: var(--faint); font-size: .85em; margin-bottom: calc(var(--row) * .5); }
+.compact .title { margin-bottom: calc(var(--row) * .3); }
+.compact .rules { gap: calc(var(--row) * .4); }
+.compact .left .callout { padding-bottom: calc(var(--row) * .45); margin-bottom: calc(var(--row) * .5); }
 .compact .notesbox { margin-top: var(--row); }
 .compact2 .rules { gap: calc(var(--row) * .15); }
 .compact2 .notes { gap: 0; }
 
 .above { align-self: end; display: flex; flex-direction: column; align-items: center; padding-bottom: calc(var(--row) * 2); }
 .below { align-self: start; display: flex; flex-direction: column; align-items: center; padding-top: calc(var(--row) * 2); }
-.tlabel { color: var(--dim); font-size: .82em; letter-spacing: .06em; margin-bottom: var(--row); }
+.tlabel { color: var(--dim); font-size: .72em; font-weight: 600; letter-spacing: .015em; margin-bottom: var(--row); }
 .range, .clock { font-family: var(--digits); font-stretch: 88%; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: .8; }
-.range { font-size: var(--range-fs, 2em); font-weight: 400; color: var(--fg2); }
-.range.small { font-family: var(--sans); font-weight: 600; font-stretch: 100%; font-size: 1em; line-height: var(--row); }
-.clock { font-size: var(--clock-fs, 8em); font-weight: 500; letter-spacing: -.01em; }
-.bar { height: calc(var(--row) * .42); width: var(--clock-w, 20em); background: var(--track); border-radius: 99px; position: relative; overflow: hidden; }
-.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--fg); border-radius: 99px; transition: width .6s linear, background .3s; }
+.range { font-size: var(--range-fs, 2em); font-weight: 300; color: var(--fg2); letter-spacing: -.01em; }
+.range.small { font-family: var(--sans); font-weight: 600; font-stretch: 100%; font-size: 1em; line-height: var(--row); letter-spacing: 0; }
+.clock { --digit: var(--fg); font-size: var(--clock-fs, 8em); font-weight: 600; letter-spacing: -.02em; }
+.clock .sec { --digit: var(--faint); }  /* hours and minutes in ink, the seconds a step back */
+/* each changed digit rolls up: the old one rises and fades, the new one comes up from below */
+.clock .d { display: inline-block; position: relative; color: var(--digit); }
+.clock .d.roll { color: transparent; }
+.clock .d.roll::before, .clock .d.roll::after { position: absolute; inset: 0; color: var(--digit); }
+.clock .d.roll::before { content: attr(data-old); animation: digit-out .5s var(--ease) both; }
+.clock .d.roll::after { content: attr(data-new); animation: digit-in .5s var(--ease) both; }
+@keyframes digit-out { to { opacity: 0; transform: translateY(-.28em); filter: blur(.03em); } }
+@keyframes digit-in { from { opacity: 0; transform: translateY(.28em); filter: blur(.03em); } }
+.bar { height: calc(var(--row) * .24); width: var(--clock-w, 20em); background: var(--track); border-radius: 99px; position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--fg); border-radius: 99px; transition: width .6s linear, background-color .4s; }
 .status {
-  margin-top: var(--row); min-height: calc(var(--row) * 2.6); width: var(--clock-w, 20em);
-  display: grid; place-items: center; color: var(--dim); border-radius: .5em; transition: background .3s;
+  margin-top: calc(var(--row) * 1.3); padding: .3em 1.2em; border-radius: 980px;
+  color: var(--dim); font-weight: 500; transition: background-color .4s, color .4s;
 }
 .soon .bar i { background: var(--orange); }
 .final .bar i, .over .bar i { background: var(--red); }
-.soon .status { background: var(--orange); color: var(--on-orange); font-weight: 700; }
-.final .status, .over .status { background: var(--red); color: var(--on-red); font-weight: 700; }
+.soon .status { background: var(--orange); color: var(--on-orange); font-weight: 600; }
+.final .status, .over .status { background: var(--red); color: var(--on-red); font-weight: 600; }
 .measure { position: absolute; visibility: hidden; white-space: nowrap; left: -9999px; top: 0; }
 
-/* ── Key guide (hidden in fullscreen) ──────────────────────────────────── */
+/* ── Key guide (hidden in full screen) ─────────────────────────────────── */
 .guide {
-  border-top: 3px solid var(--accent); padding: 14px 20px; font-size: 14px; color: var(--dim);
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
-  display: flex; gap: 14px 28px; align-items: center;
+  display: flex; gap: 14px 28px; align-items: center; padding: 12px 18px;
+  background: var(--band); color: var(--band-dim); font-size: 14px; border-top: 1px solid var(--line);
 }
 .guide .keys { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
-.guide .pair { display: inline-flex; gap: 6px; align-items: center; }
-.guide .keys button { border: 0; background: none; padding: 0; cursor: pointer; color: var(--fg2); display: inline-flex; gap: 8px; align-items: center; }
-.guide .keys button:hover { color: var(--fg); }
+.guide .pair { display: inline-flex; gap: 4px; align-items: center; }
+.guide .keys button { border: 0; background: none; padding: 0; cursor: pointer; color: var(--band-dim); display: inline-flex; gap: 8px; align-items: center; transition: color .2s; }
+.guide .keys button:hover { color: var(--on-band); }
 .guide .fsbtn {
-  flex: none; border: 0; border-radius: 12px; padding: 12px 20px; cursor: pointer;
-  background: var(--accent); color: #fff; font-size: 17px; line-height: 1.3; text-align: left;
-  display: grid; grid-template-columns: auto auto; gap: 2px 12px; align-items: center;
-  animation: ring 1.8s ease-out infinite;
+  flex: none; border: 0; border-radius: 980px; padding: 9px 10px 9px 16px; cursor: pointer;
+  background: var(--accent); color: #fff; font-size: 15px; font-weight: 600;
+  display: inline-flex; gap: 10px; align-items: center; transition: transform .15s var(--ease), filter .2s;
 }
 .guide .fsbtn:hover { filter: brightness(1.1); }
-.guide .fsbtn .icon { grid-row: span 2; font-size: 30px; line-height: 1; }
-.guide .fsbtn strong { font-size: 18px; }
-.guide .fsbtn span { opacity: .92; font-size: 14px; }
-.guide .fsbtn kbd { color: #fff; background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .5); }
-@keyframes ring { 0% { box-shadow: 0 0 0 0 var(--accent-ring); } 70%, 100% { box-shadow: 0 0 0 12px transparent; } }
-@media (prefers-reduced-motion: reduce) { .guide .fsbtn { animation: none; } .bar i { transition: none; } }
-@media (max-width: 760px) { .guide { flex-direction: column; align-items: stretch; } }
+.guide .fsbtn:active { transform: scale(.97); }
+.guide .fsbtn svg { width: 15px; height: 15px; }
 .guide kbd {
-  font-family: var(--mono); font-size: 12px; min-width: 24px; padding: 2px 6px; text-align: center;
-  border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; color: var(--fg); background: var(--card);
+  font-family: var(--sans); font-size: 12px; font-weight: 500; min-width: 22px; padding: 2px 6px; text-align: center;
+  border-radius: 5px; color: var(--on-band); background: rgba(255, 255, 255, .14);
 }
+.guide .fsbtn kbd { color: #fff; background: rgba(255, 255, 255, .24); }
+@media (max-width: 760px) { .guide { flex-direction: column; align-items: stretch; } .guide .fsbtn { justify-content: center; } }
 .fs .guide { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ink, .clock .d.roll::before, .clock .d.roll::after { animation: none !important; }
+  .clock .d.roll::before { opacity: 0; }
+  .bar i, .choices::before { transition: none; }
+}
 </style>
 </head>
 <body>
@@ -223,8 +277,8 @@ b, strong { font-weight: 700; }
     <div class="row" id="langSeg" role="radiogroup">
       <span class="label" data-t="langLabel"></span>
       <div class="choices">
-        <button type="button" role="radio" data-v="en"><i></i>English</button>
-        <button type="button" role="radio" data-v="zh"><i></i>中文</button>
+        <button type="button" role="radio" data-v="en">English</button>
+        <button type="button" role="radio" data-v="zh">中文</button>
       </div>
     </div>
     <label class="row"><span class="label" data-t="course"></span><input type="text" name="course" data-ph="coursePh"></label>
@@ -243,8 +297,8 @@ b, strong { font-weight: 700; }
       <span class="label" data-t="rulesLabel"></span>
       <div>
         <div class="choices">
-          <button type="button" role="radio" data-v="quiz"><i></i><span data-t="quiz"></span></button>
-          <button type="button" role="radio" data-v="exam"><i></i><span data-t="exam"></span></button>
+          <button type="button" role="radio" data-v="quiz"><span data-t="quiz"></span></button>
+          <button type="button" role="radio" data-v="exam"><span data-t="exam"></span></button>
         </div>
         <div class="preview" id="preview"></div>
       </div>
@@ -351,7 +405,7 @@ const TEXT = {
     coursePh: "e.g. Linear Algebra", examPh: "e.g. Midterm Exam", profPh: "e.g. Chen",
     lasts: d => `Lasts ${d}`, badTime: "The end time has to be after the start time.",
     needTime: "Please fill in the start and end time.",
-    fsTitle: "Not fullscreen yet", fsHow: "Click here or press <kbd>F</kbd>",
+    fsTitle: "Enter full screen",
     guide: [["L", "中文 / English"], ["R", "Quiz ↔ Exam rules"],
             ["N", "New announcement ($…$ for math, Enter to post, Esc to cancel)"], ["E", "Edit the latest announcement"],
             ["D", "Delete the latest announcement"], ["+-", "Text size on the left (0 resets)"], ["T", "Light / dark"],
@@ -371,7 +425,7 @@ const TEXT = {
     coursePh: "例如：線性代數", examPh: "例如：期中考", profPh: "例如：陳",
     lasts: d => `共 ${d}`, badTime: "結束時間要晚於開始時間。",
     needTime: "請填入開始和結束時間。",
-    fsTitle: "還不是全螢幕", fsHow: "點這裡或按 <kbd>F</kbd>",
+    fsTitle: "進入全螢幕",
     guide: [["L", "中文 / English"], ["R", "切換考場須知（Quiz ↔ Exam）"],
             ["N", "新增公告（$…$ 寫數學式，Enter 送出，Esc 取消）"], ["E", "修改最新的公告"],
             ["D", "刪除最新的公告"], ["+-", "左邊的字體大小（0 還原）"], ["T", "亮色 / 暗色"],
@@ -447,7 +501,9 @@ function examState(now) {
 const form = $("form");
 
 function setSeg(seg, value) {
-  for (const b of seg.querySelectorAll("button")) b.setAttribute("aria-checked", String(b.dataset.v === value));
+  const buttons = [...seg.querySelectorAll("button")];
+  buttons.forEach(b => b.setAttribute("aria-checked", String(b.dataset.v === value)));
+  seg.querySelector(".choices").style.setProperty("--i", buttons.findIndex(b => b.dataset.v === value));  // slides the thumb
 }
 
 function renderForm() {
@@ -534,6 +590,7 @@ form.addEventListener("submit", e => {
   if ((navigator.language || "").toLowerCase().startsWith("zh")) S.lang = "zh";
 })();
 renderForm();
+inkIn(form);
 
 (function setupClock() {  // today's date and the computer's time, so a wrong clock is noticed before the exam
   if (!S.running) {
@@ -543,6 +600,33 @@ renderForm();
   }
   setTimeout(setupClock, 1000 - (Date.now() % 1000) + 5);
 })();
+
+// ── Motion ───────────────────────────────────────────────────────────────
+// Text that just changed "inks in" (fades up from a soft blur); several elements follow each other.
+function inkIn(...els) {
+  els.filter(Boolean).forEach((el, i) => {
+    el.style.setProperty("--delay", `${i * 70}ms`);
+    el.classList.remove("ink");
+    void el.offsetWidth;  // restart the animation
+    el.classList.add("ink");
+  });
+}
+
+// Clock: one span per character, so a digit that changes can roll (old one up and out, new one up and in).
+// The characters stay the real text; the rolling copies are pseudo-elements.
+function setClock(text) {
+  const el = $("clock");
+  if (el.childElementCount !== text.length) {
+    el.innerHTML = [...text].map((c, i) => `<span class="d${i >= text.length - 3 ? " sec" : ""}">${c}</span>`).join("");
+    return;
+  }
+  [...text].forEach((c, i) => {
+    const d = el.children[i];
+    if (d.textContent === c) return;
+    d.dataset.old = d.textContent; d.dataset.new = c; d.textContent = c;
+    d.classList.remove("roll"); void d.offsetWidth; d.classList.add("roll");
+  });
+}
 
 // ── Display ──────────────────────────────────────────────────────────────
 let tick = null, wakeLock = null;
@@ -554,6 +638,7 @@ function startDisplay() {
   $("show").hidden = false;
   renderStatic();
   update();
+  inkIn($("info"), $("leftin"), $("right").querySelector(".above"), $("clock"), $("right").querySelector(".below"));
   requestWake();
 }
 
@@ -565,6 +650,7 @@ function backToSetup() {
   $("show").hidden = true;
   $("setup").hidden = false;
   renderForm();
+  inkIn(form);
   form.course.focus();
 }
 
@@ -579,7 +665,7 @@ function renderStatic() {
   const fields = [[t.labels[0], S.course], [t.labels[1], S.exam], [t.labels[2], S.prof]].filter(f => f[1]);
   $("info").innerHTML = fields.map(([l, v]) =>
     `<div class="item"><span class="label">${esc(l)}</span><span class="value">${esc(v)}</span></div>`).join("");
-  $("info").style.justifyContent = fields.length === 1 ? "center" : "space-between";
+  $("info").dataset.n = fields.length;
 
   const { callouts, items } = parseRules(RULE_SETS[S.ruleset][S.lang]);
   $("rtitle").textContent = t.title[S.ruleset];
@@ -594,8 +680,9 @@ function renderStatic() {
   $("range").textContent = `${S.start} – ${S.end}`;
 
   $("guide").innerHTML =
-    `<button type="button" class="fsbtn" data-key="F"><span class="icon">⛶</span>` +
-    `<strong>${esc(t.fsTitle)}</strong><span>${t.fsHow}</span></button>` +
+    `<button type="button" class="fsbtn" data-key="F"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" ` +
+    `stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg>` +
+    `<span>${esc(t.fsTitle)}</span><kbd>F</kbd></button>` +
     `<div class="keys">${t.guide.map(([k, what]) =>
       k === "+-"
         ? `<span class="pair"><button type="button" data-key="+"><kbd>+</kbd></button>` +
@@ -621,7 +708,8 @@ function renderNotes(force) {
   list.innerHTML = rows.map(r => r.input
     ? `<li><span class="stamp">${hhmm(r.t)}</span><div class="draftrow"><input id="draft" maxlength="${NOTE_MAX}" ` +
       `enterkeyhint="send" placeholder="${esc(T().draftPh)}"><div class="mathpreview" id="draftPreview"></div></div></li>`
-    : `<li><span class="stamp">${hhmm(r.t)}</span><span class="ntext${r.fresh ? " fresh" : ""}" data-raw="${esc(r.text)}">${withMath(r.text)}</span></li>`).join("");
+    : `<li${r.fresh ? ' class="new"' : ""}><span class="stamp">${hhmm(r.t)}</span><span class="ntext${r.fresh ? " fresh" : ""}" data-raw="${esc(r.text)}">${withMath(r.text)}</span></li>`).join("");
+  if (S.inkNote != null && !typing) { inkIn(list.children[S.inkNote]); S.inkNote = null; }  // the one just posted or edited
   const input = $("draft");
   if (input) {
     input.value = S.draft.text;
@@ -672,9 +760,11 @@ document.fonts?.addEventListener?.("loadingdone", () => { if (S.running) layoutL
 function commitDraft() {
   const text = S.draft.text.trim();
   if (S.draft.edit !== null) {
-    if (text) S.notes[S.draft.edit].text = text; else S.notes.splice(S.draft.edit, 1);  // emptied → deleted
+    if (text) { S.notes[S.draft.edit].text = text; S.inkNote = S.draft.edit; }
+    else S.notes.splice(S.draft.edit, 1);  // emptied → deleted
   } else if (text) {
     S.notes.push({ t: Date.now(), text });
+    S.inkNote = S.notes.length - 1;
   }
   S.draft = null;
   renderNotes(true);
@@ -743,7 +833,7 @@ function update() {
   if (!S.running) return;
   const now = new Date();
   const p = n => String(n).padStart(2, "0");
-  $("clock").textContent = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+  setClock(`${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`);
   const st = examState(now);
   $("right").className = "right " + st.state;
   $("barFill").style.width = `${Math.max(0, Math.min(1, st.pct)) * 100}%`;
@@ -773,14 +863,20 @@ function action(key) {
         if (r && r.catch) r.catch(() => {});
       }
       break;
-    case "L": S.lang = S.lang === "en" ? "zh" : "en"; renderStatic(); update(); break;
-    case "R": S.ruleset = S.ruleset === "quiz" ? "exam" : "quiz"; renderStatic(); break;
+    case "L":
+      S.lang = S.lang === "en" ? "zh" : "en"; renderStatic(); update();
+      inkIn($("info"), $("leftin"), $("tlabel"), $("status"));
+      break;
+    case "R": S.ruleset = S.ruleset === "quiz" ? "exam" : "quiz"; renderStatic(); inkIn($("leftin")); break;
     case "N": S.draft = { text: "", edit: null }; renderNotes(true); break;
     case "E": if (S.notes.length) { S.draft = { text: S.notes.at(-1).text, edit: S.notes.length - 1 }; renderNotes(true); } break;
     case "D": if (S.notes.length) { S.notes.pop(); renderNotes(true); } break;
-    case "T": {
+    case "T": {  // fade between light and dark rather than flash
       const root = document.documentElement;
+      root.classList.add("theming");
       root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+      clearTimeout(themeTimer);
+      themeTimer = setTimeout(() => root.classList.remove("theming"), 550);
       break;
     }
     case "Q": backToSetup(); break;
@@ -794,7 +890,7 @@ function action(key) {
   }
 }
 
-let tipTimer = null;
+let tipTimer = null, themeTimer = null;
 function applyLeftScale(announce) {
   layoutLeft();
   const full = S.leftShown < S.leftScale[S.ruleset];
