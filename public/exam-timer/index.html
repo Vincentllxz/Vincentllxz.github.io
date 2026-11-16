@@ -149,6 +149,7 @@ b, strong { font-weight: 700; }
 .notes .ntext { color: var(--fg2);  /* not ".text": KaTeX uses that class for \\text{} */ overflow-wrap: anywhere; text-wrap: pretty; }
 .notes .fresh { color: var(--fg); font-weight: 700; }
 .notes .katex { font-size: 1.08em; }
+.notes .katex-display, .mathpreview .katex-display { margin: .25em 0; }  /* KaTeX's own 1em is too roomy here */
 .notes .katex, .mathpreview .katex { overflow-wrap: normal; }  /* "break anywhere" is for long words, not formulas */
 .draftrow { display: grid; gap: .3em; min-width: 0; }
 .mathpreview { color: var(--fg2); overflow-wrap: anywhere; }
@@ -317,9 +318,10 @@ const RULE_SETS = {
     en: [
       "! ==Do NOT submit the scratch paper (計算紙).==",
       "Place your backpack near the stage. ::",
-      "No electric devices, no calculator and no cheating. ::",
+      "No electronic devices and no calculators. ::",
       "==If you need to use the restroom== :: ==Leave your **examination paper (including scratch paper)** and **cellphone** on the stage.== If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
       "==Do NOT use your own scratch paper.== ::",
+      "No cheating! ::",
     ],
     zh: [
       "! ==交卷時，不要繳交計算紙！==",
@@ -640,8 +642,8 @@ function renderNotes(force) {
   layoutLeft();
 }
 
-// Announcements may contain LaTeX: $…$ or \(…\); $$…$$ or \[…\] use the larger display style but stay in the
-// line (an announcement is one line, so a formula on its own line would only push the text apart); \$ is a dollar sign.
+// Announcements may contain LaTeX: $…$ or \(…\) inline, $$…$$ or \[…\] on a line of their own (centred, as in
+// LaTeX); \$ is a dollar sign.
 const MATH = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|(?<!\\)\$((?:\\\$|[^$])+?)\$/g;
 const hasMath = text => text.search(MATH) >= 0;  // search() ignores and keeps lastIndex, unlike test()
 
@@ -653,8 +655,7 @@ function withMath(text) {
     const display = m[1] != null || m[2] != null;
     const tex = m[1] ?? m[2] ?? m[3] ?? m[4];
     out += esc(text.slice(last, m.index).replace(/\\\$/g, "$"));
-    out += katex.renderToString(display ? `\\displaystyle ${tex}` : tex,
-                                { displayMode: false, throwOnError: false, strict: "ignore", output: "html" });
+    out += katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", output: "html" });
     last = m.index + m[0].length;
   }
   return out + esc(text.slice(last).replace(/\\\$/g, "$"));
