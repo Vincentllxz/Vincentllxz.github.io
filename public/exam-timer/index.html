@@ -143,10 +143,10 @@ b, strong { font-weight: 700; }
 .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .5); }
 .notes li { display: grid; grid-template-columns: 3.4em 1fr; gap: .6em; }
 .notes .stamp { color: var(--dim); font-variant-numeric: tabular-nums; }
-.notes .text { color: var(--fg2); overflow-wrap: anywhere; text-wrap: pretty; }
+.notes .ntext { color: var(--fg2);  /* not ".text": KaTeX uses that class for \\text{} */ overflow-wrap: anywhere; text-wrap: pretty; }
 .notes .fresh { color: var(--fg); font-weight: 700; }
 .notes .katex { font-size: 1.08em; }
-.notes .katex-display { margin: .2em 0; }
+.notes .katex, .mathpreview .katex { overflow-wrap: normal; }  /* "break anywhere" is for long words, not formulas */
 .draftrow { display: grid; gap: .3em; min-width: 0; }
 .mathpreview { color: var(--fg2); overflow-wrap: anywhere; }
 .mathpreview:empty { display: none; }
@@ -612,7 +612,7 @@ function renderNotes(force) {
   list.innerHTML = rows.map(r => r.input
     ? `<li><span class="stamp">${hhmm(r.t)}</span><div class="draftrow"><input id="draft" maxlength="${NOTE_MAX}" ` +
       `enterkeyhint="send" placeholder="${esc(T().draftPh)}"><div class="mathpreview" id="draftPreview"></div></div></li>`
-    : `<li><span class="stamp">${hhmm(r.t)}</span><span class="text${r.fresh ? " fresh" : ""}" data-raw="${esc(r.text)}">${withMath(r.text)}</span></li>`).join("");
+    : `<li><span class="stamp">${hhmm(r.t)}</span><span class="ntext${r.fresh ? " fresh" : ""}" data-raw="${esc(r.text)}">${withMath(r.text)}</span></li>`).join("");
   const input = $("draft");
   if (input) {
     input.value = S.draft.text;
@@ -633,7 +633,8 @@ function renderNotes(force) {
   layoutLeft();
 }
 
-// Announcements may contain LaTeX: $…$ or \(…\) inline, $$…$$ or \[…\] on its own line; \$ is a plain dollar sign.
+// Announcements may contain LaTeX: $…$ or \(…\); $$…$$ or \[…\] use the larger display style but stay in the
+// line (an announcement is one line, so a formula on its own line would only push the text apart); \$ is a dollar sign.
 const MATH = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|(?<!\\)\$((?:\\\$|[^$])+?)\$/g;
 const hasMath = text => text.search(MATH) >= 0;  // search() ignores and keeps lastIndex, unlike test()
 
@@ -645,14 +646,15 @@ function withMath(text) {
     const display = m[1] != null || m[2] != null;
     const tex = m[1] ?? m[2] ?? m[3] ?? m[4];
     out += esc(text.slice(last, m.index).replace(/\\\$/g, "$"));
-    out += katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", output: "html" });
+    out += katex.renderToString(display ? `\\displaystyle ${tex}` : tex,
+                                { displayMode: false, throwOnError: false, strict: "ignore", output: "html" });
     last = m.index + m[0].length;
   }
   return out + esc(text.slice(last).replace(/\\\$/g, "$"));
 }
 
 window.mathReady = () => {  // KaTeX arrived after some announcements were drawn: redraw just their text
-  for (const el of document.querySelectorAll(".notes .text[data-raw]")) el.innerHTML = withMath(el.dataset.raw);
+  for (const el of document.querySelectorAll(".notes .ntext[data-raw]")) el.innerHTML = withMath(el.dataset.raw);
   const input = $("draft");
   if (input) input.dispatchEvent(new Event("input"));
   if (S.running) layoutLeft();
