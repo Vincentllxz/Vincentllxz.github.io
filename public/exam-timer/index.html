@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Exam Timer</title>
+<meta name="author" content="Yun-Sheng Hu">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js" onload="window.mathReady && mathReady()"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23888' stroke-width='3'/%3E%3Cpath d='M16 9v8l5 3' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -68,7 +69,8 @@ b, strong { font-weight: 600; }
   color: var(--dim); font-size: 14px; padding-bottom: 12px; border-bottom: 2px solid var(--fg);
 }
 .topline b { font-family: var(--digits); font-weight: 500; color: var(--fg); font-variant-numeric: tabular-nums; margin-left: .4em; }
-#form h1 { font-size: 56px; line-height: 1.05; font-weight: 600; letter-spacing: -.022em; margin: 0; padding: 30px 0 28px; }
+#form h1 { font-size: 56px; line-height: 1.05; font-weight: 600; letter-spacing: -.022em; margin: 0; padding-top: 30px; }
+.byline { margin: 0; padding: 10px 0 26px 2px; color: var(--dim); font-size: 15px; letter-spacing: .01em; }
 .row {
   display: grid; grid-template-columns: 7.5em 1fr; align-items: baseline; gap: 6px 20px; padding: 15px 0;
   border-top: 1px solid var(--line); transition: border-color .2s;
@@ -158,6 +160,10 @@ b, strong { font-weight: 600; }
 .cols { display: grid; grid-template-columns: 42% 58%; min-height: 0; }
 .left { min-height: 0; overflow: hidden; padding: calc(var(--row) * 1.3) calc(var(--col) * 2.5) var(--row) calc(var(--col) * 3.5); }
 .right { position: relative; display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; min-height: 0; overflow: hidden; }
+.credit {  /* the author, signed small in the corner under the clock, level with the end of the column rule */
+  position: absolute; right: calc(var(--col) * 3.5); bottom: calc(var(--row) * 1.15); pointer-events: none;
+}
+.credit span { display: block; color: var(--faint); font-size: .56em; line-height: 1; letter-spacing: .01em; white-space: nowrap; }
 .right::before {  /* the column rule stops short of the edges, as on a printed page */
   content: ""; position: absolute; left: 0; top: calc(var(--row) * 1.3); bottom: calc(var(--row) * 1.3); border-left: 1px solid var(--line);
 }
@@ -273,6 +279,7 @@ b, strong { font-weight: 600; }
   <form id="form" autocomplete="off" novalidate>
     <div class="topline"><span id="today"></span><span><span data-t="nowLabel"></span><b id="nowClock"></b></span></div>
     <h1 data-t="formTitle"></h1>
+    <p class="byline">By Yun-Sheng Hu</p>
 
     <div class="row" id="langSeg" role="radiogroup">
       <span class="label" data-t="langLabel"></span>
@@ -330,6 +337,7 @@ b, strong { font-weight: 600; }
           </div>
         </div>
         <div class="right" id="right">
+          <div class="credit"><span>By Yun-Sheng Hu</span></div>
           <div class="above">
             <div class="tlabel" id="tlabel"></div>
             <div class="range" id="range"></div>
