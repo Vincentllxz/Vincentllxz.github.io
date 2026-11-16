@@ -10,7 +10,7 @@
 <style>
 :root {
   --page: #f2f2f5; --bg: #ffffff; --card: #ffffff;
-  --emph: #d40000;
+  --hl: #b3d1ff;  /* highlighter: the accent blue, light enough to read through, strong enough for a projector */
   --fg: #1d1d1f; --fg2: #3c3c43; --dim: #86868b; --line: #e2e2e6; --field: #f4f4f6; --track: #d9d9de; --raised: #ffffff;
   --orange: #ff8700; --red: #d70000; --on-orange: #000000; --on-red: #ffffff;
   --accent: #1a6ce0; --accent-ring: rgba(26, 108, 224, .55);
@@ -24,14 +24,14 @@
   :root:not([data-theme="light"]) {
     --page: #111214; --bg: #17181b; --card: #1e1f23;
     --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
-    --emph: #ff5c55;
+    --hl: rgba(64, 132, 255, .45);
   }
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] {
   --page: #111214; --bg: #17181b; --card: #1e1f23;
   --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
-  --emph: #ff5c55;
+  --hl: rgba(64, 132, 255, .45);
   color-scheme: dark;
 }
 
@@ -136,8 +136,10 @@ b, strong { font-weight: 700; }
 .rules .head { font-weight: 600; text-wrap: balance; }
 .rules .body { color: var(--fg2); text-wrap: pretty; }
 .rules .body b { color: var(--fg); }
-.red, .rules .body .red b { color: var(--emph); }
-.left .callout:has(.red) { border-left-color: var(--emph); }
+.hl, .rules .body .hl {
+  color: var(--fg); background: linear-gradient(transparent 40%, var(--hl) 40%, var(--hl) 86%, transparent 86%);  /* lower half of the letters */
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
 .nb { white-space: nowrap; }
 .notesbox { margin-top: calc(var(--row) * 2); }
 .notes { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .5); }
@@ -381,7 +383,7 @@ const T = () => TEXT[S.lang];
 const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // "**bold**" and "|" break hints → HTML. With hints, each piece between | stays on one line.
-const TAGS = { "**": ["<b>", "</b>"], "==": ['<span class="red">', "</span>"] };
+const TAGS = { "**": ["<b>", "</b>"], "==": ['<span class="hl">', "</span>"] };  // ==…== is a highlighter mark
 function markup(s) {
   const hinted = s.includes("|"), open = [];
   let out = "", piece = "";
