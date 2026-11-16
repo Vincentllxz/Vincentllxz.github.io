@@ -90,7 +90,13 @@ b, strong { font-weight: 700; }
 
 /* ── Display ───────────────────────────────────────────────────────────── */
 #show { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
-.stage { flex: 1; min-height: 0; container-type: size; }
+.stage { flex: 1; min-height: 0; container-type: size; position: relative; }
+.tip {
+  position: absolute; left: 1.2em; bottom: 1.2em; padding: .35em .8em; border-radius: .4em;
+  background: var(--fg); color: var(--bg); font-size: 15px; font-weight: 600; pointer-events: none;
+  opacity: 0; transition: opacity .25s;
+}
+.tip.on { opacity: .92; transition: none; }
 .display {
   /* same proportions as the terminal version (about 90 columns × 26 rows) */
   --row: 1.4em; --col: .6em;
@@ -108,7 +114,7 @@ b, strong { font-weight: 700; }
 .left { min-height: 0; overflow: hidden; padding: 0 calc(var(--col) * 2.5) 0 calc(var(--col) * 3.5); }
 .right { border-left: 1px solid var(--line); display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; min-height: 0; overflow: hidden; }
 
-.leftin { width: fit-content; max-width: 100%; }
+.leftin { width: fit-content; max-width: 100%; font-size: calc(var(--left-scale, 1) * 1em); }
 .title {
   color: var(--dim); font-size: .82em; font-weight: 600; letter-spacing: .06em;
   padding-bottom: calc(var(--row) * .3); border-bottom: 1px solid var(--line); margin-bottom: var(--row);
@@ -174,6 +180,7 @@ b, strong { font-weight: 700; }
   display: flex; gap: 14px 28px; align-items: center;
 }
 .guide .keys { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
+.guide .pair { display: inline-flex; gap: 6px; align-items: center; }
 .guide .keys button { border: 0; background: none; padding: 0; cursor: pointer; color: var(--fg2); display: inline-flex; gap: 8px; align-items: center; }
 .guide .keys button:hover { color: var(--fg); }
 .guide .fsbtn {
@@ -243,6 +250,7 @@ b, strong { font-weight: 700; }
 
 <section id="show" hidden>
   <div class="stage">
+    <div class="tip" id="tip" role="status"></div>
     <div class="display" id="display">
       <header class="info" id="info"></header>
       <div class="cols">
@@ -334,7 +342,8 @@ const TEXT = {
     fsTitle: "Not fullscreen yet", fsHow: "Click here or press <kbd>F</kbd>",
     guide: [["L", "中文 / English"], ["R", "Quiz ↔ Exam rules"],
             ["N", "New announcement ($…$ for math, Enter to post, Esc to cancel)"], ["E", "Edit the latest announcement"],
-            ["D", "Delete the latest announcement"], ["Q", "Back to setup"]],
+            ["D", "Delete the latest announcement"], ["+-", "Text size on the left (0 resets)"], ["Q", "Back to setup"]],
+    leftSize: p => `Left side text ${p}%`,
     leave: "Exam Timer is still running.", draftPh: "Type the announcement — math in $…$, e.g. $x^2 + 1$",
   },
   zh: {
@@ -352,13 +361,15 @@ const TEXT = {
     fsTitle: "還不是全螢幕", fsHow: "點這裡或按 <kbd>F</kbd>",
     guide: [["L", "中文 / English"], ["R", "切換考場須知（Quiz ↔ Exam）"],
             ["N", "新增公告（$…$ 寫數學式，Enter 送出，Esc 取消）"], ["E", "修改最新的公告"],
-            ["D", "刪除最新的公告"], ["Q", "回到設定"]],
+            ["D", "刪除最新的公告"], ["+-", "左邊的字體大小（0 還原）"], ["Q", "回到設定"]],
+    leftSize: p => `左邊字體 ${p}%`,
     leave: "Exam Timer 還在執行中。", draftPh: "輸入公告，數學式寫在 $…$ 裡，例如 $x^2 + 1$",
   },
 };
 
 // ── State (kept only while the page is open — nothing is saved) ───────────
-const S = { lang: "en", ruleset: "quiz", rulesPicked: false, course: "", exam: "", prof: "",
+const LEFT_SCALE = { quiz: 1, exam: 0.85 };  // starting text size of the left column, per rule set
+const S = { lang: "en", ruleset: "quiz", rulesPicked: false, course: "", exam: "", prof: "", leftScale: { ...LEFT_SCALE },
             start: "", end: "", notes: [], notesFor: "", draft: null, running: false };
 const $ = id => document.getElementById(id);
 const T = () => TEXT[S.lang];
@@ -563,7 +574,11 @@ function renderStatic() {
     `<button type="button" class="fsbtn" data-key="F"><span class="icon">⛶</span>` +
     `<strong>${esc(t.fsTitle)}</strong><span>${t.fsHow}</span></button>` +
     `<div class="keys">${t.guide.map(([k, what]) =>
-      `<button type="button" data-key="${k}"><kbd>${k}</kbd><span>${esc(what)}</span></button>`).join("")}</div>`;
+      k === "+-"
+        ? `<span class="pair"><button type="button" data-key="+"><kbd>+</kbd></button>` +
+          `<button type="button" data-key="-"><kbd>−</kbd><span>${esc(what)}</span></button></span>`
+        : `<button type="button" data-key="${k}"><kbd>${k}</kbd><span>${esc(what)}</span></button>`).join("")}</div>`;
+  $("display").style.setProperty("--left-scale", S.leftScale[S.ruleset]);
   renderNotes(true);
   fit();
 }
@@ -736,11 +751,36 @@ function action(key) {
     case "E": if (S.notes.length) { S.draft = { text: S.notes.at(-1).text, edit: S.notes.length - 1 }; renderNotes(true); } break;
     case "D": if (S.notes.length) { S.notes.pop(); renderNotes(true); } break;
     case "Q": backToSetup(); break;
+    case "+": case "-": case "0": {
+      const now = S.leftScale[S.ruleset];
+      const next = key === "0" ? LEFT_SCALE[S.ruleset] : Math.round((now + (key === "+" ? .1 : -.1)) * 100) / 100;
+      S.leftScale[S.ruleset] = Math.min(1.6, Math.max(.5, next));
+      applyLeftScale(true);
+      break;
+    }
   }
 }
 
+let tipTimer = null;
+function applyLeftScale(announce) {
+  const scale = S.leftScale[S.ruleset];
+  $("display").style.setProperty("--left-scale", scale);
+  layoutLeft();
+  if (!announce) return;
+  const tip = $("tip");
+  tip.textContent = T().leftSize(Math.round(scale * 100));
+  tip.classList.add("on");
+  clearTimeout(tipTimer);
+  tipTimer = setTimeout(() => tip.classList.remove("on"), 1200);
+}
+
+const SIZE_KEYS = { Equal: "+", NumpadAdd: "+", Minus: "-", NumpadSubtract: "-", Digit0: "0", Numpad0: "0" };
 document.addEventListener("keydown", e => {
-  if (!S.running || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!S.running || e.altKey) return;
+  const size = SIZE_KEYS[e.code];
+  if (size && (e.metaKey || e.ctrlKey)) { e.preventDefault(); action(size); return; }  // even while typing
+  if (e.metaKey || e.ctrlKey) return;
+  if (size && S.draft === null && !e.target.closest?.("input")) { e.preventDefault(); action(size); return; }
   if (S.draft !== null) { if (!e.target.closest?.("input")) $("draft")?.focus(); return; }
   if (e.target.closest && e.target.closest("input")) return;
   const m = /^Key([FLRNEDQ])$/.exec(e.code);  // the physical key, so it works with any input method on
