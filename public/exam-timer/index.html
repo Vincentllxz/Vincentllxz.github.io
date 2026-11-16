@@ -100,7 +100,7 @@ b, strong { font-weight: 700; }
 .display {
   /* same proportions as the terminal version (about 90 columns × 26 rows) */
   --row: 1.4em; --col: .6em;
-  height: 100%; font-size: min(1.85cqw, 2.9cqh); line-height: var(--row);
+  height: 100%; font-size: min(1.85cqw, 2.9cqh); line-height: 1.4;  /* = --row, but scales with the left side */
   display: grid; grid-template-rows: auto 1fr; overflow: hidden;
 }
 .info {
@@ -111,7 +111,7 @@ b, strong { font-weight: 700; }
 .info .label { color: var(--dim); font-size: .82em; letter-spacing: .04em; }
 .info .value { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
 .cols { display: grid; grid-template-columns: 42% 58%; min-height: 0; }
-.left { min-height: 0; overflow: hidden; padding: 0 calc(var(--col) * 2.5) 0 calc(var(--col) * 3.5); }
+.left { min-height: 0; overflow: hidden; padding: calc(var(--row) * 1.2) calc(var(--col) * 2.5) var(--row) calc(var(--col) * 3.5); }
 .right { border-left: 1px solid var(--line); display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; min-height: 0; overflow: hidden; }
 
 .leftin { width: fit-content; max-width: 100%; font-size: calc(var(--left-scale, 1) * 1em); }
@@ -343,7 +343,7 @@ const TEXT = {
     guide: [["L", "中文 / English"], ["R", "Quiz ↔ Exam rules"],
             ["N", "New announcement ($…$ for math, Enter to post, Esc to cancel)"], ["E", "Edit the latest announcement"],
             ["D", "Delete the latest announcement"], ["+-", "Text size on the left (0 resets)"], ["Q", "Back to setup"]],
-    leftSize: p => `Left side text ${p}%`,
+    leftSize: p => `Left side text ${p}%`, leftMax: p => `Left side text ${p}% — largest that fits`,
     leave: "Exam Timer is still running.", draftPh: "Type the announcement — math in $…$, e.g. $x^2 + 1$",
   },
   zh: {
@@ -362,7 +362,7 @@ const TEXT = {
     guide: [["L", "中文 / English"], ["R", "切換考場須知（Quiz ↔ Exam）"],
             ["N", "新增公告（$…$ 寫數學式，Enter 送出，Esc 取消）"], ["E", "修改最新的公告"],
             ["D", "刪除最新的公告"], ["+-", "左邊的字體大小（0 還原）"], ["Q", "回到設定"]],
-    leftSize: p => `左邊字體 ${p}%`,
+    leftSize: p => `左邊字體 ${p}%`, leftMax: p => `左邊字體 ${p}%（已經最大）`,
     leave: "Exam Timer 還在執行中。", draftPh: "輸入公告，數學式寫在 $…$ 裡，例如 $x^2 + 1$",
   },
 };
@@ -660,24 +660,28 @@ function commitDraft() {
 // show only the newest announcements, when it doesn't.
 function layoutLeft() {
   const left = $("left"), inner = $("leftin"), disp = $("display");
+  let scale = S.leftScale[S.ruleset];
+  disp.style.setProperty("--left-scale", scale);
   disp.classList.remove("compact", "compact2");
   const items = [...$("notes").children];
   items.forEach(li => { li.hidden = false; });
   $("earlier").hidden = true;
-  inner.style.marginTop = "0px";
-  const room = () => left.clientHeight;
+  const pad = getComputedStyle(left);
+  const room = () => left.clientHeight - parseFloat(pad.paddingTop) - parseFloat(pad.paddingBottom);
   const tall = () => inner.getBoundingClientRect().height;
-  if (tall() > room() * .96) disp.classList.add("compact");
-  if (tall() > room() * .96) disp.classList.add("compact2");
+  if (tall() > room()) disp.classList.add("compact");
+  if (tall() > room()) disp.classList.add("compact2");
   let hidden = 0;
-  while (tall() > room() * .96 && hidden < items.length - 1) {
+  while (tall() > room() && hidden < items.length - 1) {
     items[hidden].hidden = true; hidden++;
     $("earlier").hidden = false;
     $("earlier").textContent = T().earlier(hidden);
   }
-  const target = $("tlabel").getBoundingClientRect().top - left.getBoundingClientRect().top;
-  const h = tall();
-  inner.style.marginTop = (target >= 0 && target + h <= room()) ? `${target}px` : `${Math.max(0, (room() - h) / 2)}px`;
+  while (tall() > room() && scale > .5) {  // still too much: make the text smaller rather than cut it off
+    scale = Math.round((scale - .05) * 100) / 100;
+    disp.style.setProperty("--left-scale", scale);
+  }
+  S.leftShown = scale;
 }
 
 // Clock as large as the right side allows, the exam time above it at about 40 %.
@@ -692,7 +696,7 @@ function textWidth(text, cls) {
 function fit() {
   if (!S.running) return;
   const disp = $("display"), right = $("right");
-  const base = parseFloat(getComputedStyle(disp).fontSize), row = base * 1.32, col = base * .602;
+  const base = parseFloat(getComputedStyle(disp).fontSize), row = base * 1.4, col = base * .602;
   const W = right.clientWidth - col * 4, H = right.clientHeight;
   const cw = textWidth("00:00:00", "clock"), rw = textWidth(`${S.start} – ${S.end}`, "range");
   let fs = W / cw, rfs = 0;
@@ -763,12 +767,12 @@ function action(key) {
 
 let tipTimer = null;
 function applyLeftScale(announce) {
-  const scale = S.leftScale[S.ruleset];
-  $("display").style.setProperty("--left-scale", scale);
   layoutLeft();
+  const full = S.leftShown < S.leftScale[S.ruleset];
+  if (full) S.leftScale[S.ruleset] = S.leftShown;  // + past what fits does nothing
   if (!announce) return;
   const tip = $("tip");
-  tip.textContent = T().leftSize(Math.round(scale * 100));
+  tip.textContent = (full ? T().leftMax : T().leftSize)(Math.round(S.leftShown * 100));
   tip.classList.add("on");
   clearTimeout(tipTimer);
   tipTimer = setTimeout(() => tip.classList.remove("on"), 1200);
