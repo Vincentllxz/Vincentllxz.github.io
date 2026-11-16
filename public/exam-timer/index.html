@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Exam Clock</title>
+<title>Exam Timer</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js" onload="window.mathReady && mathReady()"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23888' stroke-width='3'/%3E%3Cpath d='M16 9v8l5 3' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -325,7 +325,7 @@ const TEXT = {
     notes: "Announcements", earlier: n => `+ ${n} earlier`,
     before: d => `Starts in ${d}`, left: d => `${d} remaining`, over: "Time is up — please stop writing",
     dur: (h, m, s) => s != null ? `${s} sec` : h && m ? `${h} hr ${m} min` : h ? `${h} hr` : `${m} min`,
-    formTitle: "Exam Clock", formSub: "Enter also starts. Nothing on this page is saved.", rulesLabel: "Rules",
+    formTitle: "Exam Timer", formSub: "Enter also starts. Nothing on this page is saved.", rulesLabel: "Rules",
     langLabel: "Language", nowLabel: "Now", to: "to", badFormat: "Write it like 14:20 (24-hour)", quiz: "Quiz", exam: "Exam",
     course: "Course", examName: "Exam", prof: "Professor", go: "Start",
     coursePh: "e.g. Linear Algebra", examPh: "e.g. Midterm Exam", profPh: "e.g. Chen",
@@ -335,7 +335,7 @@ const TEXT = {
     guide: [["L", "中文 / English"], ["R", "Quiz ↔ Exam rules"],
             ["N", "New announcement ($…$ for math, Enter to post, Esc to cancel)"], ["E", "Edit the latest announcement"],
             ["D", "Delete the latest announcement"], ["Q", "Back to setup"]],
-    leave: "The exam display is still running.", draftPh: "Type the announcement — math in $…$, e.g. $x^2 + 1$",
+    leave: "Exam Timer is still running.", draftPh: "Type the announcement — math in $…$, e.g. $x^2 + 1$",
   },
   zh: {
     title: { quiz: "考場須知", exam: "考場須知" },
@@ -343,7 +343,7 @@ const TEXT = {
     notes: "公告", earlier: n => `還有 ${n} 則較早的公告`,
     before: d => `距離開始還有 ${d}`, left: d => `剩餘 ${d}`, over: "考試結束，請停止作答",
     dur: (h, m, s) => s != null ? `${s} 秒` : h && m ? `${h} 小時 ${m} 分鐘` : h ? `${h} 小時` : `${m} 分鐘`,
-    formTitle: "考試時鐘", formSub: "按 Enter 也可以開始。這個網頁不會儲存任何資料。", rulesLabel: "考場須知",
+    formTitle: "Exam Timer", formSub: "按 Enter 也可以開始。這個網頁不會儲存任何資料。", rulesLabel: "考場須知",
     langLabel: "語言", nowLabel: "現在時間", to: "至", badFormat: "請寫成 14:20 這種格式（24 小時制）", quiz: "Quiz（小考）", exam: "Exam（大考）",
     course: "課程", examName: "考試", prof: "教授", go: "開始",
     coursePh: "例如：線性代數", examPh: "例如：期中考", profPh: "例如：陳",
@@ -353,7 +353,7 @@ const TEXT = {
     guide: [["L", "中文 / English"], ["R", "切換考場須知（Quiz ↔ Exam）"],
             ["N", "新增公告（$…$ 寫數學式，Enter 送出，Esc 取消）"], ["E", "修改最新的公告"],
             ["D", "刪除最新的公告"], ["Q", "回到設定"]],
-    leave: "考試時鐘還在執行中。", draftPh: "輸入公告，數學式寫在 $…$ 裡，例如 $x^2 + 1$",
+    leave: "Exam Timer 還在執行中。", draftPh: "輸入公告，數學式寫在 $…$ 裡，例如 $x^2 + 1$",
   },
 };
 
