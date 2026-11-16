@@ -18,16 +18,9 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Songti TC", "Noto Serif TC", "Noto Serif CJK TC", "Source Han Serif TC", PMingLiU, serif;
   --digits: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color-scheme: light dark;
+  color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --page: #111214; --bg: #17181b; --card: #1e1f23;
-    --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
-    --hl: rgba(64, 132, 255, .45);
-  }
-}
-:root[data-theme="light"] { color-scheme: light; }
+/* Light unless T switches to dark; a projected exam room should not change with the laptop's own setting. */
 :root[data-theme="dark"] {
   --page: #111214; --bg: #17181b; --card: #1e1f23;
   --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
@@ -351,7 +344,8 @@ const TEXT = {
     fsTitle: "Not fullscreen yet", fsHow: "Click here or press <kbd>F</kbd>",
     guide: [["L", "中文 / English"], ["R", "Quiz ↔ Exam rules"],
             ["N", "New announcement ($…$ for math, Enter to post, Esc to cancel)"], ["E", "Edit the latest announcement"],
-            ["D", "Delete the latest announcement"], ["+-", "Text size on the left (0 resets)"], ["Q", "Back to setup"]],
+            ["D", "Delete the latest announcement"], ["+-", "Text size on the left (0 resets)"], ["T", "Light / dark"],
+            ["Q", "Back to setup"]],
     leftSize: p => `Left side text ${p}%`, leftMax: p => `Left side text ${p}% — largest that fits`,
     leave: "Exam Timer is still running.", draftPh: "Type the announcement — math in $…$, e.g. $x^2 + 1$",
   },
@@ -370,7 +364,8 @@ const TEXT = {
     fsTitle: "還不是全螢幕", fsHow: "點這裡或按 <kbd>F</kbd>",
     guide: [["L", "中文 / English"], ["R", "切換考場須知（Quiz ↔ Exam）"],
             ["N", "新增公告（$…$ 寫數學式，Enter 送出，Esc 取消）"], ["E", "修改最新的公告"],
-            ["D", "刪除最新的公告"], ["+-", "左邊的字體大小（0 還原）"], ["Q", "回到設定"]],
+            ["D", "刪除最新的公告"], ["+-", "左邊的字體大小（0 還原）"], ["T", "亮色 / 暗色"],
+            ["Q", "回到設定"]],
     leftSize: p => `左邊字體 ${p}%`, leftMax: p => `左邊字體 ${p}%（已經最大）`,
     leave: "Exam Timer 還在執行中。", draftPh: "輸入公告，數學式寫在 $…$ 裡，例如 $x^2 + 1$",
   },
@@ -774,6 +769,11 @@ function action(key) {
     case "N": S.draft = { text: "", edit: null }; renderNotes(true); break;
     case "E": if (S.notes.length) { S.draft = { text: S.notes.at(-1).text, edit: S.notes.length - 1 }; renderNotes(true); } break;
     case "D": if (S.notes.length) { S.notes.pop(); renderNotes(true); } break;
+    case "T": {
+      const root = document.documentElement;
+      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+      break;
+    }
     case "Q": backToSetup(); break;
     case "+": case "-": case "0": {
       const now = S.leftScale[S.ruleset];
@@ -807,7 +807,7 @@ document.addEventListener("keydown", e => {
   if (size && S.draft === null && !e.target.closest?.("input")) { e.preventDefault(); action(size); return; }
   if (S.draft !== null) { if (!e.target.closest?.("input")) $("draft")?.focus(); return; }
   if (e.target.closest && e.target.closest("input")) return;
-  const m = /^Key([FLRNEDQ])$/.exec(e.code);  // the physical key, so it works with any input method on
+  const m = /^Key([FLRNEDTQ])$/.exec(e.code);  // the physical key, so it works with any input method on
   if (m) { e.preventDefault(); action(m[1]); }
 });
 $("guide").addEventListener("click", e => {
