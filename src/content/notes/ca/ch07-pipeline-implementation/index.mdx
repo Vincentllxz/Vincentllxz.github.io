@@ -8,9 +8,418 @@ tags:
   - "CA"
   - "note"
 language: "zh-TW"
-draft: true
+draft: false
 comment: true
 ---
 import Fig from '@/components/Fig.astro'
 
 # Pipeline Implementation
+
+## Data Hazard and Forwarding
+
+複習一下 Data Hazard 跟 Forwarding，以下這張圖，我們會發現，在第四個 tic 的時候，`and` 就需要用到 `x2` 的計算過後的值，在那個 tic 雖然 `x2` 的 new value 還沒被寫到 register 裡面，但他其實已經被 ALU 計算出來了，所以我們只需要**把 ALU 計算結果直接接給下一個 instruction 的 ALU 作 operand** 就好
+
+<Fig src="/images/ca/ch07-pipeline-implementation/data-hazard-and-forwarding.webp" caption="Data Hazard and Forwarding" width={80} />
+
+我們仔細觀察一下這個圖，我們會知道 `sub`, `and` 兩個指令有 dependency 是因為他們共用了一個 register `x2`，只要**上一個 stage 的 `rd` 是下一個 stage 的 `rs` 我們就需要做 forwarding**，我們得出以下條件
+
+```
+EX/MEM.RegisterRd == ID/EX.RegisterR1
+EX/MEM.RegisterRd == ID/EX.RegisterR2
+```
+
+再看一下 `sub`, `or` 兩個 instruction，同樣有 dependency，但這次差了兩個 cycle，所以條件變成 **倒數第二個 stage 的 `rd` 是這個 stage 的 `rs`**，我們就可以 forwarding
+
+```
+MEM/WB.RegisterRd == ID/EX.RegisterR1
+MEM/WB.RegisterRd == ID/EX.RegisterR2
+```
+
+
+這兩個條件我們分別稱為 **EX Hazard** 跟 **MEM Hazard**，除了這兩項我們還需要一些條件
+
+```
+EX/MEM.RegisterRd != $0
+MEM/WB.RegisterRd != $0
+```
+
+因為 `x0` 永遠都存 0 這個值，他不應該被改變，另外我們也需要檢查 `EX/MEM.RegWrite`, `MEM/WB.RegWrite` 開啟我們才能確認這個 stage 裡面的 instruction 有要寫入 register，`rd` 才應該生效
+
+再次看一下上面那張圖，Forwarding 時應該使用 `MEM/WB`, `EX/MEM` 裡面的 data，而不應該使用 register 裡面的
+
+### Forwarding Logic Unit
+
+有了條件，我們就可以建立一個新的 component 來 implement forwarding 這個機制
+
+<Fig src="/images/ca/ch07-pipeline-implementation/forwarding-unit.webp" caption="Forwarding Unit" width={80} />
+
+原始的 Datapath 只需要 handle 一種 operand source，而現在有三個 source，只有在 Execution stage 的時候才會觸發 forwarding，而我們需要 handle 從 EX/MEM 跟 MEM/WB 來的 data 來解決 EX, MEM Hazard
+
+
+<Fig src="/images/ca/ch07-pipeline-implementation/forwarding-unit-with-control-signal.webp" caption="Forwarding Unit with control signal" width={90} />
+
+我們可以總結出 Forward Unit 的 implementation
+
+1. **EX hazard**
+```c
+if (EX/MEM.RegWrite
+    && (EX/MEM.RegisterRd != 0)
+    && (EX/MEM.RegisterRd = ID/EX.RegisterR1))
+    ForwardA = 10
+
+if (EX/MEM.RegWrite
+    && (EX/MEM.RegisterRd != 0)
+    && (EX/MEM.RegisterRd = ID/EX.RegisterR2))
+    ForwardB = 10
+```
+
+2. **MEM hazard**：有些情況下，情況會同時符合 MEM hazard 並且符合 EX hazard，這時候我們肯定要讓比較晚產生的 data 做 forwarding，也就是說 **EX hazard 的 precedence 比較高**
+
+```c
+if (MEM/WB.RegWrite
+    && (MEM/WB.RegisterRd != 0)
+    && (MEM/WB.RegisterRd = ID/EX.RegisterR1))
+    && !(EX/MEM.RegWrite
+         && (EX/MEM.RegisterRd != 0)
+         && (EX/MEM.RegisterRd = ID/EX.RegisterR1))
+    ForwardA = 01
+
+if (MEM/WB.RegWrite
+    && (MEM/WB.RegisterRd != 0)
+    && (MEM/WB.RegisterRd = ID/EX.RegisterR2))
+    && !(EX/MEM.RegWrite
+         && (EX/MEM.RegisterRd != 0)
+         && (EX/MEM.RegisterRd = ID/EX.RegisterR2))
+    ForwardB = 01
+```
+
+<Fig src="/images/ca/ch07-pipeline-implementation/datapath-forwarding-unit-with-control-signal.webp" caption="Datapath Forwarding Unit with control signal" width={80} />
+
+### Hazard Detection Unit
+
+上一章有提到在 load-use 的情況下，我們還是必須得 stall 一個 cycle，以下是他的判斷條件
+
+<Fig src="/images/ca/ch07-pipeline-implementation/forwarding-without-stall-while-load-use.webp" caption="Forwarding without stall while load-use" width={80} />
+
+當我們發現
+1. `MemRead` 開啟，也就是 Decode 出了 load instruction
+2. Fetch 到的 instruction 需要用到剛剛 load 的東西
+
+我們就需要 stall 一個 cycle 或是說把現在這個 instruction flush 掉，變成 **nop** (no operation)
+
+```c
+if (ID/EX.MemRead
+    && ((ID/EX.RegisterRd = IF/ID.RegisterRs1)
+         || (ID/EX.RegisterRd = IF/ID.RegisterRs2)))
+    stall the pipeline
+```
+
+<Fig src="/images/ca/ch07-pipeline-implementation/forwarding-with-stall-while-load-use.webp" caption="Forwarding with stall while load-use" width={80} />
+
+在 implementation 上我們還需要注意幾件事
+1. 讓 IF, ID stage 不要繼續前進，也就是**保護 `PC` 和 `IF/ID`**
+2. 讓 nop 的 instruction 在 EX, MEM, WB 都空轉
+
+由此，我們可以引出 hazard detection unit
+
+<Fig src="/images/ca/ch07-pipeline-implementation/forwarding-with-stall-while-load-use-2.webp" caption="Forwarding with stall while load-use" width={80} />
+
+## Control Hazard
+
+### Branch Prediction
+
+這裡不討論純 stall 的 case，回憶一下上章節我們提到，**Branch 的結果可以在 ID stage 就提前出來**，知道前提後，我們分 case 討論
+
+1. 若是像這樣 comparison 的 register 來自 2~3 個 instruction 前，那這個問題就回歸到 **EX/MEM Hazard**
+
+<Fig src="/images/ca/ch07-pipeline-implementation/branch-with-forwarding.webp" caption="Branch with forwarding" width={80} />
+
+2. 若 comparison register 是 branch 前一個 instruction 的 destination，又或是 **`load` 在 branch 的前兩格**，我們需要 stall 一個輪次
+
+<Fig src="/images/ca/ch07-pipeline-implementation/branch-with-one-stall-and-forwarding.webp" caption="Branch with one stall and forwarding" width={80} />
+
+3. 若 comparison register 是 load 的 rd 的話，那需要兩個輪次的 stall
+ 
+<Fig src="/images/ca/ch07-pipeline-implementation/branch-with-two-stall-and-forwarding.webp" caption="Branch with two stall and forwarding" width={80} />
+
+前面都簡單的這是一個 stall 操作，但其實在真正的 implementation 有一些難度，首先最簡單的想法，直接塞一個 stall instruction 進去，但這樣一定會變慢，因為每塞一個 stall 我們就要晚一個 cycle，累積起來非常可怕
+
+因此我們 Prefer 的是第二種 **Predict Non-taken**，前面我們討論過，Predict Non-taken 會讓每個 branch instruction 正確的話 take 1 cycle，不正確的話 take 2 cycle
+
+<Fig src="/images/ca/ch07-pipeline-implementation/pipeline-control-and-datapath.webp" caption="Pipeline Control and datapath" width={80} />
+
+關於 implementation 的話，我們需要有一個 **flush** 的機制，也就是我們需要讓某幾個 instruction stall 的話，他做的操作是**把 IF/ID Pipeline Register 裡面的 Instruction Field 設成 0**，這個操作等同於把 Instruction 變成 `nop`，也就是左上角那條 `IF.flush`
+
+### Dynamic Branch Prediction
+
+剛剛講完了 Static Branch Prediction，也就是我們在 Compile 就已經決定了執行順序，但其實我們也可以在 **runtime dynamically 去 predict branch**
+
+#### One Bit Prediction
+
+看看我們設計的 table 有多少個 entry，取 instruction 的最末 $\log_2 n$ 個 bit 當作 index，Predict 上一輪擁有同樣後綴的 instruction 的行為（taken or untaken）
+
+<Fig src="/images/ca/ch07-pipeline-implementation/branch-history-table.webp" caption="Branch History Table" width={80} />
+
+但這種方法會有大問題，我們來做效能分析，假設我們有以下 RISC-V code
+
+```asm
+outer:
+    ...
+inner:
+    ...
+    beq ..., ..., inner   # Inner Loop
+    ...
+    beq ..., ..., outer   # Outer Loop
+```
+
+假設 inner loop 一輪 run 十次，那我們在第二次開始到第九次都要跳回 `inner`，所以 predict 正確，entry 內會是 `1` 就是 taken，接下來一次應該要 Not taken，所以就發生一次 **misprediction**，entry 被改成 `0` not taken，然後繼續跑到 outer loop 跳回來，第一次執行 inner loop 又產生一次 **misprediction**，分析一下會發現
+
+$$
+\text{Misprediction Rate} \approx \frac{8}{10} = 80\%
+$$
+
+是一個非常高的數字
+
+#### Two Bit Prediction
+
+上面發現我們的 prediction 太過簡化，效能大大降低，所以我們設計一些 "buffer" 的概念，有一點緩衝空間，因此設計出這個 two bit prediction
+
+<Fig src="/images/ca/ch07-pipeline-implementation/finite-automata-of-two-bit-prediction.webp" caption="Finite Automata of two bit prediction" width={70} />
+
+### More on Prediction
+
+這裡額外討論幾個問題，首先，如果 prediction taken 的話，我們就會需要計算我們的 target address，因此我們需要一個 **branch target buffer**
+
+有些時候，branch prediction 會需要考慮到更多資訊，在 link file 之後可能會讓 branch 們有更多的 dependency，需要同時考慮 local, global information，是至今都還在討論的問題
+
+**Tournament Branch Predictor**：不同的 predictor 在不同的 scenario 下，效果不一定會都一樣好，所以我們可以多用幾個 predictor，最終用一個 **Selector** 去決定我要採用哪個 prediction 結果，通常會按照歷史紀錄決定要採取哪個 prediction
+
+## Exceptions and Interrupts
+
+當 CPU 執行 instruction 時遇到 Exception 或 Interrupt，就需要改變原本的 Control Flow，跳到 **Exception Handler** 處理問題
+
+- **Exception**：由 instruction 引起，例如 Illegal Instruction、Page Fault、System Call
+- **Interrupt**：通常由外部裝置產生，例如 I/O Interrupt
+
+### Handling Exceptions
+
+當 Exception 發生時，CPU 需要記錄以下資訊：
+
+1. **SEPC (Supervisor Exception Program Counter)**：記錄發生 Exception 的 Instruction PC
+2. **SCAUSE (Supervisor Cause Register)**：記錄 Exception 的原因，例如 Illegal Instruction 的 Cause Code 是 `2`
+
+接著 CPU 會跳到 Handler
+
+- **Direct Mode**：所有 Exception / Interrupt 都跳到 BASE 後做跳轉
+- **Vectored Mode**：不同 Interrupt Cause 對應不同的 Handler Entry，位址為
+
+$$
+\text{Handler PC} = \text{BASE} + 4 \times \text{cause}
+$$
+
+在 RISC-V 中，Vectored Mode 只有對 Asynchronous Interrupt 生效，Synchronous Exception 無論在哪種 Mode 下，都直接跳到 BASE
+
+### Handler Actions
+
+Handler 會讀取 `SCAUSE`，決定如何處理 Exception
+
+- **Restartable**：修復問題後，使用 `SEPC` 返回原本的 Instruction，重新執行
+- **Non-restartable / Unrecoverable**：可能需要強制結束，並回報錯誤
+
+例如 Page Fault，OS 可以先修復 Memory Mapping，再透過 `sret` 返回原本程式
+
+### Exceptions in a Pipeline
+
+Exception 也是一種 **Control Hazard**，處理方式和 Branch Misprediction 很像，都需要 Flush Pipeline 並修改 PC，因此就是在原始的 data path 基礎上加上幾個跟 control hazard 很像的 component
+
+<Fig src="/images/ca/ch07-pipeline-implementation/pipeline-for-exception.webp" caption="Pipeline for exception" width={80} />
+
+
+
+假設 `add` 在 EX Stage 發生 Exception：
+
+```asm
+0x40  sub x11, x2, x4
+0x44  and x12, x2, x5
+0x48  or  x13, x2, x6
+0x4C  add x1, x2, x1  # Exception!
+0x50  sub x15, x6, x7
+0x54  ld  x16, 100(x7)
+```
+
+CPU 需要進行以下操作：
+
+1. **Complete previous instructions**：確保 `add` 之前的 Instructions 完成
+2. **Flush add and subsequent instructions**：清除 `add` 與後續 Instructions，避免修改 Register 或 Memory
+3. **Set SEPC and SCAUSE**：保存出錯的 PC (`0x4C`) 和 Cause
+4. **Transfer control to Handler**：將 PC 設定為 Handler Address
+
+這個性質稱為 **Precise Exception**，也就是發生 Exception 時，Architectural State 必須看起來像是剛好停在出錯的 Instruction 之前
+
+### Restartable Exceptions
+
+如果 Exception 可以恢復，Handler 修復問題後，就可以透過 `sret` 返回 `SEPC`，讓 CPU **重新 Fetch 並執行出錯的 Instruction**，例如：
+
+```text
+SEPC = 0x4C
+PC   = 0x1C090000  # Handler
+```
+
+Handler 會先保存可能需要修改的 Registers，處理完後再恢復原本的 State，最後返回 `0x4C` 重新執行 `add`
+
+## Multiple Issue Processor
+
+剛剛介紹的 Pipeline 是一種 **Instruction-Level Parallelism (ILP)** 這一定有一個上限，想要增進他的 performance 有以下方法
+1. **Deeper Pipeline**：讓每個 stage 跑的東西變少，就可以讓 **Frequency** 增加，但更深的 Pipeline 也可能增加 branch misprediction penalty 與 hazard 所造成的 stall
+2. **Multiple issue**：讓 CPU 在同一個 Clock Cycle 中 issue 多個 instructions，使理想情況下的 IPC > 1，也就是增加 **IPC**
+
+我們主要探討 multiple issue 的 processor，這又能分成兩種
+
+### Static multiple issue
+
+static 就是在 compilation 階段做完所有 group 的動作，首先 compiler 會藉由某些 component 是否被佔用，來決定要把哪些 RISC-V 指令包成 **"issue packet"**，而每次執行就是一個 packet (slot) 一起執行，我們可以把 packet 想成 **Very Long Instruction Word (VLIW)**
+
+Compiler 在這個階段必須把 detect 到的 hazard 用 **Reorder** 的方法解決，並且我們需要確保
+- 同個 issue packet 裡面的 instruction 沒有 dependency
+- 跨 Packet 的 dependency 要考慮到 latency
+- 必要的空位填入 `nop`
+
+比如說當我們設計一個 two issue packet 的時候我們通常會讓一個 packet 裡面都是
+- One ALU/branch instruction
+- One load/store instruction
+
+<Fig src="/images/ca/ch07-pipeline-implementation/two-issue-pipeline.webp" caption="two issue pipeline" width={60} />
+
+設計這樣的 pipeline 很簡單，我們只需要多加一組 bus 跟 ALU 就好
+
+<Fig src="/images/ca/ch07-pipeline-implementation/pipeline-for-two-issue-pipeline.webp" caption="Pipeline for two issue pipeline" width={80} />
+
+
+#### Hazard in Dual-issue
+
+在 multiple issue processor 的情況下依然有 hazard 的問題
+
+- **EX hazard**：同一個 packet 的 ALU result 不能被用在 load/store operation 裡面，而
+- **Load Use hazard**：依然需要一個 Cycle 的 stall，只是這次有兩個
+
+那我們需要一些更激進的 Scheduling，例如下面有一段 code
+
+```asm
+Loop:
+    ld   x31, 0(x20)    # x31=array element
+    add  x31, x31, x21  # add scalar in x21
+    sd   x31, 0(x20)    # store result
+    addi x20, x20, -8   # decrement pointer
+    blt  x22, x20, Loop # branch if x22 < x20
+```
+
+首先我們
+
+<Fig src="/images/ca/ch07-pipeline-implementation/scheduling-table.webp" caption="Scheduling Table" width={80} />
+
+經過 code reorder 之後我們可以把沒有 dependency 的 code 排進同一個 packet，並且可以確保 packet 之間也沒有 hazard，在必要的地方填入 `nop`
+
+<Fig src="/images/ca/ch07-pipeline-implementation/scheduling-table-with-the-example-instruction.webp" caption="Scheduling Table with the example instruction" width={80} />
+
+做完後我們進行 IPC 運算
+
+$$
+\text{IPC} = \frac{5}{4} = 1.25\quad (\text{peak IPC} = 2)
+$$
+
+#### Loop Unrolling
+
+考慮下面這個 code
+
+```asm
+Loop: 
+    ld   x31, 0(x20)
+    add  x31, x31, x21
+    sd   x31, 0(x20)
+    addi x20, x20, –32
+    blt  x22, x20, Loop
+```
+
+我們把 code 展開之後發現他真正執行的是
+
+```asm
+Loop: 
+    ld   x31, 0(x20)
+    add  x31, x31, x21
+    sd   x31, 0(x20)
+    
+    ld   x31, -8(x20)
+    add  x31, x31, x21
+    sd   x31, -8(x20)
+    
+    ld   x31, -16(x20)
+    add  x31, x31, x21
+    sd   x31, -16(x20)
+    
+    ld   x31, -24(x20)
+    add  x31, x31, x21
+    sd   x31, -24(x20)
+    
+    addi x20, x20, –32
+    blt  x22, x20, Loop
+```
+
+因為 `x31` 一直被重複使用，所以會有很多的 load use hazard，但我們其實可以把它改成使用不同的 register，這個步驟就叫做 **Loop Unrolling**
+
+```asm
+Loop: 
+    ld   x31, 0(x20)
+    add  x31, x31, x21
+    sd   x31, 0(x20)
+    
+    ld   x30, -8(x20)
+    add  x30, x30, x21
+    sd   x30, -8(x20)
+    
+    ld   x29, -16(x20)
+    add  x29, x29, x21
+    sd   x29, -16(x20)
+    
+    ld   x28, -24(x20)
+    add  x28, x28, x21
+    sd   x28, -24(x20)
+    
+    addi x20, x20, –32
+    blt  x22, x20, Loop
+```
+
+我們就可以把原始的 code 排成以下的樣子
+
+<Fig src="/images/ca/ch07-pipeline-implementation/loop-unrolling.webp" caption="Loop Unrolling" width={70} />
+
+但要注意，reorder 之後的 code 需要重新做 allocate 他的 location information
+
+<Fig src="/images/ca/ch07-pipeline-implementation/loop-unrolling-with-correct-information.webp" caption="Loop Unrolling with correct information" width={70} />
+
+我們甚至可以再次重新排的更激進一點提升 IPC，最終獲得
+$$
+\text{IPC} = \frac{14}{8} = 1.75
+$$
+
+<Fig src="/images/ca/ch07-pipeline-implementation/loop-unrolling-in-more-aggressive-way.webp" caption="Loop Unrolling in more aggressive way" width={70} />
+
+雖然這樣確實可以提升 IPC 但還是增加了 code size 以及 register 的用量，就是標準的以空間換時間
+
+### Dynamic multiple issue
+
+CPU 會在每個 Clock cycle 前決定他這輪要執行哪些 instruction，Compiler 只能藉由 instruction **reorder** 來幫助 performance，而 hazard 會在 runtime 解決
+
+Superscalar processors 是一個例子，會允許 CPU 一次 issue 多個 instruction，具體數量會在 runtime 跟據 Data Hazard, Structural Hazard 決定，但 Compiler 依舊可以藉由 Instruction reordering 來增進 performance
+
+<Fig src="/images/ca/ch07-pipeline-implementation/dynamically-scheduled-cpu.webp" caption="Dynamically Scheduled CPU" width={80} />
+
+上面這張圖，分為三個步驟
+1. **In-Order Instruction Fetch / Decoding**：這兩個步驟都是 in-order 的
+2. **Reservation**：把 Fetch 到的 operand 以及其他 information 都累積到某個 **reservation station**，先存起來
+3. **Out-of-Order Execution**：當 Operand 以及對應的 functional Unit 可以使用後，我們就能把對應的 instruction 直接執行，不需 in-order
+4. **Inorder Commit**：雖然 execution 可以 out-of-order，但這樣直接執行可能會影響 program 的 semantic，所以真正的 commit 還是要 inorder
+
+使用 Dynamic issue 是因為下列幾個原因
+- Stall 通常是 unpredictable 的，例如 cache miss
+- Branch result 是 unpredictable 的
+- 不同 Implementation 就算用同一套 ISA 還是會有硬體的區別，不同的 Implementation 會有各自的 optimization method
