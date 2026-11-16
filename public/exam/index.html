@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Clock</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js" onload="window.mathReady && mathReady()"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23888' stroke-width='3'/%3E%3Cpath d='M16 9v8l5 3' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --page: #f2f2f5; --bg: #ffffff; --card: #ffffff;
+  --fg: #1d1d1f; --fg2: #3c3c43; --dim: #86868b; --line: #e2e2e6; --field: #f4f4f6; --track: #d9d9de; --raised: #ffffff;
+  --orange: #ff8700; --red: #d70000; --on-orange: #000000; --on-red: #ffffff;
+  --accent: #1a6ce0; --accent-ring: rgba(26, 108, 224, .55);
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Songti TC", "Noto Serif TC", "Noto Serif CJK TC", "Source Han Serif TC", PMingLiU, serif;
+  --digits: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #111214; --bg: #17181b; --card: #1e1f23;
+    --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
+  }
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] {
+  --page: #111214; --bg: #17181b; --card: #1e1f23;
+  --fg: #ececee; --fg2: #c2c2c7; --dim: #8a8a90; --line: #2e2f34; --field: #26272b; --track: #393a40; --raised: #45464d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+b, strong { font-weight: 700; }
+
+/* ── Setup: laid out like the cover page of an exam paper ──────────────── */
+#setup { min-height: 100%; display: grid; place-items: center; padding: 56px 24px; font-family: var(--serif); }
+#form { width: 100%; max-width: 760px; font-size: 19px; line-height: 1.5; }
+.topline {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  color: var(--dim); font-size: 15px; padding-bottom: 10px; border-bottom: 3px solid var(--fg);
+}
+.topline b { font-family: var(--digits); font-weight: 500; color: var(--fg); font-variant-numeric: tabular-nums; margin-left: .4em; }
+#form h1 { font-size: 44px; line-height: 1.2; font-weight: 700; letter-spacing: .06em; margin: 0 0 14px; padding: 22px 0 20px; border-bottom: 1px solid var(--fg); }
+.row { display: grid; grid-template-columns: 7em 1fr; align-items: baseline; gap: 6px 20px; padding: 14px 0; }
+.row .label { font-weight: 700; }
+.row input {
+  width: 100%; border: 0; border-bottom: 1px solid var(--dim); border-radius: 0; background: none; outline: none;
+  padding: 2px 2px 5px; font-weight: 600;
+}
+.row input:focus { border-bottom-color: var(--fg); box-shadow: 0 1px 0 var(--fg); }
+.row input::placeholder { color: var(--dim); font-weight: 400; opacity: .7; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px 36px; }
+.choices button { border: 0; background: none; padding: 2px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; color: var(--dim); }
+.choices button:hover { color: var(--fg); }
+.choices i { width: .8em; height: .8em; border: 1.5px solid currentColor; border-radius: 50%; flex: none; }
+.choices button[aria-checked="true"] { color: var(--fg); font-weight: 700; }
+.choices button[aria-checked="true"] i { background: var(--fg); border-color: var(--fg); }
+.choices button:focus-visible, .go:focus-visible { outline: 2px solid var(--fg); outline-offset: 4px; }
+.times { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.times input { width: 4.4em; text-align: center; font-family: var(--digits); font-variant-numeric: tabular-nums; }
+.times .to { color: var(--dim); }
+.hint { color: var(--dim); font-size: 15px; margin-left: 10px; }
+.hint.error { color: var(--red); }
+.preview { margin-top: 12px; font-size: 16px; line-height: 1.6; color: var(--fg2); }
+.preview .callout { color: var(--fg); font-weight: 700; margin-bottom: 4px; }
+.preview ol { margin: 0; padding-left: 1.4em; }
+.preview li::marker { color: var(--dim); }
+.actions {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+  margin-top: 18px; padding-top: 24px; border-top: 1px solid var(--fg);
+}
+.actions .note { color: var(--dim); font-size: 15px; }
+.go {
+  border: 0; border-radius: 2px; padding: 13px 36px; background: var(--fg); color: var(--bg);
+  font-size: 19px; font-weight: 700; letter-spacing: .1em; cursor: pointer;
+}
+.go:hover { opacity: .85; }
+@media (max-width: 600px) {
+  .row { grid-template-columns: 1fr; padding: 10px 0; }
+  #form h1 { font-size: 34px; }
+  .go { width: 100%; }
+}
+
+/* ── Display ───────────────────────────────────────────────────────────── */
+#show { height: 100%; display: flex; flex-direction: column; background: var(--bg); }
+.stage { flex: 1; min-height: 0; container-type: size; }
+.display {
+  /* same proportions as the terminal version (about 90 columns × 26 rows) */
+  --row: 1.4em; --col: .6em;
+  height: 100%; font-size: min(1.85cqw, 2.9cqh); line-height: var(--row);
+  display: grid; grid-template-rows: auto 1fr; overflow: hidden;
+}
+.info {
+  display: flex; justify-content: space-between; gap: 3em; white-space: nowrap; align-items: baseline;
+  padding: calc(var(--row) * .9) calc(var(--col) * 3); border-bottom: 1px solid var(--line);
+}
+.info .item { display: flex; gap: calc(var(--col) * 1.6); min-width: 0; align-items: baseline; }
+.info .label { color: var(--dim); font-size: .82em; letter-spacing: .04em; }
+.info .value { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.cols { display: grid; grid-template-columns: 42% 58%; min-height: 0; }
+.left { min-height: 0; overflow: hidden; padding: 0 calc(var(--col) * 2.5) 0 calc(var(--col) * 3.5); }
+.right { border-left: 1px solid var(--line); display: grid; grid-template-rows: 1fr auto 1fr; justify-items: center; min-height: 0; overflow: hidden; }
+
+.leftin { width: fit-content; max-width: 100%; }
+.title {
+  color: var(--dim); font-size: .82em; font-weight: 600; letter-spacing: .06em;
+  padding-bottom: calc(var(--row) * .3); border-bottom: 1px solid var(--line); margin-bottom: var(--row);
+}
+.left .callout {
+  font-weight: 700; margin-bottom: var(--row); text-wrap: balance;
+  background: var(--field); border-left: .22em solid var(--fg); border-radius: .3em; padding: .45em .8em;
+}
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--row); }
+.rules li { display: grid; grid-template-columns: 1.55em 1fr; gap: .75em; align-items: start; }
+.rules .num {
+  /* a small circle, centred on the first line of the rule */
+  font-size: .78em; width: 2em; height: 2em; margin-top: -.1em; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid var(--track); color: var(--dim); font-variant-numeric: tabular-nums;
+}
+.rules .head { font-weight: 600; text-wrap: balance; }
+.rules .body { color: var(--fg2); text-wrap: pretty; }
+.rules .body b { color: var(--fg); }
+.nb { white-space: nowrap; }
+.notesbox { margin-top: calc(var(--row) * 2); }
+.notes { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .5); }
+.notes li { display: grid; grid-template-columns: 3.4em 1fr; gap: .6em; }
+.notes .stamp { color: var(--dim); font-variant-numeric: tabular-nums; }
+.notes .text { color: var(--fg2); overflow-wrap: anywhere; text-wrap: pretty; }
+.notes .fresh { color: var(--fg); font-weight: 700; }
+.notes .katex { font-size: 1.08em; }
+.notes .katex-display { margin: .2em 0; }
+.draftrow { display: grid; gap: .3em; min-width: 0; }
+.mathpreview { color: var(--fg2); overflow-wrap: anywhere; }
+.mathpreview:empty { display: none; }
+.notes input { width: 100%; border: 0; border-bottom: 2px solid var(--accent); background: none; outline: none; padding: 0; font-weight: 600; line-height: var(--row); }
+.earlier { color: var(--dim); font-size: .85em; margin-bottom: calc(var(--row) * .5); }
+.compact .title { margin-bottom: calc(var(--row) * .5); }
+.compact .rules { gap: calc(var(--row) * .5); }
+.compact .left .callout, .compact .callout { margin-bottom: calc(var(--row) * .5); }
+.compact .notesbox { margin-top: var(--row); }
+.compact2 .rules { gap: calc(var(--row) * .15); }
+.compact2 .notes { gap: 0; }
+
+.above { align-self: end; display: flex; flex-direction: column; align-items: center; padding-bottom: calc(var(--row) * 2); }
+.below { align-self: start; display: flex; flex-direction: column; align-items: center; padding-top: calc(var(--row) * 2); }
+.tlabel { color: var(--dim); font-size: .82em; letter-spacing: .06em; margin-bottom: var(--row); }
+.range, .clock { font-family: var(--digits); font-stretch: 88%; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: .8; }
+.range { font-size: var(--range-fs, 2em); font-weight: 400; color: var(--fg2); }
+.range.small { font-family: var(--sans); font-weight: 600; font-stretch: 100%; font-size: 1em; line-height: var(--row); }
+.clock { font-size: var(--clock-fs, 8em); font-weight: 500; letter-spacing: -.01em; }
+.bar { height: calc(var(--row) * .42); width: var(--clock-w, 20em); background: var(--track); border-radius: 99px; position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--fg); border-radius: 99px; transition: width .6s linear, background .3s; }
+.status {
+  margin-top: var(--row); min-height: calc(var(--row) * 2.6); width: var(--clock-w, 20em);
+  display: grid; place-items: center; color: var(--dim); border-radius: .5em; transition: background .3s;
+}
+.soon .bar i { background: var(--orange); }
+.final .bar i, .over .bar i { background: var(--red); }
+.soon .status { background: var(--orange); color: var(--on-orange); font-weight: 700; }
+.final .status, .over .status { background: var(--red); color: var(--on-red); font-weight: 700; }
+.measure { position: absolute; visibility: hidden; white-space: nowrap; left: -9999px; top: 0; }
+
+/* ── Key guide (hidden in fullscreen) ──────────────────────────────────── */
+.guide {
+  border-top: 3px solid var(--accent); padding: 14px 20px; font-size: 14px; color: var(--dim);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  display: flex; gap: 14px 28px; align-items: center;
+}
+.guide .keys { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
+.guide .keys button { border: 0; background: none; padding: 0; cursor: pointer; color: var(--fg2); display: inline-flex; gap: 8px; align-items: center; }
+.guide .keys button:hover { color: var(--fg); }
+.guide .fsbtn {
+  flex: none; border: 0; border-radius: 12px; padding: 12px 20px; cursor: pointer;
+  background: var(--accent); color: #fff; font-size: 17px; line-height: 1.3; text-align: left;
+  display: grid; grid-template-columns: auto auto; gap: 2px 12px; align-items: center;
+  animation: ring 1.8s ease-out infinite;
+}
+.guide .fsbtn:hover { filter: brightness(1.1); }
+.guide .fsbtn .icon { grid-row: span 2; font-size: 30px; line-height: 1; }
+.guide .fsbtn strong { font-size: 18px; }
+.guide .fsbtn span { opacity: .92; font-size: 14px; }
+.guide .fsbtn kbd { color: #fff; background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .5); }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 var(--accent-ring); } 70%, 100% { box-shadow: 0 0 0 12px transparent; } }
+@media (prefers-reduced-motion: reduce) { .guide .fsbtn { animation: none; } .bar i { transition: none; } }
+@media (max-width: 760px) { .guide { flex-direction: column; align-items: stretch; } }
+.guide kbd {
+  font-family: var(--mono); font-size: 12px; min-width: 24px; padding: 2px 6px; text-align: center;
+  border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; color: var(--fg); background: var(--card);
+}
+.fs .guide { display: none; }
+</style>
+</head>
+<body>
+
+<section id="setup">
+  <form id="form" autocomplete="off" novalidate>
+    <div class="topline"><span id="today"></span><span><span data-t="nowLabel"></span><b id="nowClock"></b></span></div>
+    <h1 data-t="formTitle"></h1>
+
+    <div class="row" id="langSeg" role="radiogroup">
+      <span class="label" data-t="langLabel"></span>
+      <div class="choices">
+        <button type="button" role="radio" data-v="en"><i></i>English</button>
+        <button type="button" role="radio" data-v="zh"><i></i>中文</button>
+      </div>
+    </div>
+    <label class="row"><span class="label" data-t="course"></span><input type="text" name="course" data-ph="coursePh"></label>
+    <label class="row"><span class="label" data-t="examName"></span><input type="text" name="exam" data-ph="examPh"></label>
+    <label class="row"><span class="label" data-t="prof"></span><input type="text" name="prof" data-ph="profPh"></label>
+    <div class="row">
+      <span class="label" data-t="time"></span>
+      <div class="times">
+        <input type="text" name="start" inputmode="numeric" maxlength="5" placeholder="14:20" aria-label="start">
+        <span class="to" data-t="to"></span>
+        <input type="text" name="end" inputmode="numeric" maxlength="5" placeholder="16:10" aria-label="end">
+        <span class="hint" id="timeHint"></span>
+      </div>
+    </div>
+    <div class="row" id="rulesSeg" role="radiogroup">
+      <span class="label" data-t="rulesLabel"></span>
+      <div>
+        <div class="choices">
+          <button type="button" role="radio" data-v="quiz"><i></i><span data-t="quiz"></span></button>
+          <button type="button" role="radio" data-v="exam"><i></i><span data-t="exam"></span></button>
+        </div>
+        <div class="preview" id="preview"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <span class="note" data-t="formSub"></span>
+      <button type="submit" class="go"><span data-t="go"></span></button>
+    </div>
+  </form>
+</section>
+
+<section id="show" hidden>
+  <div class="stage">
+    <div class="display" id="display">
+      <header class="info" id="info"></header>
+      <div class="cols">
+        <div class="left" id="left">
+          <div class="leftin" id="leftin">
+            <div class="title" id="rtitle"></div>
+            <div class="callout" id="callout"></div>
+            <ol class="rules" id="rules"></ol>
+            <div class="notesbox" id="notesbox" hidden>
+              <div class="title" data-d="notes"></div>
+              <div class="earlier" id="earlier" hidden></div>
+              <ul class="notes" id="notes"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="right" id="right">
+          <div class="above">
+            <div class="tlabel" id="tlabel"></div>
+            <div class="range" id="range"></div>
+          </div>
+          <div class="clock" id="clock">00:00:00</div>
+          <div class="below">
+            <div class="bar"><i id="barFill"></i></div>
+            <div class="status" id="status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="guide" id="guide"></footer>
+</section>
+
+<span class="measure" id="measure"></span>
+
+<script>
+"use strict";
+// ── Content ──────────────────────────────────────────────────────────────
+// Rules: "headline :: detail" (headline bold, detail under it); "! text" is a callout above the
+// numbered list; **bold**; | marks where Chinese may break.
+const RULE_SETS = {
+  quiz: {
+    en: [
+      "Fill in your class :: Top-right of the answer sheet",
+      "No early submission :: During the last 5 minutes",
+      "No devices or notes :: Any electronic device or paper note",
+    ],
+    zh: [
+      "塗滿班級欄位 :: 在答案卡的|右上方",
+      "不可提早交卷 :: 考試的|最後 5 分鐘內",
+      "禁用電子產品與小抄 :: 包括任何|電子產品及|紙本小抄",
+    ],
+  },
+  exam: {
+    en: [
+      "! Do NOT submit the scratch paper",
+      "Place your backpack near the stage. ::",
+      "No electric devices, no calculator and no cheating. ::",
+      "If you need to use the restroom :: Leave your **examination paper (including scratch paper)** and **cellphone** on the stage. If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
+      "Do NOT use your own scratch paper. ::",
+    ],
+    zh: [
+      "! 交卷時，不要繳交計算紙！",
+      "請將書包放置於|講台附近。 ::",
+      "不得使用任何|電子設備|（包含計算機）。 ::",
+      "不得使用|自行攜帶的|計算紙。 ::",
+      "如考試期間|需要上廁所 :: 請先將**考卷（包含計算紙）**及**手機**|放置於講台上。|若手機放在書包內，|也請先取出並|放置於講台上，|再離開教室。",
+      "嚴禁作弊。 ::",
+    ],
+  },
+};
+
+const ORANGE_AT = 15, RED_AT = 5;  // minutes left: orange reminder, then red
+const NOTE_FRESH = 10 * 60;        // a new announcement stays bold for this many seconds
+const NOTE_MAX = 300;
+
+const TEXT = {
+  en: {
+    title: { quiz: "Quiz Rules", exam: "Exam Rules" },
+    labels: ["Course", "Exam", "Professor"], time: "Exam time",
+    notes: "Announcements", earlier: n => `+ ${n} earlier`,
+    before: d => `Starts in ${d}`, left: d => `${d} remaining`, over: "Time is up — please stop writing",
+    dur: (h, m, s) => s != null ? `${s} sec` : h && m ? `${h} hr ${m} min` : h ? `${h} hr` : `${m} min`,
+    formTitle: "Exam Clock", formSub: "Enter also starts. Nothing on this page is saved.", rulesLabel: "Rules",
+    langLabel: "Language", nowLabel: "Now", to: "to", badFormat: "Write it like 14:20 (24-hour)", quiz: "Quiz", exam: "Exam",
+    course: "Course", examName: "Exam", prof: "Professor", go: "Start",
+    coursePh: "e.g. Linear Algebra", examPh: "e.g. Midterm Exam", profPh: "e.g. Chen",
+    lasts: d => `Lasts ${d}`, badTime: "The end time has to be after the start time.",
+    needTime: "Please fill in the start and end time.",
+    fsTitle: "Not fullscreen yet", fsHow: "Click here or press <kbd>F</kbd>",
+    guide: [["L", "中文 / English"], ["R", "Quiz ↔ Exam rules"],
+            ["N", "New announcement ($…$ for math, Enter to post, Esc to cancel)"], ["E", "Edit the latest announcement"],
+            ["D", "Delete the latest announcement"], ["Q", "Back to setup"]],
+    leave: "The exam display is still running.", draftPh: "Type the announcement — math in $…$, e.g. $x^2 + 1$",
+  },
+  zh: {
+    title: { quiz: "考場須知", exam: "考場須知" },
+    labels: ["課程", "考試", "教授"], time: "考試時間",
+    notes: "公告", earlier: n => `還有 ${n} 則較早的公告`,
+    before: d => `距離開始還有 ${d}`, left: d => `剩餘 ${d}`, over: "考試結束，請停止作答",
+    dur: (h, m, s) => s != null ? `${s} 秒` : h && m ? `${h} 小時 ${m} 分鐘` : h ? `${h} 小時` : `${m} 分鐘`,
+    formTitle: "考試時鐘", formSub: "按 Enter 也可以開始。這個網頁不會儲存任何資料。", rulesLabel: "考場須知",
+    langLabel: "語言", nowLabel: "現在時間", to: "至", badFormat: "請寫成 14:20 這種格式（24 小時制）", quiz: "Quiz（小考）", exam: "Exam（大考）",
+    course: "課程", examName: "考試", prof: "教授", go: "開始",
+    coursePh: "例如：線性代數", examPh: "例如：期中考", profPh: "例如：陳",
+    lasts: d => `共 ${d}`, badTime: "結束時間要晚於開始時間。",
+    needTime: "請填入開始和結束時間。",
+    fsTitle: "還不是全螢幕", fsHow: "點這裡或按 <kbd>F</kbd>",
+    guide: [["L", "中文 / English"], ["R", "切換考場須知（Quiz ↔ Exam）"],
+            ["N", "新增公告（$…$ 寫數學式，Enter 送出，Esc 取消）"], ["E", "修改最新的公告"],
+            ["D", "刪除最新的公告"], ["Q", "回到設定"]],
+    leave: "考試時鐘還在執行中。", draftPh: "輸入公告，數學式寫在 $…$ 裡，例如 $x^2 + 1$",
+  },
+};
+
+// ── State (kept only while the page is open — nothing is saved) ───────────
+const S = { lang: "en", ruleset: "quiz", rulesPicked: false, course: "", exam: "", prof: "",
+            start: "", end: "", notes: [], notesFor: "", draft: null, running: false };
+const $ = id => document.getElementById(id);
+const T = () => TEXT[S.lang];
+const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// "**bold**" and "|" break hints → HTML. With hints, each piece between | stays on one line.
+function markup(s) {
+  const hinted = s.includes("|");
+  let bold = false, out = "", piece = "";
+  const flush = () => { if (piece) out += hinted ? `<span class="nb">${piece}</span>` : piece; piece = ""; };
+  for (const tok of s.split(/(\*\*|\|)/)) {
+    if (tok === "**") { piece += bold ? "</b>" : "<b>"; bold = !bold; }
+    else if (tok === "|") { if (bold) piece += "</b>"; flush(); if (bold) piece += "<b>"; }
+    else piece += esc(tok);
+  }
+  if (bold) piece += "</b>";
+  flush();
+  return out;
+}
+
+function parseRules(list) {
+  const callouts = [], items = [];
+  for (const r of list) {
+    if (r.startsWith("!")) { callouts.push(r.slice(1).trim()); continue; }
+    const i = r.indexOf("::");
+    items.push(i < 0 ? { head: "", body: r.trim() } : { head: r.slice(0, i).trim(), body: r.slice(i + 2).trim() });
+  }
+  return { callouts, items };
+}
+
+function fmtDur(sec) {
+  if (sec < 60) return T().dur(0, 0, Math.max(1, Math.ceil(sec)));
+  const total = Math.ceil(sec / 60);
+  return T().dur(Math.floor(total / 60), total % 60);
+}
+
+function minutes(hhmm) { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; }
+function at(hhmm, now) { const d = new Date(now); d.setHours(Math.floor(minutes(hhmm) / 60), minutes(hhmm) % 60, 0, 0); return d; }
+
+function examState(now) {
+  const s = at(S.start, now), e = at(S.end, now);
+  if (now < s) return { state: "before", text: T().before(fmtDur((s - now) / 1000)), pct: 0 };
+  if (now < e) {
+    const left = (e - now) / 1000;
+    const state = left <= RED_AT * 60 ? "final" : left <= ORANGE_AT * 60 ? "soon" : "during";
+    return { state, text: T().left(fmtDur(left)), pct: (now - s) / (e - s) };
+  }
+  return { state: "over", text: T().over, pct: 1 };
+}
+
+// ── Setup form ───────────────────────────────────────────────────────────
+const form = $("form");
+
+function setSeg(seg, value) {
+  for (const b of seg.querySelectorAll("button")) b.setAttribute("aria-checked", String(b.dataset.v === value));
+}
+
+function renderForm() {
+  document.documentElement.lang = S.lang === "zh" ? "zh-Hant" : "en";
+  for (const el of form.querySelectorAll("[data-t]")) el.textContent = T()[el.dataset.t];
+  for (const el of form.querySelectorAll("[data-ph]")) el.placeholder = T()[el.dataset.ph];
+  setSeg($("langSeg"), S.lang);
+  setSeg($("rulesSeg"), S.ruleset);
+  const { callouts, items } = parseRules(RULE_SETS[S.ruleset][S.lang]);
+  $("preview").innerHTML =
+    callouts.map(c => `<div class="callout">${markup(c)}</div>`).join("") +
+    `<ol>${items.map(it => `<li>${it.head ? `<b>${markup(it.head)}</b> ` : ""}${markup(it.body)}</li>`).join("")}</ol>`;
+  checkTimes(false);
+}
+
+const pad2 = n => String(n).padStart(2, "0");
+
+// "14:20", "1420", "14：20", "14.20", "9:05", "14" → "HH:MM"; anything else → null
+function parseHM(text) {
+  const t = text.trim().replace(/[：．.]/g, ":").replace(/\s+/g, "");
+  const m = /^(\d{1,2}):(\d{1,2})$/.exec(t) || /^(\d{1,2})(\d{2})$/.exec(t) || /^(\d{1,2})()$/.exec(t);
+  if (!m || +m[1] > 23 || +(m[2] || 0) > 59) return null;
+  return `${pad2(+m[1])}:${pad2(+(m[2] || 0))}`;
+}
+
+function checkTimes(strict) {
+  const hint = $("timeHint"), st = parseHM(form.start.value), en = parseHM(form.end.value);
+  hint.classList.remove("error");
+  if ((form.start.value.trim() && !st) || (form.end.value.trim() && !en)) {
+    hint.textContent = T().badFormat; hint.classList.add("error"); return false;
+  }
+  if (!st || !en) { hint.textContent = strict ? T().needTime : ""; hint.classList.toggle("error", strict); return false; }
+  const d = minutes(en) - minutes(st);
+  if (d <= 0) { hint.textContent = T().badTime; hint.classList.add("error"); return false; }
+  hint.textContent = T().lasts(T().dur(Math.floor(d / 60), d % 60));
+  return true;
+}
+
+$("langSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.lang = b.dataset.v; renderForm();
+});
+$("rulesSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  S.ruleset = b.dataset.v; S.rulesPicked = true; renderForm();
+});
+form.exam.addEventListener("input", () => {  // "Quiz 2" → quiz rules, "Midterm" → exam rules, until picked by hand
+  if (S.rulesPicked) return;
+  const s = form.exam.value.toLowerCase();
+  const guess = /quiz|小考|測驗/.test(s) ? "quiz" : /exam|midterm|final|期中|期末|考試/.test(s) ? "exam" : null;
+  if (guess && guess !== S.ruleset) { S.ruleset = guess; renderForm(); }
+});
+for (const input of [form.start, form.end]) {
+  input.addEventListener("input", () => checkTimes(false));
+  input.addEventListener("blur", () => { const v = parseHM(input.value); if (v) input.value = v; checkTimes(false); });
+  input.addEventListener("keydown", e => {  // ↑ / ↓ : 5 minutes, with Shift : 1 hour
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    const v = parseHM(input.value) || (input === form.end && parseHM(form.start.value)) || "12:00";
+    const step = (e.shiftKey ? 60 : 5) * (e.key === "ArrowUp" ? 1 : -1);
+    const t = (Math.round((minutes(v) + step) / (e.shiftKey ? 1 : 5)) * (e.shiftKey ? 1 : 5) + 1440) % 1440;
+    input.value = `${pad2(Math.floor(t / 60))}:${pad2(t % 60)}`;
+    checkTimes(false);
+  });
+}
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  if (!checkTimes(true)) { (parseHM(form.start.value) ? form.end : form.start).focus(); return; }
+  Object.assign(S, { course: form.course.value.trim(), exam: form.exam.value.trim(), prof: form.prof.value.trim(),
+                     start: parseHM(form.start.value), end: parseHM(form.end.value) });
+  const key = [new Date().toDateString(), S.course, S.exam, S.start, S.end].join("|");
+  if (key !== S.notesFor) { S.notes = []; S.notesFor = key; }  // same exam again: keep its announcements
+  startDisplay();
+});
+
+// sensible first values: starts at the next ten minutes, lasts an hour
+(function initTimes() {
+  const d = new Date(); d.setSeconds(0, 0); d.setMinutes(Math.ceil((d.getMinutes() + 1) / 10) * 10);
+  const p = n => String(n).padStart(2, "0");
+  form.start.value = `${p(d.getHours())}:${p(d.getMinutes())}`;
+  const e = new Date(d.getTime() + 60 * 60000);
+  form.end.value = e.getDate() === d.getDate() ? `${p(e.getHours())}:${p(e.getMinutes())}` : "23:59";
+  if ((navigator.language || "").toLowerCase().startsWith("zh")) S.lang = "zh";
+})();
+renderForm();
+
+(function setupClock() {  // today's date and the computer's time, so a wrong clock is noticed before the exam
+  if (!S.running) {
+    const now = new Date();
+    $("today").textContent = now.toLocaleDateString(S.lang === "zh" ? "zh-TW" : "en-GB", { dateStyle: "full" });
+    $("nowClock").textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+  }
+  setTimeout(setupClock, 1000 - (Date.now() % 1000) + 5);
+})();
+
+// ── Display ──────────────────────────────────────────────────────────────
+let tick = null, wakeLock = null;
+
+function startDisplay() {
+  S.running = true;
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();  // keys go to the display
+  $("setup").hidden = true;
+  $("show").hidden = false;
+  renderStatic();
+  update();
+  requestWake();
+}
+
+function backToSetup() {
+  S.running = false; S.draft = null;
+  clearTimeout(tick);
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  $("show").hidden = true;
+  $("setup").hidden = false;
+  renderForm();
+  form.course.focus();
+}
+
+async function requestWake() {  // keep the screen on while the clock runs
+  try { if ("wakeLock" in navigator && S.running) wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && S.running) requestWake(); });
+
+function renderStatic() {
+  const t = T();
+  document.documentElement.lang = S.lang === "zh" ? "zh-Hant" : "en";
+  const fields = [[t.labels[0], S.course], [t.labels[1], S.exam], [t.labels[2], S.prof]].filter(f => f[1]);
+  $("info").innerHTML = fields.map(([l, v]) =>
+    `<div class="item"><span class="label">${esc(l)}</span><span class="value">${esc(v)}</span></div>`).join("");
+  $("info").style.justifyContent = fields.length === 1 ? "center" : "space-between";
+
+  const { callouts, items } = parseRules(RULE_SETS[S.ruleset][S.lang]);
+  $("rtitle").textContent = t.title[S.ruleset];
+  $("callout").innerHTML = callouts.map(markup).join("<br>");
+  $("callout").hidden = !callouts.length;
+  $("rules").innerHTML = items.map((it, i) =>
+    `<li><span class="num">${i + 1}</span><div>${it.head ? `<div class="head">${markup(it.head)}</div>` : ""}` +
+    `${it.body ? `<div class="body">${markup(it.body)}</div>` : ""}</div></li>`).join("");
+  for (const el of document.querySelectorAll("[data-d]")) el.textContent = t[el.dataset.d];
+
+  $("tlabel").textContent = t.time;
+  $("range").textContent = `${S.start} – ${S.end}`;
+
+  $("guide").innerHTML =
+    `<button type="button" class="fsbtn" data-key="F"><span class="icon">⛶</span>` +
+    `<strong>${esc(t.fsTitle)}</strong><span>${t.fsHow}</span></button>` +
+    `<div class="keys">${t.guide.map(([k, what]) =>
+      `<button type="button" data-key="${k}"><kbd>${k}</kbd><span>${esc(what)}</span></button>`).join("")}</div>`;
+  renderNotes(true);
+  fit();
+}
+
+function hhmm(ts) { const d = new Date(ts); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; }
+
+function renderNotes(force) {
+  const list = $("notes"), now = Date.now();
+  const typing = S.draft !== null;
+  if (typing && !force && list.querySelector("input")) return;  // don't disturb the input while typing
+  $("notesbox").hidden = !S.notes.length && !typing;
+  const rows = S.notes.map((n, i) => {
+    if (typing && S.draft.edit === i) return { input: true, t: n.t };
+    return { t: n.t, text: n.text, fresh: (now - n.t) / 1000 < NOTE_FRESH };
+  });
+  if (typing && S.draft.edit === null) rows.push({ input: true, t: now });
+  list.innerHTML = rows.map(r => r.input
+    ? `<li><span class="stamp">${hhmm(r.t)}</span><div class="draftrow"><input id="draft" maxlength="${NOTE_MAX}" ` +
+      `enterkeyhint="send" placeholder="${esc(T().draftPh)}"><div class="mathpreview" id="draftPreview"></div></div></li>`
+    : `<li><span class="stamp">${hhmm(r.t)}</span><span class="text${r.fresh ? " fresh" : ""}" data-raw="${esc(r.text)}">${withMath(r.text)}</span></li>`).join("");
+  const input = $("draft");
+  if (input) {
+    input.value = S.draft.text;
+    const preview = () => {  // shows how the math will look before posting
+      $("draftPreview").innerHTML = hasMath(input.value) && window.katex ? withMath(input.value) : "";
+      layoutLeft();
+    };
+    preview();
+    input.addEventListener("input", () => { S.draft.text = input.value; preview(); });
+    input.addEventListener("keydown", e => {
+      if (e.isComposing || e.keyCode === 229) return;  // the input method is still choosing characters
+      if (e.key === "Enter") { e.preventDefault(); commitDraft(); }
+      else if (e.key === "Escape") { e.preventDefault(); S.draft = null; renderNotes(true); layoutLeft(); }
+    });
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+  layoutLeft();
+}
+
+// Announcements may contain LaTeX: $…$ or \(…\) inline, $$…$$ or \[…\] on its own line; \$ is a plain dollar sign.
+const MATH = /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|(?<!\\)\$((?:\\\$|[^$])+?)\$/g;
+const hasMath = text => text.search(MATH) >= 0;  // search() ignores and keeps lastIndex, unlike test()
+
+function withMath(text) {
+  if (!window.katex) return esc(text);
+  let out = "", last = 0;
+  MATH.lastIndex = 0;  // matchAll starts from the regex's lastIndex
+  for (const m of text.matchAll(MATH)) {
+    const display = m[1] != null || m[2] != null;
+    const tex = m[1] ?? m[2] ?? m[3] ?? m[4];
+    out += esc(text.slice(last, m.index).replace(/\\\$/g, "$"));
+    out += katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", output: "html" });
+    last = m.index + m[0].length;
+  }
+  return out + esc(text.slice(last).replace(/\\\$/g, "$"));
+}
+
+window.mathReady = () => {  // KaTeX arrived after some announcements were drawn: redraw just their text
+  for (const el of document.querySelectorAll(".notes .text[data-raw]")) el.innerHTML = withMath(el.dataset.raw);
+  const input = $("draft");
+  if (input) input.dispatchEvent(new Event("input"));
+  if (S.running) layoutLeft();
+};
+document.fonts?.addEventListener?.("loadingdone", () => { if (S.running) layoutLeft(); });  // KaTeX fonts change sizes
+
+function commitDraft() {
+  const text = S.draft.text.trim();
+  if (S.draft.edit !== null) {
+    if (text) S.notes[S.draft.edit].text = text; else S.notes.splice(S.draft.edit, 1);  // emptied → deleted
+  } else if (text) {
+    S.notes.push({ t: Date.now(), text });
+  }
+  S.draft = null;
+  renderNotes(true);
+}
+
+// Rules column: start level with the "Exam time" heading when it fits; squeeze the spacing, then
+// show only the newest announcements, when it doesn't.
+function layoutLeft() {
+  const left = $("left"), inner = $("leftin"), disp = $("display");
+  disp.classList.remove("compact", "compact2");
+  const items = [...$("notes").children];
+  items.forEach(li => { li.hidden = false; });
+  $("earlier").hidden = true;
+  inner.style.marginTop = "0px";
+  const room = () => left.clientHeight;
+  const tall = () => inner.getBoundingClientRect().height;
+  if (tall() > room() * .96) disp.classList.add("compact");
+  if (tall() > room() * .96) disp.classList.add("compact2");
+  let hidden = 0;
+  while (tall() > room() * .96 && hidden < items.length - 1) {
+    items[hidden].hidden = true; hidden++;
+    $("earlier").hidden = false;
+    $("earlier").textContent = T().earlier(hidden);
+  }
+  const target = $("tlabel").getBoundingClientRect().top - left.getBoundingClientRect().top;
+  const h = tall();
+  inner.style.marginTop = (target >= 0 && target + h <= room()) ? `${target}px` : `${Math.max(0, (room() - h) / 2)}px`;
+}
+
+// Clock as large as the right side allows, the exam time above it at about 40 %.
+const measureBox = $("measure");
+function textWidth(text, cls) {
+  measureBox.className = "measure " + cls;
+  measureBox.style.fontSize = "100px";
+  measureBox.textContent = text;
+  return measureBox.getBoundingClientRect().width / 100;
+}
+
+function fit() {
+  if (!S.running) return;
+  const disp = $("display"), right = $("right");
+  const base = parseFloat(getComputedStyle(disp).fontSize), row = base * 1.32, col = base * .602;
+  const W = right.clientWidth - col * 4, H = right.clientHeight;
+  const cw = textWidth("00:00:00", "clock"), rw = textWidth(`${S.start} – ${S.end}`, "range");
+  let fs = W / cw, rfs = 0;
+  for (let i = 0; i < 80; i++) {
+    rfs = Math.min(fs * .42, (fs * cw * .66) / rw);
+    const rangeH = rfs >= base * 1.6 ? rfs * .8 : row;
+    const above = row * 2 + rangeH + row * 2;    // heading, blank, range, gap
+    const below = row * 2 + row * .5 + row + row * 3;  // gap, bar, blank, status
+    if (fs * .8 + 2 * Math.max(above, below) <= H) break;
+    fs *= .97;
+  }
+  disp.style.setProperty("--clock-fs", `${fs}px`);
+  disp.style.setProperty("--range-fs", `${rfs}px`);
+  disp.style.setProperty("--clock-w", `${fs * cw}px`);
+  $("range").classList.toggle("small", rfs < base * 1.6);  // too small to be worth big digits
+  layoutLeft();
+}
+
+function update() {
+  if (!S.running) return;
+  const now = new Date();
+  const p = n => String(n).padStart(2, "0");
+  $("clock").textContent = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+  const st = examState(now);
+  $("right").className = "right " + st.state;
+  $("barFill").style.width = `${Math.max(0, Math.min(1, st.pct)) * 100}%`;
+  $("status").textContent = st.text;
+  if (S.draft === null && now.getSeconds() === 0) renderNotes(false);  // fresh → normal weight after 10 min
+  tick = setTimeout(update, 1000 - (Date.now() % 1000) + 5);
+}
+
+new ResizeObserver(() => fit()).observe($("display"));
+function syncFullscreen() {
+  const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.body.classList.toggle("fs", full);
+}
+document.addEventListener("fullscreenchange", syncFullscreen);
+document.addEventListener("webkitfullscreenchange", syncFullscreen);
+syncFullscreen();
+
+// ── Keys (also clickable in the guide) ───────────────────────────────────
+function action(key) {
+  if (!S.running) return;
+  switch (key) {
+    case "F":
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      else {
+        const el = document.documentElement;
+        const r = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+        if (r && r.catch) r.catch(() => {});
+      }
+      break;
+    case "L": S.lang = S.lang === "en" ? "zh" : "en"; renderStatic(); update(); break;
+    case "R": S.ruleset = S.ruleset === "quiz" ? "exam" : "quiz"; renderStatic(); break;
+    case "N": S.draft = { text: "", edit: null }; renderNotes(true); break;
+    case "E": if (S.notes.length) { S.draft = { text: S.notes.at(-1).text, edit: S.notes.length - 1 }; renderNotes(true); } break;
+    case "D": if (S.notes.length) { S.notes.pop(); renderNotes(true); } break;
+    case "Q": backToSetup(); break;
+  }
+}
+
+document.addEventListener("keydown", e => {
+  if (!S.running || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (S.draft !== null) { if (!e.target.closest?.("input")) $("draft")?.focus(); return; }
+  if (e.target.closest && e.target.closest("input")) return;
+  const m = /^Key([FLRNEDQ])$/.exec(e.code);  // the physical key, so it works with any input method on
+  if (m) { e.preventDefault(); action(m[1]); }
+});
+$("guide").addEventListener("click", e => {
+  const b = e.target.closest("button[data-key]");
+  if (b) action(b.dataset.key);
+});
+window.addEventListener("beforeunload", e => {  // nothing is saved, so ask before closing a running exam
+  if (S.running) { e.preventDefault(); e.returnValue = T().leave; }
+});
+</script>
+</body>
+</html>
