@@ -98,6 +98,7 @@ b, strong { font-weight: 600; }
 .hint.error { color: var(--red); }
 .preview { margin-top: 14px; font-size: 15px; line-height: 1.6; color: var(--dim); }
 .preview .callout { color: var(--fg); font-weight: 600; margin-bottom: 6px; }
+.preview .callrow { gap: 6px; }
 .preview ol { margin: 0; padding-left: 1.3em; }
 .preview li::marker { color: var(--faint); }
 .actions {
@@ -168,6 +169,10 @@ b, strong { font-weight: 600; }
   padding-bottom: calc(var(--row) * .75); margin-bottom: calc(var(--row) * .85); border-bottom: 1px solid var(--line);
 }
 .callout[hidden] + .rules { margin-top: calc(var(--row) * .55); }
+/* a callout is marked by an orange caution sign in front, like Apple's exclamationmark.triangle.fill */
+.callrow { display: grid; grid-template-columns: auto 1fr; gap: .32em; align-items: start; }  /* text lines up with the rules' text */
+.callrow + .callrow { margin-top: .35em; }
+.warn { width: .95em; height: .95em; margin-top: .14em; margin-top: calc((1lh - .95em) / 2); color: var(--orange); }  /* centred on the first line */
 .rules { list-style: none; margin: 0; padding: 0; display: grid; gap: calc(var(--row) * .7); }
 .rules li { display: grid; grid-template-columns: .9em 1fr; gap: .75em; align-items: baseline; }
 .rules .num { color: var(--faint); font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -375,7 +380,7 @@ const RULE_SETS = {
   },
   exam: {
     en: [
-      "! ==Do NOT submit the scratch paper (計算紙).==",
+      "! Do NOT submit the scratch paper (計算紙).",
       "Place your backpack near the stage. ::",
       "No electronic devices and no calculators. ::",
       "If you need to use the restroom :: Leave your **examination paper (including scratch paper)** and **cellphone** on the stage. If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
@@ -383,7 +388,7 @@ const RULE_SETS = {
       "^^No cheating!^^ ::",
     ],
     zh: [
-      "! ==交卷時，不要繳交計算紙！==",
+      "! 交卷時，不要繳交計算紙！",
       "請將書包放置於|講台附近。 ::",
       "不得使用任何|電子設備|（包含計算機）。 ::",
       "不得使用|自行攜帶的|計算紙。 ::",
@@ -472,6 +477,12 @@ function markup(s) {
   return out;
 }
 
+// "! text" rules: the caution sign, then the text (a triangle with a white !, drawn so it needs no icon font)
+const WARN = '<svg class="warn" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" ' +
+  'd="M10.27 3.5a2 2 0 0 1 3.46 0l8.66 15A2 2 0 0 1 20.66 21.5H3.34a2 2 0 0 1-1.73-3z"/>' +
+  '<path d="M12 9.2v4.9" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.3" fill="#fff"/></svg>';
+const callrow = text => `<div class="callrow">${WARN}<span>${markup(text)}</span></div>`;
+
 function parseRules(list) {
   const callouts = [], items = [];
   for (const r of list) {
@@ -519,7 +530,7 @@ function renderForm() {
   setSeg($("rulesSeg"), S.ruleset);
   const { callouts, items } = parseRules(RULE_SETS[S.ruleset][S.lang]);
   $("preview").innerHTML =
-    callouts.map(c => `<div class="callout">${markup(c)}</div>`).join("") +
+    callouts.map(c => `<div class="callout">${callrow(c)}</div>`).join("") +
     `<ol>${items.map(it => `<li>${it.head ? `<b>${markup(it.head)}</b> ` : ""}${markup(it.body)}</li>`).join("")}</ol>`;
   checkTimes(false);
 }
@@ -674,7 +685,7 @@ function renderStatic() {
 
   const { callouts, items } = parseRules(RULE_SETS[S.ruleset][S.lang]);
   $("rtitle").textContent = t.title[S.ruleset];
-  $("callout").innerHTML = callouts.map(markup).join("<br>");
+  $("callout").innerHTML = callouts.map(callrow).join("");
   $("callout").hidden = !callouts.length;
   $("rules").innerHTML = items.map((it, i) =>
     `<li><span class="num">${i + 1}</span><div>${it.head ? `<div class="head">${markup(it.head)}</div>` : ""}` +
