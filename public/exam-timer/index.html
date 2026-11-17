@@ -17,6 +17,7 @@
   --hl: #ffe066;  /* highlighter yellow: light enough to read through, strong enough for a projector */
   --orange: #ff9500; --red: #ff3b30; --on-orange: #1d1d1f; --on-red: #ffffff;
   --accent: #0071e3;
+  --alert: #d70015;  /* ^^…^^: a deep red that stays readable as text */
   --band: #1d1d1f; --on-band: #f5f5f7; --band-dim: #a1a1a6;  /* key guide: a dark strip, so "not full screen" is obvious */
   --ease: cubic-bezier(.22, 1, .36, 1);  /* quick start, long soft landing */
   --sans: system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
@@ -31,6 +32,7 @@
   --hl: #ffd60a;
   --orange: #ff9f0a; --red: #ff453a;
   --accent: #0a84ff;
+  --alert: #ff6961;
   --band: #1c1c1e;
   color-scheme: dark;
 }
@@ -179,6 +181,8 @@ b, strong { font-weight: 600; }
 /* on dark, a see-through yellow turns olive: a solid band with dark text instead, like a real marker */
 :root[data-theme="dark"] .hl, :root[data-theme="dark"] .rules .body .hl { color: #1d1d1f; background: var(--hl); }
 :root[data-theme="dark"] .hl b { color: inherit; }
+.alert, .rules .body .alert { color: var(--alert); }  /* the gravest rule, in red */
+.alert b, .rules .body .alert b { color: inherit; }
 .nb { white-space: nowrap; }
 .notesbox { margin-top: calc(var(--row) * 1.9); }
 .notesbox .title { margin-bottom: calc(var(--row) * .5); }
@@ -353,20 +357,20 @@ b, strong { font-weight: 600; }
 "use strict";
 // ── Content ──────────────────────────────────────────────────────────────
 // Rules: "headline :: detail" (headline bold, detail under it); "! text" is a callout above the
-// numbered list; **bold**; | marks where Chinese may break.
+// numbered list; **bold**; ==highlighter==; ^^red^^ (the gravest rule); | marks where Chinese may break.
 const RULE_SETS = {
   quiz: {
     en: [
       "Remember to darken your class. ::",
       "No electronic devices and no calculators. ::",
-      "==Do NOT use your own scratch paper (計算紙).== ::",
-      "No cheating! ::",
+      "Do NOT use your own scratch paper (計算紙). ::",
+      "^^No cheating!^^ ::",
     ],
     zh: [
       "記得塗黑|班級欄位。 ::",
       "不得使用任何|電子設備|（包含計算機）。 ::",
-      "==不得使用|自行攜帶的|計算紙。== ::",
-      "嚴禁作弊。 ::",
+      "不得使用|自行攜帶的|計算紙。 ::",
+      "^^嚴禁作弊。^^ ::",
     ],
   },
   exam: {
@@ -374,17 +378,17 @@ const RULE_SETS = {
       "! ==Do NOT submit the scratch paper (計算紙).==",
       "Place your backpack near the stage. ::",
       "No electronic devices and no calculators. ::",
-      "==If you need to use the restroom== :: ==Leave your **examination paper (including scratch paper)** and **cellphone** on the stage.== If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
-      "==Do NOT use your own scratch paper.== ::",
-      "No cheating! ::",
+      "If you need to use the restroom :: Leave your **examination paper (including scratch paper)** and **cellphone** on the stage. If your cellphone is in your backpack, take it out and place it on the stage before leaving.",
+      "Do NOT use your own scratch paper. ::",
+      "^^No cheating!^^ ::",
     ],
     zh: [
       "! ==交卷時，不要繳交計算紙！==",
       "請將書包放置於|講台附近。 ::",
       "不得使用任何|電子設備|（包含計算機）。 ::",
-      "==不得使用|自行攜帶的|計算紙。== ::",
-      "==如考試期間|需要上廁所== :: ==請先將**考卷（包含計算紙）**及**手機**|放置於講台上。==|若手機放在書包內，|也請先取出並|放置於講台上，|再離開教室。",
-      "嚴禁作弊。 ::",
+      "不得使用|自行攜帶的|計算紙。 ::",
+      "如考試期間|需要上廁所 :: 請先將**考卷（包含計算紙）**及**手機**|放置於講台上。|若手機放在書包內，|也請先取出並|放置於講台上，|再離開教室。",
+      "^^嚴禁作弊。^^ ::",
     ],
   },
 };
@@ -445,14 +449,14 @@ const T = () => TEXT[S.lang];
 const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // "**bold**" and "|" break hints → HTML. With hints, each piece between | stays on one line.
-const TAGS = { "**": ["<b>", "</b>"], "==": ['<span class="hl">', "</span>"] };  // ==…== is a highlighter mark
+const TAGS = { "**": ["<b>", "</b>"], "==": ['<span class="hl">', "</span>"], "^^": ['<span class="alert">', "</span>"] };
 function markup(s) {
   const hinted = s.includes("|"), open = [];
   let out = "", piece = "";
   const opens = list => list.map(k => TAGS[k][0]).join("");
   const closes = list => [...list].reverse().map(k => TAGS[k][1]).join("");
   const flush = () => { if (piece) out += hinted ? `<span class="nb">${piece}</span>` : piece; piece = ""; };
-  for (const tok of s.split(/(\*\*|==|\|)/)) {
+  for (const tok of s.split(/(\*\*|==|\^\^|\|)/)) {
     if (TAGS[tok]) {
       const i = open.indexOf(tok);
       if (i < 0) { open.push(tok); piece += TAGS[tok][0]; continue; }
