@@ -14,7 +14,7 @@
   --bg: #ffffff; --raised: #ffffff;
   --fg: #1d1d1f; --fg2: #424245; --dim: #6e6e73; --faint: #8e8e93;
   --line: rgba(29, 29, 31, .14); --track: rgba(29, 29, 31, .1); --fill: rgba(29, 29, 31, .06);
-  --hl: #b3d1ff;  /* highlighter: light enough to read through, strong enough for a projector */
+  --hl: #ffe066;  /* highlighter yellow: light enough to read through, strong enough for a projector */
   --orange: #ff9500; --red: #ff3b30; --on-orange: #1d1d1f; --on-red: #ffffff;
   --accent: #0071e3;
   --band: #1d1d1f; --on-band: #f5f5f7; --band-dim: #a1a1a6;  /* key guide: a dark strip, so "not full screen" is obvious */
@@ -28,7 +28,7 @@
   --bg: #0e0e0f; --raised: #545458;
   --fg: #f5f5f7; --fg2: #d2d2d7; --dim: #a1a1a6; --faint: #7c7c80;
   --line: rgba(255, 255, 255, .14); --track: rgba(255, 255, 255, .15); --fill: rgba(255, 255, 255, .09);
-  --hl: rgba(64, 132, 255, .45);
+  --hl: #ffd60a;
   --orange: #ff9f0a; --red: #ff453a;
   --accent: #0a84ff;
   --band: #1c1c1e;
@@ -176,6 +176,9 @@ b, strong { font-weight: 600; }
   color: var(--fg); background: linear-gradient(transparent 40%, var(--hl) 40%, var(--hl) 86%, transparent 86%);  /* lower half of the letters */
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
+/* on dark, a see-through yellow turns olive: a solid band with dark text instead, like a real marker */
+:root[data-theme="dark"] .hl, :root[data-theme="dark"] .rules .body .hl { color: #1d1d1f; background: var(--hl); }
+:root[data-theme="dark"] .hl b { color: inherit; }
 .nb { white-space: nowrap; }
 .notesbox { margin-top: calc(var(--row) * 1.9); }
 .notesbox .title { margin-bottom: calc(var(--row) * .5); }
