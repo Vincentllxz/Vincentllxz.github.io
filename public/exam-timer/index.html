@@ -10,16 +10,14 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23888' stroke-width='3'/%3E%3Cpath d='M16 9v8l5 3' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root {
-  /* Ink on paper: Apple's near-black ink and greys on an off-white sheet with a faint grain (body::after).
-     Hierarchy comes from size, weight and grey, not from boxes. */
-  --bg: #f5f2ea; --raised: #fdfcf9;
+  /* Apple's near-black ink and greys on white. Hierarchy comes from size, weight and grey, not from boxes. */
+  --bg: #ffffff; --raised: #ffffff;
   --fg: #1d1d1f; --fg2: #424245; --dim: #6e6e73; --faint: #8e8e93;
   --line: rgba(29, 29, 31, .14); --track: rgba(29, 29, 31, .1); --fill: rgba(29, 29, 31, .06);
   --hl: #b3d1ff;  /* highlighter: light enough to read through, strong enough for a projector */
   --orange: #ff9500; --red: #ff3b30; --on-orange: #1d1d1f; --on-red: #ffffff;
   --accent: #0071e3;
   --band: #1d1d1f; --on-band: #f5f5f7; --band-dim: #a1a1a6;  /* key guide: a dark strip, so "not full screen" is obvious */
-  --grain: .3;
   --ease: cubic-bezier(.22, 1, .36, 1);  /* quick start, long soft landing */
   --sans: system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
   --digits: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -34,15 +32,7 @@
   --orange: #ff9f0a; --red: #ff453a;
   --accent: #0a84ff;
   --band: #1c1c1e;
-  --grain: 0;
   color-scheme: dark;
-}
-
-/* paper grain: fine fibres + very soft unevenness, multiplied over everything; fades out in dark */
-body::after {
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; mix-blend-mode: multiply; opacity: var(--grain);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 2.4 0 0 0 -1.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.6 0 0 0 0 0.52 0 0 0 0 0.38 0.9 0 0 0 -0.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 * { box-sizing: border-box; }
