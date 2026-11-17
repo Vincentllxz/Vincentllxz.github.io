@@ -17,7 +17,7 @@
   --hl: #ffe066;  /* highlighter yellow: light enough to read through, strong enough for a projector */
   --orange: #ff9500; --red: #ff3b30; --on-orange: #1d1d1f; --on-red: #ffffff;
   --accent: #0071e3;
-  --alert: #e0182d;  /* ^^…^^: the red pen line under the gravest rule */
+  --alert: #d70015;  /* ^^…^^: a deep red that stays readable as text */
   --band: #1d1d1f; --on-band: #f5f5f7; --band-dim: #a1a1a6;  /* key guide: a dark strip, so "not full screen" is obvious */
   --ease: cubic-bezier(.22, 1, .36, 1);  /* quick start, long soft landing */
   --sans: system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
@@ -186,11 +186,9 @@ b, strong { font-weight: 600; }
 /* on dark, a see-through yellow turns olive: a solid band with dark text instead, like a real marker */
 :root[data-theme="dark"] .hl, :root[data-theme="dark"] .rules .body .hl { color: #1d1d1f; background: var(--hl); }
 :root[data-theme="dark"] .hl b { color: inherit; }
-/* the gravest rule: black text with a red pen line under it, as the teacher marked it */
-.alert, .rules .body .alert {
-  color: var(--fg); text-decoration: underline var(--alert); text-decoration-thickness: .12em;
-  text-underline-offset: .24em; text-decoration-skip-ink: none;
-}
+/* the gravest rule, in red bold as the teacher marked it */
+.alert, .rules .body .alert { color: var(--alert); font-weight: 700; }
+.alert b, .rules .body .alert b { color: inherit; }
 .nb { white-space: nowrap; }
 .notesbox { margin-top: calc(var(--row) * 1.9); }
 .notesbox .title { margin-bottom: calc(var(--row) * .5); }
@@ -365,7 +363,7 @@ b, strong { font-weight: 600; }
 "use strict";
 // ── Content ──────────────────────────────────────────────────────────────
 // Rules: "headline :: detail" (headline bold, detail under it); "! text" is a callout above the
-// numbered list; **bold**; ==highlighter==; ^^red underline^^ (the gravest rule); | marks where Chinese may break.
+// numbered list; **bold**; ==highlighter==; ^^red bold^^ (the gravest rule); | marks where Chinese may break.
 const RULE_SETS = {
   quiz: {
     en: [
